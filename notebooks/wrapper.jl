@@ -42,7 +42,7 @@ htl_js(x) = HypertextLiteral.JavaScript(x)
 
 # ╔═╡ e9d43bc6-390e-43c3-becb-d1584202da41
 # This is only used to simplify debugging the plotly internal functions using the developer console
-const LOAD_MINIFIED = Ref(false)
+const LOAD_MINIFIED = Ref(true)
 
 # ╔═╡ fa975cb6-4ec1-419a-bcd6-527c0762a533
 md"""
