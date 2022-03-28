@@ -29,6 +29,10 @@ TableOfContents()
 # ╔═╡ 0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
 htl_js(x) = HypertextLiteral.JavaScript(x)
 
+# ╔═╡ e9d43bc6-390e-43c3-becb-d1584202da41
+# This is only used to simplify debugging the plotly internal functions using the developer console
+const LOAD_MINIFIED = Ref(false)
+
 # ╔═╡ fa975cb6-4ec1-419a-bcd6-527c0762a533
 md"""
 # Plot Wrapper
@@ -103,9 +107,9 @@ let
 	dio
 	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
 	p.plotly_listeners["plotly_relayout"] = htl_js("""
-	(e) => {
+	function(e) {
     
-    
+    	//debugger
 		console.log(e)
 	
 }
@@ -217,10 +221,10 @@ Eventually set the flag to force mathjax svg output in pluto to be locally cache
 
 This is used to make mathjax in recent plolty versions (>2.10) work as expected. The default `global` caching in Pluto creates problems with the math display.
 """
-pluto_mathjax_local() = FORCE_MATHJAX_LOCAL[]
+force_pluto_mathjax_local() = FORCE_MATHJAX_LOCAL[]
 
 # ╔═╡ 997f1421-b2f7-40c2-bc5b-f8a21cb4b04a
-pluto_mathjax_local(flag::Bool) = FORCE_MATHJAX_LOCAL[] = flag
+force_pluto_mathjax_local(flag::Bool) = FORCE_MATHJAX_LOCAL[] = flag
 
 # ╔═╡ b3e547e3-a367-4414-a60f-ab1c984bc85a
 md"""
@@ -296,11 +300,17 @@ end
 # ╔═╡ f9d1e69f-7a07-486d-b43a-334c1c77790a
 function _show(pp::PlutoPlot, script_id = "pluto-plotly-div")
 ver = htl_js(PLOTLY_VERSION[])
+suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
 @htl """
 	<script id=$(script_id)>
 		// Load the plotly library
 		if (!window.Plotly) {
-			const {plotly} = await import("https://cdn.plot.ly/plotly-$(ver).min.js")
+			const {plotly} = await import('https://cdn.plot.ly/plotly-$(ver).$(suffix)')
+		}
+
+		// Check if we have to force local mathjax font cache
+		if ($(FORCE_MATHJAX_LOCAL[]) && window?.MathJax?.config?.svg?.fontCache === 'global') {
+			window.MathJax.config.svg.fontCache = 'local'
 		}
 
 		// Flag to check if this cell was  manually ran or reactively ran
@@ -351,9 +361,10 @@ let
 	p.plotly_listeners["plotly_relayout"] = htl_js("""
 	(e) => {
 
-	console.log('this: ',this)
+	console.log(e)
     
-    var eye = e['scene.camera']?.eye;
+    /*
+	var eye = e['scene.camera']?.eye;
 
     if (eye) {
 		console.log('update: ', eye);
@@ -362,6 +373,7 @@ let
 	}
 	//console.log('div: ',PLOT._fullLayout.scene.camera.eye)
    	console.log('plot_obj: ',plot_obj.layout.scene?.camera?.eye)
+	*/
 }
 	""")
 	_show(p)
@@ -677,6 +689,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═fc52e423-1370-4ca9-95dc-090815278a4a
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
 # ╠═0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
+# ╠═e9d43bc6-390e-43c3-becb-d1584202da41
 # ╟─fa975cb6-4ec1-419a-bcd6-527c0762a533
 # ╟─8b57581f-65b3-4edf-abe3-9dfa4ed82ed5
 # ╠═0f088a21-7d5f-43f7-b99f-688338b61dc6
