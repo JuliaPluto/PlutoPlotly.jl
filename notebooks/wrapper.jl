@@ -26,6 +26,14 @@ using PlutoUI
 # ╔═╡ 7bd46437-8af0-4a15-87e9-1508869e1600
 TableOfContents()
 
+# ╔═╡ 4a18fa5d-7c73-468b-bed2-3acff51e3981
+publish_to_js = if (isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module)
+	PlutoRunner.publish_to_js
+else
+	@warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly"
+	x -> x
+end
+
 # ╔═╡ 0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
 htl_js(x) = HypertextLiteral.JavaScript(x)
 
@@ -225,19 +233,6 @@ force_pluto_mathjax_local() = FORCE_MATHJAX_LOCAL[]
 
 # ╔═╡ 997f1421-b2f7-40c2-bc5b-f8a21cb4b04a
 force_pluto_mathjax_local(flag::Bool) = FORCE_MATHJAX_LOCAL[] = flag
-
-# ╔═╡ b3e547e3-a367-4414-a60f-ab1c984bc85a
-md"""
-## `publish_to_js`
-"""
-
-# ╔═╡ db1382ea-5d67-4d86-8352-503ab8c2f239
-publish_to_js = if (isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module)
-	PlutoRunner.publish_to_js
-else
-	@warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly"
-	x -> x
-end
 
 # ╔═╡ e6b52b32-def4-4d71-80ca-e43530b1e704
 md"""
