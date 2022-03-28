@@ -20,6 +20,9 @@ begin
 	using HypertextLiteral
 end
 
+# ╔═╡ 810fb486-10b5-460f-a25a-1a7c9d84e256
+using LaTeXStrings
+
 # ╔═╡ fc52e423-1370-4ca9-95dc-090815278a4a
 using PlutoUI
 
@@ -294,6 +297,10 @@ function _preprocess(pp::PlutoPlot)
     out
 end
 
+# ╔═╡ b8e1b177-6686-4b58-8c4c-991d9c148520
+# Escape latexstrings
+_preprocess(s::LaTeXString) = s.s
+
 # ╔═╡ f9d1e69f-7a07-486d-b43a-334c1c77790a
 function _show(pp::PlutoPlot, script_id = "pluto-plotly-div")
 ver = htl_js(PLOTLY_VERSION[])
@@ -411,11 +418,13 @@ end
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
 HypertextLiteral = "~0.9.3"
+LaTeXStrings = "~1.3.0"
 PlotlyBase = "~0.8.18"
 PlutoUI = "~0.7.37"
 """
@@ -683,8 +692,10 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╠═7b8a4360-aaa4-11ec-2efc-b1778f6d3a8c
+# ╠═810fb486-10b5-460f-a25a-1a7c9d84e256
 # ╠═fc52e423-1370-4ca9-95dc-090815278a4a
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
+# ╠═4a18fa5d-7c73-468b-bed2-3acff51e3981
 # ╠═0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
 # ╠═e9d43bc6-390e-43c3-becb-d1584202da41
 # ╟─fa975cb6-4ec1-419a-bcd6-527c0762a533
@@ -716,14 +727,13 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═4b1688b2-677e-41be-9446-e395925a7311
 # ╠═49cf85b1-bf09-49de-8468-4e240dc621fa
 # ╠═997f1421-b2f7-40c2-bc5b-f8a21cb4b04a
-# ╟─b3e547e3-a367-4414-a60f-ab1c984bc85a
-# ╠═db1382ea-5d67-4d86-8352-503ab8c2f239
 # ╟─e6b52b32-def4-4d71-80ca-e43530b1e704
 # ╟─77fe2c5d-f3dd-4779-92a4-e0ceadb639a9
 # ╠═bc727ded-8675-420d-806e-0b49357118e5
 # ╠═f9c0a331-1f1c-4648-9c24-5e9e16d6be18
 # ╠═b0d77b4f-da8f-4a0b-a244-043b2e3bdfae
 # ╠═64ce91b4-aaa3-45ec-b4d6-f24457167667
+# ╠═b8e1b177-6686-4b58-8c4c-991d9c148520
 # ╟─4e296bdd-cbd4-4d43-a769-0b4a80d7dec9
 # ╠═628c6e1f-03eb-43a2-8092-a2f61cf6bcbd
 # ╠═ebcc9c42-9928-4a20-a307-02ee6ef726d0
