@@ -33,7 +33,7 @@ TableOfContents()
 publish_to_js = if (isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module)
 	PlutoRunner.publish_to_js
 else
-	@warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly"
+	# @warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly"
 	x -> x
 end
 
