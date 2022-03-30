@@ -249,6 +249,10 @@ md"""
 This function is basically `_json_lower` from PlotlyBase, but we do it directly on the PlutoPlot to avoid the modifying the behavior of `_json_lower` for `Plot` objects (which is required to modify how matrices are passed to `publish_to_js`)
 """
 
+# ╔═╡ 2380a265-700d-4fed-a52e-f6fa1ce41391
+# Defaults to JSON.lower for generic non-overloaded types
+_preprocess(x) = PlotlyBase.JSON.lower
+
 # ╔═╡ bc727ded-8675-420d-806e-0b49357118e5
 begin
 	_preprocess(x::Union{Bool,String,Number,Nothing,Missing}) = x
