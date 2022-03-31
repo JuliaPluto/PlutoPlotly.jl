@@ -41,6 +41,12 @@ else
 end
 
 # ╔═╡ 0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
+"""
+	htl_js(x)
+Simple convenience constructor for `HypertextLiteral.JavaScript` objects, renamed and re-exported from HypertextLiteral for convenience in case HypertextLiteral is not explicitly loaded alongisde PlutoPlotly.
+
+See also: [`add_plotly_listeners!`](@ref)
+"""
 htl_js(x) = HypertextLiteral.JavaScript(x)
 
 # ╔═╡ e9d43bc6-390e-43c3-becb-d1584202da41
@@ -62,7 +68,7 @@ begin
 	const JS = HypertextLiteral.JavaScript
 Base.@kwdef struct PlutoPlot
 	Plot::PlotlyBase.Plot
-	plotly_listeners::Dict{String, Any} = Dict{String, Any}()
+	plotly_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
 end
 PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
 end
@@ -75,6 +81,42 @@ else
 	show(io, MIME"text/plain",s)
 end
 end
+
+# ╔═╡ 4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
+md"""
+## Add plotly listeners
+"""
+
+# ╔═╡ de2a547b-3ccd-4f56-96c0-81a7d9b2d272
+"""
+	add_plotly_listener!(p::PlutoPlot, event_name::String, listener::HypertextLiteral.JavaScript)
+	add_plotly_listener!(p::PlutoPlot, event_name::String, listener::String)
+
+Add a custom *javascript* `listener` (to be provided as `String` or directly as `HypertextLiteral.JavaScript`) to the `PlutoPlot` object `p`, and associated to the [plotly event](https://plotly.com/javascript/plotlyjs-events/) specified by `event_name`.
+
+See also: [`htl_js`](@ref)
+
+# Examples:
+```julia
+p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
+add_plotly_listener!(p, "plotly_relayout", htl_js(\"\"\"
+function(e) {
+
+console.log('listener 1')
+
+}
+\"\"\"
+```
+"""
+function add_plotly_listener!(p::PlutoPlot, event_name::String, listener::JS)
+	ldict = p.plotly_listeners
+	listeners_array = get!(ldict, event_name, JS[])
+	push!(listeners_array, listener)
+end
+
+# ╔═╡ 35e643ab-e3ea-427b-85f2-685b6b6103b8
+add_plotly_listener!(p::PlutoPlot, event_name, listener::String) = add_plotly_listener!(p, event_name, hlt_js(listener))
+
 # ╔═╡ 8a047414-cd5d-4491-a143-eb30578928ce
 md"""
 # Show Method
@@ -108,14 +150,14 @@ pp = Plot(scatter3d(x = rand(N), y = rand(N), z = rand(N), mode="markers"), Layo
 # ╔═╡ 18c80ea2-0df4-40ea-bd87-f8fee463161e
 @bind asdasd let
 	p = PlutoPlot(Plot(rand(10)))
-	p.plotly_listeners["plotly_click"] = htl_js("""
+	add_plotly_listener!(p,"plotly_click", htl_js("""
 	(e) => {
     
     let dt = e.points[0]
 	PLOT.value = [dt.x, dt.y]
 	PLOT.dispatchEvent(new CustomEvent("input"))
 }
-	""")
+	"""))
 	p
 end
 
@@ -129,15 +171,42 @@ dio = 1
 let
 	dio
 	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
-	p.plotly_listeners["plotly_relayout"] = htl_js("""
-	function(e) {
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+function(e) {
     
-    	//debugger
-		console.log(e)
+	console.log('listener 1')
 	
 }
-	""")
+	"""))
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+function(e) {
+    
+	console.log('listener 2')
+	
+}
+	"""))
 	@htl "$p"
+end
+
+# ╔═╡ e9fc2030-c2f0-48e9-a807-424039e796b2
+let
+	dio
+	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+function(e) {
+    
+	console.log('listener 1')
+	
+}
+	"""))
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+function(e) {
+    
+	console.log('listener 2')
+	
+}
+	"""))
+	p.plotly_listeners
 end
 
 # ╔═╡ a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
@@ -359,8 +428,10 @@ suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
 	
 		Plotly.react(PLOT, plot_obj).then(() => {
 			// Assign the Plotly event listeners
-			for (const [key, value] of Object.entries(plotly_listeners)) {
-			    PLOT.on(key, value)
+			for (const [key, listener_vec] of Object.entries(plotly_listeners)) {
+				for (const listener of listener_vec) {
+				    PLOT.on(key, listener)
+				}
 			}
 		}
 		)
@@ -378,12 +449,13 @@ end
 # ╔═╡ ccf62e33-8fcf-45d9-83ed-c7de80800b76
 let
 	p = PlutoPlot(pp)
-	p.plotly_listeners["plotly_relayout"] = htl_js("""
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
 	(e) => {
 
 	console.log(e)
+	//console.log(PLOT._fullLayout._preGUI)
     
-    /*
+    
 	var eye = e['scene.camera']?.eye;
 
     if (eye) {
@@ -391,11 +463,11 @@ let
 	} else {
 		console.log(e)
 	}
-	//console.log('div: ',PLOT._fullLayout.scene.camera.eye)
+	console.log('div: ',PLOT._fullLayout.scene.camera.eye)
    	console.log('plot_obj: ',plot_obj.layout.scene?.camera?.eye)
-	*/
+	
 }
-	""")
+	"""))
 	_show(p)
 end
 
@@ -433,12 +505,14 @@ end
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+AbstractPlutoDingetjes = "6e696c72-6542-2067-7265-42206c756150"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
+AbstractPlutoDingetjes = "~1.1.4"
 HypertextLiteral = "~0.9.3"
 LaTeXStrings = "~1.3.0"
 PlotlyBase = "~0.8.18"
@@ -709,6 +783,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╔═╡ Cell order:
 # ╠═7b8a4360-aaa4-11ec-2efc-b1778f6d3a8c
 # ╠═810fb486-10b5-460f-a25a-1a7c9d84e256
+# ╠═676d318f-b4a4-4949-a5db-1c3a5fd9fa68
 # ╠═fc52e423-1370-4ca9-95dc-090815278a4a
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
 # ╠═4a18fa5d-7c73-468b-bed2-3acff51e3981
@@ -717,6 +792,10 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─fa975cb6-4ec1-419a-bcd6-527c0762a533
 # ╟─8b57581f-65b3-4edf-abe3-9dfa4ed82ed5
 # ╠═0f088a21-7d5f-43f7-b99f-688338b61dc6
+# ╠═90fd960f-65b3-4d8c-b8a8-42d3be8c770f
+# ╠═4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
+# ╠═de2a547b-3ccd-4f56-96c0-81a7d9b2d272
+# ╠═35e643ab-e3ea-427b-85f2-685b6b6103b8
 # ╟─8a047414-cd5d-4491-a143-eb30578928ce
 # ╠═f9d1e69f-7a07-486d-b43a-334c1c77790a
 # ╠═d42d4694-e05d-4e0e-a198-79a3a5cb688a
@@ -729,6 +808,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
 # ╠═f12362b8-af8d-4bfa-8671-68d184ef7e50
 # ╠═c3b1a198-ef19-4a54-9c32-d9ea32a63812
+# ╠═e9fc2030-c2f0-48e9-a807-424039e796b2
 # ╠═a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
 # ╠═6e12592d-01fe-455a-a19c-7544258b9791
 # ╠═36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf
@@ -745,6 +825,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═997f1421-b2f7-40c2-bc5b-f8a21cb4b04a
 # ╟─e6b52b32-def4-4d71-80ca-e43530b1e704
 # ╟─77fe2c5d-f3dd-4779-92a4-e0ceadb639a9
+# ╠═2380a265-700d-4fed-a52e-f6fa1ce41391
 # ╠═bc727ded-8675-420d-806e-0b49357118e5
 # ╠═f9c0a331-1f1c-4648-9c24-5e9e16d6be18
 # ╠═b0d77b4f-da8f-4a0b-a244-043b2e3bdfae
