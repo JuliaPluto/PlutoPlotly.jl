@@ -69,6 +69,7 @@ begin
 Base.@kwdef struct PlutoPlot
 	Plot::PlotlyBase.Plot
 	plotly_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
+	classList::Vector{String} = String[]
 end
 PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
 end
@@ -114,10 +115,62 @@ function add_plotly_listener!(p::PlutoPlot, event_name::String, listener::JS)
 	ldict = p.plotly_listeners
 	listeners_array = get!(ldict, event_name, JS[])
 	push!(listeners_array, listener)
-end
+	return p
+end;
 
 # ╔═╡ 35e643ab-e3ea-427b-85f2-685b6b6103b8
 add_plotly_listener!(p::PlutoPlot, event_name, listener::String) = add_plotly_listener!(p, event_name, hlt_js(listener))
+
+# ╔═╡ 0215aea2-eb79-449e-8dee-a32ca3c5d5f9
+md"""
+## add_class!
+"""
+
+# ╔═╡ 4c6a1004-52ca-40c1-915a-081c0a3c5fbf
+"""
+	add_class!(p::PlutoPlot, className::String)
+
+Add a CSS class with name `className` to the list of custom classes that are added to the PLOT div when displayed inside Pluto. This can be used to give custom CSS styles to certain plots.
+
+See also: [`remove_class!`](@ref)
+"""
+function add_class!(p::PlutoPlot, className::String)
+	cl = p.classList
+	if className ∉ cl
+		push!(cl, className)
+	end
+	return p
+end
+
+# ╔═╡ 87af8c6f-3d6d-44c6-87bb-588e01829339
+md"""
+## remove_class!
+"""
+
+# ╔═╡ 50077612-a858-48a0-a187-a9de1489f34f
+"""
+	remove_class!(p::PlutoPlot, className::String)
+
+Remove a CSS class with name `className` (if present) from the list of custom classes that are added to the PLOT div when displayed inside Pluto. This can be used to give custom CSS styles to certain plots.
+
+See also: [`add_class!`](@ref)
+"""
+function remove_class!(p::PlutoPlot, className::String)
+	cl = p.classList
+	idx = findfirst(x -> x === className, cl)
+	if idx !== nothing
+		deleteat!(cl, idx)
+	end
+	return p
+end
+
+# ╔═╡ 49fe75d5-844d-46d5-a251-7023706a7f92
+let
+	p = PlutoPlot(Plot())
+	add_class!(p, "lol")
+	remove_class!(p, "lola")
+	p.classList
+end
 
 # ╔═╡ 8a047414-cd5d-4491-a143-eb30578928ce
 md"""
@@ -127,130 +180,6 @@ md"""
 # ╔═╡ a46aa0fc-df08-4567-b8f2-9ee923bb486d
 # We need to do this in the Pluto notebook because the cell re-ordering puts the `show` method overload at the bottom of the notebook, after the first call to `@htl`, creating a method of `HypertextLiteral.content` (https://github.dev/JuliaPluto/HypertextLiteral.jl/blob/7bbabcc99f77725946af7eddfb9d0c746b70f8f4/src/convert.jl#L87-L100) that creates problem when showing nested `@htl` calls.
 HypertextLiteral.content(p::PlutoPlot) = HypertextLiteral.Render(p)
-
-# ╔═╡ acba5003-a456-4c1a-a53f-71a3bec30251
-md"""
-## Tests
-"""
-
-# ╔═╡ dd23fe10-a8d5-461a-85a8-e03468cdcd97
-N = 10
-
-# ╔═╡ 8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
-pp = Plot(scatter3d(x = rand(N), y = rand(N), z = rand(N), mode="markers"), Layout(
-	uirevision = 1,
-	scene = attr(
-		xaxis_range = [-1,2],
-		yaxis_range = [-1,2],
-		zaxis_range = [-1,2],
-		aspectmode = "cube",
-	),
-	# height = 350
-	# autosize = true,
-));
-
-# ╔═╡ 18c80ea2-0df4-40ea-bd87-f8fee463161e
-@bind asdasd let
-	p = PlutoPlot(Plot(rand(10)))
-	add_plotly_listener!(p,"plotly_click", htl_js("""
-	(e) => {
-    
-    let dt = e.points[0]
-	PLOT.value = [dt.x, dt.y]
-	PLOT.dispatchEvent(new CustomEvent("input"))
-}
-	"""))
-	p
-end
-
-# ╔═╡ ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
-asdasd
-
-# ╔═╡ f12362b8-af8d-4bfa-8671-68d184ef7e50
-dio = 1
-
-# ╔═╡ c3b1a198-ef19-4a54-9c32-d9ea32a63812
-let
-	dio
-	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
-function(e) {
-    
-	console.log('listener 1')
-	
-}
-	"""))
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
-function(e) {
-    
-	console.log('listener 2')
-	
-}
-	"""))
-	@htl "$p"
-end
-
-# ╔═╡ e9fc2030-c2f0-48e9-a807-424039e796b2
-let
-	dio
-	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
-function(e) {
-    
-	console.log('listener 1')
-	
-}
-	"""))
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
-function(e) {
-    
-	console.log('listener 2')
-	
-}
-	"""))
-	p.plotly_listeners
-end
-
-# ╔═╡ a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
-@htl """
-<div style='height: 400px; display: flex'>
-$(Plot(rand(10)) |> PlutoPlot)
-
-$(Plot(rand(10)) |> PlutoPlot)
-</div>
-"""
-
-# ╔═╡ 6e12592d-01fe-455a-a19c-7544258b9791
-voila = 1
-
-# ╔═╡ 36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf
-let
-	voila
-	@htl """
-<div style='height: 550px; display: flex; flex-direction: column;'>
-<div style='display: flex; flex: 1 1 0'>
-$(Plot(rand(10), Layout(uirevision = 1)) |> PlutoPlot)
-
-$(Plot(rand(10)) |> PlutoPlot)
-</div>
-<div style='display: flex; flex: 1 1 0'>
-$(Plot(rand(10)) |> PlutoPlot)
-
-$(Plot(rand(10)) |> PlutoPlot)
-</div>
-</div>
-"""
-end
-
-# ╔═╡ 8b1ab8a6-d2a7-4a15-9690-d83ebaed5c19
-html"""
-<style>
-	.js-plotly-plot {
-		flex-grow: 1;
-		flex-shrink: 1;
-	}
-</style>
-"""
 
 # ╔═╡ 16f4b455-086b-4a8b-8767-26fb00a77aad
 md"""
@@ -422,6 +351,17 @@ suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
 		PLOT.style.height = plot_obj.layout.height ? "" :
 			(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
 
+		// Deal with eventual custom classes
+		let custom_classlist = $(pp.classList)
+		PLOT.classList.forEach(cn => {
+			if (cn !== 'js-plotly-plot' && !custom_classlist.includes(cn)) {
+				PLOT.classList.toggle(cn, false)
+			}
+		})
+		for (const className of custom_classlist) {
+			PLOT.classList.toggle(className, true)
+		}
+
 		// Create the resizeObserver to make the plot even more responsive! :magic:
 		const resizeObserver = new ResizeObserver(entries => {
 			/* 
@@ -452,31 +392,6 @@ suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
 		return PLOT
 	</script>
 """
-end
-
-# ╔═╡ ccf62e33-8fcf-45d9-83ed-c7de80800b76
-let
-	p = PlutoPlot(pp)
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
-	(e) => {
-
-	console.log(e)
-	//console.log(PLOT._fullLayout._preGUI)
-    
-    
-	var eye = e['scene.camera']?.eye;
-
-    if (eye) {
-		console.log('update: ', eye);
-	} else {
-		console.log(e)
-	}
-	console.log('div: ',PLOT._fullLayout.scene.camera.eye)
-   	console.log('plot_obj: ',plot_obj.layout.scene?.camera?.eye)
-	
-}
-	"""))
-	_show(p)
 end
 
 # ╔═╡ 4e296bdd-cbd4-4d43-a769-0b4a80d7dec9
@@ -510,6 +425,200 @@ function Base.show(io::IO, mime::MIME"text/html", plt::PlutoPlot)
 	# show(io, mime, _show(plt))
 end
 
+# ╔═╡ acba5003-a456-4c1a-a53f-71a3bec30251
+md"""
+# Tests
+"""
+
+# ╔═╡ 0c30855c-6542-4b1a-9427-3a8427e75210
+## Slider + UIRevision
+
+# ╔═╡ dd23fe10-a8d5-461a-85a8-e03468cdcd97
+@bind N Slider(50:50:250)
+
+# ╔═╡ 8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
+pp = Plot(scatter3d(x = rand(N), y = rand(N), z = rand(N), mode="markers"), Layout(
+	uirevision = 1,
+	scene = attr(
+		xaxis_range = [-1,2],
+		yaxis_range = [-1,2],
+		zaxis_range = [-1,2],
+		aspectmode = "cube",
+	),
+	# height = 350
+	# autosize = true,
+));
+
+# ╔═╡ ccf62e33-8fcf-45d9-83ed-c7de80800b76
+let
+	p = PlutoPlot(pp)
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+	(e) => {
+
+	console.log(e)
+	//console.log(PLOT._fullLayout._preGUI)
+    
+    
+	var eye = e['scene.camera']?.eye;
+
+    if (eye) {
+		console.log('update: ', eye);
+	} else {
+		console.log(e)
+	}
+	console.log('div: ',PLOT._fullLayout.scene.camera.eye)
+   	console.log('plot_obj: ',plot_obj.layout.scene?.camera?.eye)
+	
+}
+	"""))
+	_show(p)
+end
+
+# ╔═╡ 1460ece1-7828-4e93-ac37-e979b874b492
+md"""
+## @bind
+"""
+
+# ╔═╡ 18c80ea2-0df4-40ea-bd87-f8fee463161e
+@bind asdasd let
+	p = PlutoPlot(Plot(rand(10)))
+	add_plotly_listener!(p,"plotly_click", htl_js("""
+	(e) => {
+    
+    let dt = e.points[0]
+	PLOT.value = [dt.x, dt.y]
+	PLOT.dispatchEvent(new CustomEvent("input"))
+}
+	"""))
+	p
+end
+
+# ╔═╡ ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
+asdasd
+
+# ╔═╡ f8f7b530-1ded-4ce0-a7d9-a8c92afb95c7
+md"""
+## Multiple Listeners
+"""
+
+# ╔═╡ c3b1a198-ef19-4a54-9c32-d9ea32a63812
+let
+	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+function(e) {
+    
+	console.log('listener 1')
+	
+}
+	"""))
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+function(e) {
+    
+	console.log('listener 2')
+	
+}
+	"""))
+	@htl "$p"
+end
+
+# ╔═╡ e9fc2030-c2f0-48e9-a807-424039e796b2
+let
+	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+function(e) {
+    
+	console.log('listener 1')
+	
+}
+	"""))
+	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+function(e) {
+    
+	console.log('listener 2')
+	
+}
+	"""))
+	p.plotly_listeners
+end
+
+# ╔═╡ 6128ff76-3f1f-4144-bb3d-f44678210013
+md"""
+## flexbox
+"""
+
+# ╔═╡ a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
+@htl """
+<div style='height: 400px; display: flex'>
+$(Plot(rand(10)) |> PlutoPlot)
+
+$(Plot(rand(10)) |> PlutoPlot)
+</div>
+"""
+
+# ╔═╡ aaf0fe61-d5e6-4d93-8a22-7f97f1249b35
+md"""
+## flexbox + uirevision
+"""
+
+# ╔═╡ 6e12592d-01fe-455a-a19c-7544258b9791
+voila = 1
+
+# ╔═╡ 36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf
+let
+	voila
+	@htl """
+<div style='height: 550px; display: flex; flex-direction: column;'>
+<div style='display: flex; flex: 1 1 0'>
+$(Plot(rand(10), Layout(uirevision = 1)) |> PlutoPlot)
+
+$(Plot(rand(10)) |> PlutoPlot)
+</div>
+<div style='display: flex; flex: 1 1 0'>
+$(Plot(rand(10)) |> PlutoPlot)
+
+$(Plot(rand(10)) |> PlutoPlot)
+</div>
+</div>
+"""
+end
+
+# ╔═╡ 8b1ab8a6-d2a7-4a15-9690-d83ebaed5c19
+html"""
+<style>
+	.js-plotly-plot {
+		flex-grow: 1;
+		flex-shrink: 1;
+	}
+</style>
+"""
+
+# ╔═╡ 38a81414-0bcd-4d71-af1d-fe154d2ae09a
+md"""
+## custom class
+"""
+
+# ╔═╡ 2dd5534f-ce46-4770-b0f3-6e16005b3a90
+cl = ["test_css_class", "lol"]
+
+# ╔═╡ f69c6955-800c-461e-b464-cab4989913f6
+let
+	p = PlutoPlot(Plot(rand(10)))
+	for cn ∈ cl
+		add_class!(p, cn)
+	end
+	p
+end
+
+# ╔═╡ bfe5f717-4702-4316-808a-726fefef9e7e
+html"""
+<style>
+	.test_css_class {
+		border: 2px;
+		border-style: solid;
+	}
+</style>
+"""
+
 # ╔═╡ 2fa13939-eba2-4d25-b461-56be79fc1db6
 md"""
 # Re-execute errored cells
@@ -523,16 +632,16 @@ To do this, we put at the bottom of the notebook a javascript function that re-e
 """
 
 # ╔═╡ 9f2c0123-7e1a-43b7-861a-d059bb28f776
-@htl """
-<script>
-const jlerrors = document.querySelectorAll('jlerror')
-for (const err of jlerrors) {
-	const cell = err.closest('pluto-cell')
-	const runbut = cell.querySelector('button.runcell')
-	runbut.click()
-}
-</script>
-"""
+# @htl """
+# <script>
+# const jlerrors = document.querySelectorAll('jlerror')
+# for (const err of jlerrors) {
+# 	const cell = err.closest('pluto-cell')
+# 	const runbut = cell.querySelector('button.runcell')
+# 	runbut.click()
+# }
+# </script>
+# """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -825,26 +934,18 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─8b57581f-65b3-4edf-abe3-9dfa4ed82ed5
 # ╠═0f088a21-7d5f-43f7-b99f-688338b61dc6
 # ╠═90fd960f-65b3-4d8c-b8a8-42d3be8c770f
-# ╠═4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
+# ╟─4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
 # ╠═de2a547b-3ccd-4f56-96c0-81a7d9b2d272
 # ╠═35e643ab-e3ea-427b-85f2-685b6b6103b8
+# ╟─0215aea2-eb79-449e-8dee-a32ca3c5d5f9
+# ╠═4c6a1004-52ca-40c1-915a-081c0a3c5fbf
+# ╟─87af8c6f-3d6d-44c6-87bb-588e01829339
+# ╠═50077612-a858-48a0-a187-a9de1489f34f
+# ╠═49fe75d5-844d-46d5-a251-7023706a7f92
 # ╟─8a047414-cd5d-4491-a143-eb30578928ce
 # ╠═f9d1e69f-7a07-486d-b43a-334c1c77790a
 # ╠═d42d4694-e05d-4e0e-a198-79a3a5cb688a
 # ╠═a46aa0fc-df08-4567-b8f2-9ee923bb486d
-# ╟─acba5003-a456-4c1a-a53f-71a3bec30251
-# ╠═dd23fe10-a8d5-461a-85a8-e03468cdcd97
-# ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
-# ╠═ccf62e33-8fcf-45d9-83ed-c7de80800b76
-# ╠═18c80ea2-0df4-40ea-bd87-f8fee463161e
-# ╠═ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
-# ╠═f12362b8-af8d-4bfa-8671-68d184ef7e50
-# ╠═c3b1a198-ef19-4a54-9c32-d9ea32a63812
-# ╠═e9fc2030-c2f0-48e9-a807-424039e796b2
-# ╠═a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
-# ╠═6e12592d-01fe-455a-a19c-7544258b9791
-# ╠═36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf
-# ╠═8b1ab8a6-d2a7-4a15-9690-d83ebaed5c19
 # ╟─16f4b455-086b-4a8b-8767-26fb00a77aad
 # ╟─907d51fd-9aaf-43d0-a83b-879cae330a0b
 # ╠═10da78b9-9a67-4cd8-9453-c01ea4baabeb
@@ -866,6 +967,27 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─4e296bdd-cbd4-4d43-a769-0b4a80d7dec9
 # ╠═628c6e1f-03eb-43a2-8092-a2f61cf6bcbd
 # ╠═ebcc9c42-9928-4a20-a307-02ee6ef726d0
+# ╟─acba5003-a456-4c1a-a53f-71a3bec30251
+# ╠═0c30855c-6542-4b1a-9427-3a8427e75210
+# ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
+# ╠═dd23fe10-a8d5-461a-85a8-e03468cdcd97
+# ╠═ccf62e33-8fcf-45d9-83ed-c7de80800b76
+# ╟─1460ece1-7828-4e93-ac37-e979b874b492
+# ╠═18c80ea2-0df4-40ea-bd87-f8fee463161e
+# ╠═ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
+# ╠═f8f7b530-1ded-4ce0-a7d9-a8c92afb95c7
+# ╠═c3b1a198-ef19-4a54-9c32-d9ea32a63812
+# ╠═e9fc2030-c2f0-48e9-a807-424039e796b2
+# ╟─6128ff76-3f1f-4144-bb3d-f44678210013
+# ╠═a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
+# ╟─aaf0fe61-d5e6-4d93-8a22-7f97f1249b35
+# ╠═6e12592d-01fe-455a-a19c-7544258b9791
+# ╠═36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf
+# ╠═8b1ab8a6-d2a7-4a15-9690-d83ebaed5c19
+# ╟─38a81414-0bcd-4d71-af1d-fe154d2ae09a
+# ╠═2dd5534f-ce46-4770-b0f3-6e16005b3a90
+# ╠═f69c6955-800c-461e-b464-cab4989913f6
+# ╠═bfe5f717-4702-4316-808a-726fefef9e7e
 # ╟─2fa13939-eba2-4d25-b461-56be79fc1db6
 # ╟─5a324fba-1033-4dcf-b10c-1fa4f231355c
 # ╠═9f2c0123-7e1a-43b7-861a-d059bb28f776
