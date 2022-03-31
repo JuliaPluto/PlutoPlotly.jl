@@ -502,6 +502,30 @@ function Base.show(io::IO, mime::MIME"text/html", plt::PlutoPlot)
 	# show(io, mime, _show(plt))
 end
 
+# ╔═╡ 2fa13939-eba2-4d25-b461-56be79fc1db6
+md"""
+# Re-execute errored cells
+"""
+
+# ╔═╡ 5a324fba-1033-4dcf-b10c-1fa4f231355c
+md"""
+Since we have functions defined at the bottom of the notebook, when first opening the notebook some of the tests above will error and would need to be re-executed after all the function definitions are loaded. 
+
+To do this, we put at the bottom of the notebook a javascript function that re-executes all the errored cells
+"""
+
+# ╔═╡ 9f2c0123-7e1a-43b7-861a-d059bb28f776
+@htl """
+<script>
+const jlerrors = document.querySelectorAll('jlerror')
+for (const err of jlerrors) {
+	const cell = err.closest('pluto-cell')
+	const runbut = cell.querySelector('button.runcell')
+	runbut.click()
+}
+</script>
+"""
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -834,5 +858,8 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─4e296bdd-cbd4-4d43-a769-0b4a80d7dec9
 # ╠═628c6e1f-03eb-43a2-8092-a2f61cf6bcbd
 # ╠═ebcc9c42-9928-4a20-a307-02ee6ef726d0
+# ╟─2fa13939-eba2-4d25-b461-56be79fc1db6
+# ╟─5a324fba-1033-4dcf-b10c-1fa4f231355c
+# ╠═9f2c0123-7e1a-43b7-861a-d059bb28f776
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
