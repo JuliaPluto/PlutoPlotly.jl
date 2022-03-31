@@ -49,6 +49,15 @@ See also: [`add_plotly_listeners!`](@ref)
 """
 htl_js(x) = HypertextLiteral.JavaScript(x)
 
+# ╔═╡ 90fd960f-65b3-4d8c-b8a8-42d3be8c770f
+function Base.show(io::IO, mime::MIME"text/html", s::HypertextLiteral.JavaScript)
+if is_inside_pluto()
+	show(io, mime, Markdown.MD(Markdown.Code("js",s.content)))
+else
+	show(io, MIME"text/plain",s)
+end
+end
+
 # ╔═╡ e9d43bc6-390e-43c3-becb-d1584202da41
 # This is only used to simplify debugging (by setting this to false) the plotly internal functions using the developer console
 const LOAD_MINIFIED = Ref(true)
@@ -63,24 +72,42 @@ md"""
 We define a wrapper around the PlotlyBase.Plot object
 """
 
+# ╔═╡ 03bf1bc5-37a9-4b02-bff7-f8b42500c4fc
+const JS = HypertextLiteral.JavaScript
+
 # ╔═╡ 0f088a21-7d5f-43f7-b99f-688338b61dc6
 begin
-	const JS = HypertextLiteral.JavaScript
+"""
+	PlutoPlot(p::Plot; kwargs...)
+
+A wrapper around `PlotlyBase.Plot` to provide optimized visualization within Pluto notebooks exploiting `@htl` from HypertextLiteral.
+
+# Fields
+- `Plot::PlotlyBase.Plot`
+- `plotly_listeners::Dict{String, Vector{HypertextLitera.JavaScript}}`
+- `classList::Vector{String}`
+
+Once the wrapper has been created, the underlying `Plot` object can be accessed from the `Plot` field of the `PlutoPlot` object.
+
+Custom listeners to [plotly events](https://plotly.com/javascript/plotlyjs-events/) can be added to the `PlutoPlot` as *javascript* functions using the [`add_plotly_listener!`](@ref) function.
+
+Multiple listeners can be associated to each event, and they are executed in the order they are added.
+
+A list of custom CSS classes can be added to the PlutoPlot by using the [`add_class!`](@ref) and [`remove_class!`](@ref) functions.
+
+# Examples
+```julia
+p = PlutoPlot(Plot(rand(10)))
+add_plotly_listener!(p, "plotly_click", "e => console.log(e)")
+add_class!(p, "custom_class")
+```
+"""
 Base.@kwdef struct PlutoPlot
 	Plot::PlotlyBase.Plot
 	plotly_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
 	classList::Vector{String} = String[]
 end
 PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
-end
-
-# ╔═╡ 90fd960f-65b3-4d8c-b8a8-42d3be8c770f
-function Base.show(io::IO, mime::MIME"text/html", s::HypertextLiteral.JavaScript)
-if is_inside_pluto()
-	show(io, mime, Markdown.MD(Markdown.Code("js",s.content)))
-else
-	show(io, MIME"text/plain",s)
-end
 end
 
 # ╔═╡ 4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
@@ -431,7 +458,9 @@ md"""
 """
 
 # ╔═╡ 0c30855c-6542-4b1a-9427-3a8427e75210
+md"""
 ## Slider + UIRevision
+"""
 
 # ╔═╡ dd23fe10-a8d5-461a-85a8-e03468cdcd97
 @bind N Slider(50:50:250)
@@ -929,11 +958,12 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
 # ╠═4a18fa5d-7c73-468b-bed2-3acff51e3981
 # ╠═0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
+# ╠═90fd960f-65b3-4d8c-b8a8-42d3be8c770f
 # ╠═e9d43bc6-390e-43c3-becb-d1584202da41
 # ╟─fa975cb6-4ec1-419a-bcd6-527c0762a533
 # ╟─8b57581f-65b3-4edf-abe3-9dfa4ed82ed5
+# ╠═03bf1bc5-37a9-4b02-bff7-f8b42500c4fc
 # ╠═0f088a21-7d5f-43f7-b99f-688338b61dc6
-# ╠═90fd960f-65b3-4d8c-b8a8-42d3be8c770f
 # ╟─4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
 # ╠═de2a547b-3ccd-4f56-96c0-81a7d9b2d272
 # ╠═35e643ab-e3ea-427b-85f2-685b6b6103b8
@@ -968,7 +998,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═628c6e1f-03eb-43a2-8092-a2f61cf6bcbd
 # ╠═ebcc9c42-9928-4a20-a307-02ee6ef726d0
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251
-# ╠═0c30855c-6542-4b1a-9427-3a8427e75210
+# ╟─0c30855c-6542-4b1a-9427-3a8427e75210
 # ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
 # ╠═dd23fe10-a8d5-461a-85a8-e03468cdcd97
 # ╠═ccf62e33-8fcf-45d9-83ed-c7de80800b76
