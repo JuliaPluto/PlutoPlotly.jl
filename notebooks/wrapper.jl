@@ -119,7 +119,7 @@ function add_plotly_listener!(p::PlutoPlot, event_name::String, listener::JS)
 end;
 
 # ╔═╡ 35e643ab-e3ea-427b-85f2-685b6b6103b8
-add_plotly_listener!(p::PlutoPlot, event_name, listener::String) = add_plotly_listener!(p, event_name, hlt_js(listener))
+add_plotly_listener!(p::PlutoPlot, event_name, listener::String) = add_plotly_listener!(p, event_name, htl_js(listener))
 
 # ╔═╡ 0215aea2-eb79-449e-8dee-a32ca3c5d5f9
 md"""
