@@ -94,6 +94,8 @@ md"""
 
 Add a custom *javascript* `listener` (to be provided as `String` or directly as `HypertextLiteral.JavaScript`) to the `PlutoPlot` object `p`, and associated to the [plotly event](https://plotly.com/javascript/plotlyjs-events/) specified by `event_name`.
 
+The listeners are added to the HTML plot div after rendering. The div where the plot is inserted can be accessed using the variable named `PLOT` inside the listener code.
+
 See also: [`htl_js`](@ref)
 
 # Examples:
@@ -102,7 +104,7 @@ p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
 add_plotly_listener!(p, "plotly_relayout", htl_js(\"\"\"
 function(e) {
 
-console.log('listener 1')
+console.log(PLOT) // logs the plot div inside the developer console
 
 }
 \"\"\"
