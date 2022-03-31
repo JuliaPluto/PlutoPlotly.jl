@@ -218,9 +218,6 @@ $(Plot(rand(10)) |> PlutoPlot)
 
 $(Plot(rand(10)) |> PlutoPlot)
 </div>
-<script>
-window.dispatchEvent(new Event('resize'))
-</script>
 """
 
 # ╔═╡ 6e12592d-01fe-455a-a19c-7544258b9791
@@ -247,9 +244,6 @@ end
 
 # ╔═╡ 8b1ab8a6-d2a7-4a15-9690-d83ebaed5c19
 html"""
-<script>
-window.dispatchEvent(new Event('resize'))
-</script>
 <style>
 	.js-plotly-plot {
 		flex-grow: 1;
@@ -427,6 +421,17 @@ suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
 		// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
 		PLOT.style.height = plot_obj.layout.height ? "" :
 			(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
+
+		// Create the resizeObserver to make the plot even more responsive! :magic:
+		const resizeObserver = new ResizeObserver(entries => {
+			/* 
+			The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 
+			See https://github.com/plotly/plotly.js/issues/6156 for details
+			*/
+			Plotly.relayout(PLOT, {autosize: true, plutoresize: true})
+		})
+
+		resizeObserver.observe(PLOT)
 	
 		Plotly.react(PLOT, plot_obj).then(() => {
 			// Assign the Plotly event listeners
@@ -441,6 +446,7 @@ suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
 		invalidation.then(() => {
 			// Remove all listeners
 			PLOT.removeAllListeners()
+			resizeObserver.disconnect()
 		})
 
 		return PLOT
