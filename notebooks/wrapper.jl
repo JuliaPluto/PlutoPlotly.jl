@@ -23,6 +23,9 @@ end
 # ╔═╡ 810fb486-10b5-460f-a25a-1a7c9d84e256
 using LaTeXStrings
 
+# ╔═╡ 676d318f-b4a4-4949-a5db-1c3a5fd9fa68
+using AbstractPlutoDingetjes
+
 # ╔═╡ fc52e423-1370-4ca9-95dc-090815278a4a
 using PlutoUI
 
@@ -30,7 +33,7 @@ using PlutoUI
 TableOfContents()
 
 # ╔═╡ 4a18fa5d-7c73-468b-bed2-3acff51e3981
-publish_to_js = if (isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module)
+publish_to_js = if is_inside_pluto()
 	PlutoRunner.publish_to_js
 else
 	# @warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly"
@@ -41,7 +44,7 @@ end
 htl_js(x) = HypertextLiteral.JavaScript(x)
 
 # ╔═╡ e9d43bc6-390e-43c3-becb-d1584202da41
-# This is only used to simplify debugging the plotly internal functions using the developer console
+# This is only used to simplify debugging (by setting this to false) the plotly internal functions using the developer console
 const LOAD_MINIFIED = Ref(true)
 
 # ╔═╡ fa975cb6-4ec1-419a-bcd6-527c0762a533
@@ -56,6 +59,7 @@ We define a wrapper around the PlotlyBase.Plot object
 
 # ╔═╡ 0f088a21-7d5f-43f7-b99f-688338b61dc6
 begin
+	const JS = HypertextLiteral.JavaScript
 Base.@kwdef struct PlutoPlot
 	Plot::PlotlyBase.Plot
 	plotly_listeners::Dict{String, Any} = Dict{String, Any}()
@@ -63,6 +67,14 @@ end
 PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
 end
 
+# ╔═╡ 90fd960f-65b3-4d8c-b8a8-42d3be8c770f
+function Base.show(io::IO, mime::MIME"text/html", s::HypertextLiteral.JavaScript)
+if is_inside_pluto()
+	show(io, mime, Markdown.MD(Markdown.Code("js",s.content)))
+else
+	show(io, MIME"text/plain",s)
+end
+end
 # ╔═╡ 8a047414-cd5d-4491-a143-eb30578928ce
 md"""
 # Show Method
