@@ -204,10 +204,6 @@ md"""
 # Show Method
 """
 
-# ╔═╡ a46aa0fc-df08-4567-b8f2-9ee923bb486d
-# We need to do this in the Pluto notebook because the cell re-ordering puts the `show` method overload at the bottom of the notebook, after the first call to `@htl`, creating a method of `HypertextLiteral.content` (https://github.dev/JuliaPluto/HypertextLiteral.jl/blob/7bbabcc99f77725946af7eddfb9d0c746b70f8f4/src/convert.jl#L87-L100) that creates problem when showing nested `@htl` calls.
-HypertextLiteral.content(p::PlutoPlot) = HypertextLiteral.Render(p)
-
 # ╔═╡ 16f4b455-086b-4a8b-8767-26fb00a77aad
 md"""
 # Utility Functions
