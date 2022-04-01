@@ -501,25 +501,61 @@ end
 
 # ╔═╡ 1460ece1-7828-4e93-ac37-e979b874b492
 md"""
-## @bind
+## @bind click
 """
 
 # ╔═╡ 18c80ea2-0df4-40ea-bd87-f8fee463161e
 @bind asdasd let
-	p = PlutoPlot(Plot(rand(10)))
-	add_plotly_listener!(p,"plotly_click", htl_js("""
+	p = PlutoPlot(Plot(scatter(y = rand(10), name = "test", showlegend=true)))
+	add_plotly_listener!(p,"plotly_click", "
 	(e) => {
-    
+
+	console.log(e)
     let dt = e.points[0]
 	PLOT.value = [dt.x, dt.y]
-	PLOT.dispatchEvent(new CustomEvent("input"))
+	PLOT.dispatchEvent(new CustomEvent('input'))
 }
-	"""))
+	")
 	p
 end
 
 # ╔═╡ ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
 asdasd
+
+# ╔═╡ c3e29c94-941d-4a52-a358-c4ffbfc8cab8
+md"""
+## @bind filtering
+"""
+
+# ╔═╡ b0473b9a-2db5-4d03-8344-b8eaf8428d6c
+points = [(rand(),rand()) for _ in 1:10000]
+
+# ╔═╡ 73945da3-af45-41fb-9c5d-6fbba6362256
+@bind limits let
+	p = Plot(
+		scatter(x = first.(points), y = last.(points), mode = "markers")
+	)|> PlutoPlot
+	add_plotly_listener!(p, "plotly_relayout", "
+	e => {
+	//console.log(e)
+	let layout = PLOT.layout
+	let asd = {xaxis: layout.xaxis.range, yaxis: layout.yaxis.range}
+	PLOT.value = asd
+	PLOT.dispatchEvent(new CustomEvent('input'))
+	}
+	")
+end
+
+# ╔═╡ ea9faecf-ecd7-483b-99ad-ede08ba05383
+visible_points = let
+	xrange = limits["xaxis"]
+	yrange = limits["yaxis"]
+	func(x,y) = x >= xrange[1] && x <= xrange[2] && y >= yrange[1] && y <= yrange[2]
+	filter(x -> func(x...), points)
+end
+
+# ╔═╡ 684ef6d7-c1ae-4af3-b1bd-f54bc29d7b53
+length(visible_points)
 
 # ╔═╡ f8f7b530-1ded-4ce0-a7d9-a8c92afb95c7
 md"""
@@ -657,6 +693,8 @@ To do this, we put at the bottom of the notebook a javascript function that re-e
 """
 
 # ╔═╡ 9f2c0123-7e1a-43b7-861a-d059bb28f776
+# # Not really needed anymore after putting the tests at the bottom
+
 # @htl """
 # <script>
 # const jlerrors = document.querySelectorAll('jlerror')
@@ -971,7 +1009,6 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─8a047414-cd5d-4491-a143-eb30578928ce
 # ╠═f9d1e69f-7a07-486d-b43a-334c1c77790a
 # ╠═d42d4694-e05d-4e0e-a198-79a3a5cb688a
-# ╠═a46aa0fc-df08-4567-b8f2-9ee923bb486d
 # ╟─16f4b455-086b-4a8b-8767-26fb00a77aad
 # ╟─907d51fd-9aaf-43d0-a83b-879cae330a0b
 # ╠═10da78b9-9a67-4cd8-9453-c01ea4baabeb
@@ -998,9 +1035,14 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
 # ╠═dd23fe10-a8d5-461a-85a8-e03468cdcd97
 # ╠═ccf62e33-8fcf-45d9-83ed-c7de80800b76
-# ╟─1460ece1-7828-4e93-ac37-e979b874b492
+# ╠═1460ece1-7828-4e93-ac37-e979b874b492
 # ╠═18c80ea2-0df4-40ea-bd87-f8fee463161e
 # ╠═ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
+# ╟─c3e29c94-941d-4a52-a358-c4ffbfc8cab8
+# ╠═b0473b9a-2db5-4d03-8344-b8eaf8428d6c
+# ╠═73945da3-af45-41fb-9c5d-6fbba6362256
+# ╠═684ef6d7-c1ae-4af3-b1bd-f54bc29d7b53
+# ╠═ea9faecf-ecd7-483b-99ad-ede08ba05383
 # ╠═f8f7b530-1ded-4ce0-a7d9-a8c92afb95c7
 # ╠═c3b1a198-ef19-4a54-9c32-d9ea32a63812
 # ╠═e9fc2030-c2f0-48e9-a807-424039e796b2
