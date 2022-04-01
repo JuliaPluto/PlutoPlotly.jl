@@ -18,6 +18,7 @@ The custom show method relies on the [`Plotly.react`](https://plotly.com/javascr
 
 One advantage of using `react` as opposed to `newPlot` from the Plotly library is that one can have the layout (e.g. zoom level, camera view angle, etc...) persist across reactive re-runs by exploiting the [`uirevision`](https://plotly.com/javascript/uirevision/) attribute of Plotly layouts:
 
+https://user-images.githubusercontent.com/12846528/161222951-bbe65007-334c-45aa-b44a-aa3ef548f01a.mp4
 
 ## Return values to Julia using @bind
 
@@ -25,6 +26,10 @@ The possibility of attaching event listeners to the plotly events allows to crea
 
 ### Coordinates of the clicked point
 
-### Filtering of visible points in the plot
+https://user-images.githubusercontent.com/12846528/161222881-4e9aeed6-bcb2-495b-8f19-eadca62b33da.mp4
+
+### Filtering only visible points in the plot
+
+https://user-images.githubusercontent.com/12846528/161222655-c07e4ea2-5965-4aac-beb3-4ff42cdcffe4.mp4
 
 View [the wrapper notebook](./notebooks/wrapper.jl) for more details and examples.
