@@ -199,6 +199,23 @@ let
 	p.classList
 end
 
+# ╔═╡ 73290c37-481a-4f7d-a92d-038766702890
+md"""
+# plot Method
+"""
+
+# ╔═╡ c3fcc72a-389c-456a-aba5-cbfb4a798c9e
+function plot(args...;kwargs...) 
+	@nospecialize
+	PlutoPlot(Plot(args...;kwargs...))
+end
+
+# ╔═╡ f6a63433-553c-4857-b767-33465eb22934
+plot(rand(10,4))
+
+# ╔═╡ 18e74f8f-39b6-4c8f-a06f-214d4e9dc6fb
+plot(scatter(x = 1:10, y = rand(10)), Layout(title = "TITLE", template = "none"))
+
 # ╔═╡ 8a047414-cd5d-4491-a143-eb30578928ce
 md"""
 # Show Method
