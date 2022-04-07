@@ -565,10 +565,14 @@ end
 
 # ╔═╡ ea9faecf-ecd7-483b-99ad-ede08ba05383
 visible_points = let
+	if ismissing(limits)
+		points
+	else
 	xrange = limits["xaxis"]
 	yrange = limits["yaxis"]
 	func(x,y) = x >= xrange[1] && x <= xrange[2] && y >= yrange[1] && y <= yrange[2]
 	filter(x -> func(x...), points)
+	end
 end
 
 # ╔═╡ 684ef6d7-c1ae-4af3-b1bd-f54bc29d7b53
