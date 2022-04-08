@@ -62,169 +62,36 @@ end
 # This is only used to simplify debugging (by setting this to false) the plotly internal functions using the developer console
 const LOAD_MINIFIED = Ref(true)
 
-# ╔═╡ fa975cb6-4ec1-419a-bcd6-527c0762a533
+# ╔═╡ 16f4b455-086b-4a8b-8767-26fb00a77aad
 md"""
-# Plot Wrapper
-"""
-
-# ╔═╡ 8b57581f-65b3-4edf-abe3-9dfa4ed82ed5
-md"""
-We define a wrapper around the PlotlyBase.Plot object
+# Utility Functions
 """
 
 # ╔═╡ 03bf1bc5-37a9-4b02-bff7-f8b42500c4fc
 const JS = HypertextLiteral.JavaScript
 
-# ╔═╡ 0f088a21-7d5f-43f7-b99f-688338b61dc6
-begin
-"""
-	PlutoPlot(p::Plot; kwargs...)
-
-A wrapper around `PlotlyBase.Plot` to provide optimized visualization within Pluto notebooks exploiting `@htl` from HypertextLiteral.
-
-# Fields
-- `Plot::PlotlyBase.Plot`
-- `plotly_listeners::Dict{String, Vector{HypertextLitera.JavaScript}}`
-- `classList::Vector{String}`
-
-Once the wrapper has been created, the underlying `Plot` object can be accessed from the `Plot` field of the `PlutoPlot` object.
-
-Custom listeners to [plotly events](https://plotly.com/javascript/plotlyjs-events/) can be added to the `PlutoPlot` as *javascript* functions using the [`add_plotly_listener!`](@ref) function.
-
-Multiple listeners can be associated to each event, and they are executed in the order they are added.
-
-A list of custom CSS classes can be added to the PlutoPlot by using the [`add_class!`](@ref) and [`remove_class!`](@ref) functions.
-
-# Examples
-```julia
-p = PlutoPlot(Plot(rand(10)))
-add_plotly_listener!(p, "plotly_click", "e => console.log(e)")
-add_class!(p, "custom_class")
-```
-"""
-Base.@kwdef struct PlutoPlot
-	Plot::PlotlyBase.Plot
-	plotly_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
-	classList::Vector{String} = String[]
-end
-PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
-end
-
-# ╔═╡ 4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
+# ╔═╡ 6a4a5cc2-dca5-4f5d-a7e2-9b1f2fbaa406
 md"""
-## Add plotly listeners
+## ScriptContents struct
 """
 
-# ╔═╡ de2a547b-3ccd-4f56-96c0-81a7d9b2d272
-"""
-	add_plotly_listener!(p::PlutoPlot, event_name::String, listener::HypertextLiteral.JavaScript)
-	add_plotly_listener!(p::PlutoPlot, event_name::String, listener::String)
-
-Add a custom *javascript* `listener` (to be provided as `String` or directly as `HypertextLiteral.JavaScript`) to the `PlutoPlot` object `p`, and associated to the [plotly event](https://plotly.com/javascript/plotlyjs-events/) specified by `event_name`.
-
-The listeners are added to the HTML plot div after rendering. The div where the plot is inserted can be accessed using the variable named `PLOT` inside the listener code.
-
-See also: [`htl_js`](@ref)
-
-# Examples:
-```julia
-p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
-add_plotly_listener!(p, "plotly_relayout", htl_js(\"\"\"
-function(e) {
-
-console.log(PLOT) // logs the plot div inside the developer console
-
-}
-\"\"\"
-```
-"""
-function add_plotly_listener!(p::PlutoPlot, event_name::String, listener::JS)
-	ldict = p.plotly_listeners
-	listeners_array = get!(ldict, event_name, JS[])
-	push!(listeners_array, listener)
-	return p
-end;
-
-# ╔═╡ 35e643ab-e3ea-427b-85f2-685b6b6103b8
-add_plotly_listener!(p::PlutoPlot, event_name, listener::String) = add_plotly_listener!(p, event_name, htl_js(listener))
-
-# ╔═╡ 0215aea2-eb79-449e-8dee-a32ca3c5d5f9
-md"""
-## add_class!
-"""
-
-# ╔═╡ 4c6a1004-52ca-40c1-915a-081c0a3c5fbf
-"""
-	add_class!(p::PlutoPlot, className::String)
-
-Add a CSS class with name `className` to the list of custom classes that are added to the PLOT div when displayed inside Pluto. This can be used to give custom CSS styles to certain plots.
-
-See also: [`remove_class!`](@ref)
-"""
-function add_class!(p::PlutoPlot, className::String)
-	cl = p.classList
-	if className ∉ cl
-		push!(cl, className)
-	end
-	return p
+# ╔═╡ 441b20b3-ef9a-4d8a-a6b0-6b6be151a3dd
+struct ScriptContents
+	vec::Vector{JS}
 end
 
-# ╔═╡ 87af8c6f-3d6d-44c6-87bb-588e01829339
-md"""
-## remove_class!
-"""
-
-# ╔═╡ 50077612-a858-48a0-a187-a9de1489f34f
-"""
-	remove_class!(p::PlutoPlot, className::String)
-
-Remove a CSS class with name `className` (if present) from the list of custom classes that are added to the PLOT div when displayed inside Pluto. This can be used to give custom CSS styles to certain plots.
-
-See also: [`add_class!`](@ref)
-"""
-function remove_class!(p::PlutoPlot, className::String)
-	cl = p.classList
-	idx = findfirst(x -> x === className, cl)
-	if idx !== nothing
-		deleteat!(cl, idx)
-	end
-	return p
-end
-
-# ╔═╡ 49fe75d5-844d-46d5-a251-7023706a7f92
-let
-	p = PlutoPlot(Plot())
-	add_class!(p, "lol")
-	remove_class!(p, "lola")
-	p.classList
-end
-
-# ╔═╡ 73290c37-481a-4f7d-a92d-038766702890
-md"""
-# plot Method
-"""
-
-# ╔═╡ c3fcc72a-389c-456a-aba5-cbfb4a798c9e
-function plot(args...;kwargs...) 
+# ╔═╡ 23d4a0c0-9f8c-46db-ac4d-d88af58ac9c1
+function Base.push!(collection::ScriptContents, items...)
 	@nospecialize
-	PlutoPlot(Plot(args...;kwargs...))
+	push!(collection.vec, items...)
 end
 
-# ╔═╡ f6a63433-553c-4857-b767-33465eb22934
-plot(rand(10,4))
-
-# ╔═╡ 18e74f8f-39b6-4c8f-a06f-214d4e9dc6fb
-plot(scatter(x = 1:10, y = rand(10)), Layout(title = "TITLE", template = "none"))
-
-# ╔═╡ 8a047414-cd5d-4491-a143-eb30578928ce
-md"""
-# Show Method
-"""
-
-# ╔═╡ 16f4b455-086b-4a8b-8767-26fb00a77aad
-md"""
-# Utility Functions
-"""
+# ╔═╡ 271fd3a7-8347-407d-92d0-2d49758cb3f1
+function HypertextLiteral.print_script(io::IO, value::ScriptContents)
+	for el ∈ value.vec
+		print(io, el.content, '\n')
+	end
+end
 
 # ╔═╡ 907d51fd-9aaf-43d0-a83b-879cae330a0b
 md"""
@@ -331,108 +198,9 @@ function _preprocess(pc::PlotlyBase.PlotConfig)
     out
 end
 
-# ╔═╡ 64ce91b4-aaa3-45ec-b4d6-f24457167667
-function _preprocess(pp::PlutoPlot)
-	p = pp.Plot
-    out = Dict(
-        :data => _preprocess(p.data),
-        :layout => _preprocess(p.layout),
-        :frames => _preprocess(p.frames),
-        :config => _preprocess(p.config)
-    )
-
-    if templates.default !== "none" && PlotlyBase._isempty(get(out[:layout], :template, Dict()))
-        out[:layout][:template] = _preprocess(templates[templates.default])
-    end
-    out
-end
-
 # ╔═╡ b8e1b177-6686-4b58-8c4c-991d9c148520
 # Escape latexstrings
 _preprocess(s::LaTeXString) = s.s
-
-# ╔═╡ f9d1e69f-7a07-486d-b43a-334c1c77790a
-function _show(pp::PlutoPlot, script_id = "pluto-plotly-div")
-ver = htl_js(PLOTLY_VERSION[])
-suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
-@htl """
-	<script id=$(script_id)>
-		// Load the plotly library
-		if (!window.Plotly) {
-			const {plotly} = await import('https://cdn.plot.ly/plotly-$(ver).$(suffix)')
-		}
-
-		// Check if we have to force local mathjax font cache
-		if ($(FORCE_MATHJAX_LOCAL[]) && window?.MathJax?.config?.svg?.fontCache === 'global') {
-			window.MathJax.config.svg.fontCache = 'local'
-		}
-
-		// Flag to check if this cell was  manually ran or reactively ran
-		const firstRun = this ? false : true
-		const PLOT = this ?? document.createElement("div");
-		const parent = currentScript.parentElement
-		const isPlutoWrapper = parent.classList.contains('raw-html-wrapper')
-
-		// Publish the plot object to JS
-		let plot_obj = $(publish_to_js(_preprocess(pp)))
-
-		if (firstRun) {
-			// It seem plot divs would not autosize themself inside flexbox containers without this
-  			parent.appendChild(PLOT)
-		}
-
-		// Get the listeners
-		const plotly_listeners = $(pp.plotly_listeners)
-
-		// If width is not specified, set it to 100%
-		PLOT.style.width = plot_obj.layout.width ? "" : "100%"
-		
-		// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
-		PLOT.style.height = plot_obj.layout.height ? "" :
-			(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
-
-		// Deal with eventual custom classes
-		let custom_classlist = $(pp.classList)
-		PLOT.classList.forEach(cn => {
-			if (cn !== 'js-plotly-plot' && !custom_classlist.includes(cn)) {
-				PLOT.classList.toggle(cn, false)
-			}
-		})
-		for (const className of custom_classlist) {
-			PLOT.classList.toggle(className, true)
-		}
-
-		// Create the resizeObserver to make the plot even more responsive! :magic:
-		const resizeObserver = new ResizeObserver(entries => {
-			/* 
-			The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 
-			See https://github.com/plotly/plotly.js/issues/6156 for details
-			*/
-			Plotly.relayout(PLOT, {autosize: true, plutoresize: true})
-		})
-
-		resizeObserver.observe(PLOT)
-	
-		Plotly.react(PLOT, plot_obj).then(() => {
-			// Assign the Plotly event listeners
-			for (const [key, listener_vec] of Object.entries(plotly_listeners)) {
-				for (const listener of listener_vec) {
-				    PLOT.on(key, listener)
-				}
-			}
-		}
-		)
-
-		invalidation.then(() => {
-			// Remove all listeners
-			PLOT.removeAllListeners()
-			resizeObserver.disconnect()
-		})
-
-		return PLOT
-	</script>
-"""
-end
 
 # ╔═╡ 4e296bdd-cbd4-4d43-a769-0b4a80d7dec9
 md"""
@@ -459,6 +227,296 @@ function plotly_script_id(io::IO)
 	return "plot_$counter"
 end
 
+# ╔═╡ fa975cb6-4ec1-419a-bcd6-527c0762a533
+md"""
+# Plot Wrapper
+"""
+
+# ╔═╡ 8b57581f-65b3-4edf-abe3-9dfa4ed82ed5
+md"""
+We define a wrapper around the PlotlyBase.Plot object
+"""
+
+# ╔═╡ f5491a94-5ea8-4459-b6ee-5d37f2ba6188
+md"""
+## Default script contents
+"""
+
+# ╔═╡ 92f5a728-6c57-47b7-9929-e2e19f91da2f
+const _default_script_contents = htl_js.([
+	"""
+	// Flag to check if this cell was  manually ran or reactively ran
+	const firstRun = this ? false : true
+	const PLOT = this ?? document.createElement("div");
+	const parent = currentScript.parentElement
+	const isPlutoWrapper = parent.classList.contains('raw-html-wrapper')
+	""",
+	"""
+	if (firstRun) {
+		// It seem plot divs would not autosize themself inside flexbox containers without this
+		parent.appendChild(PLOT)
+	}
+	""",
+	"""
+	// If width is not specified, set it to 100%
+	PLOT.style.width = plot_obj.layout.width ? "" : "100%"
+	
+	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
+	PLOT.style.height = plot_obj.layout.height ? "" :
+		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
+	""",
+	"""
+
+
+	PLOT.classList.forEach(cn => {
+		if (cn !== 'js-plotly-plot' && !custom_classlist.includes(cn)) {
+			PLOT.classList.toggle(cn, false)
+		}
+	})
+	for (const className of custom_classlist) {
+		PLOT.classList.toggle(className, true)
+	}
+	""",
+	"""
+
+	// Create the resizeObserver to make the plot even more responsive! :magic:
+	const resizeObserver = new ResizeObserver(entries => {
+		/* 
+		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 
+		See https://github.com/plotly/plotly.js/issues/6156 for details
+		*/
+		Plotly.relayout(PLOT, {autosize: true, plutoresize: true})
+	})
+
+	resizeObserver.observe(PLOT)
+	""",
+	"""
+
+	Plotly.react(PLOT, plot_obj).then(() => {
+		// Assign the Plotly event listeners
+		for (const [key, listener_vec] of Object.entries(plotly_listeners)) {
+			for (const listener of listener_vec) {
+				PLOT.on(key, listener)
+			}
+		}
+	}
+	)
+	""",
+	"""
+
+	invalidation.then(() => {
+		// Remove all listeners
+		PLOT.removeAllListeners()
+		resizeObserver.disconnect()
+	})
+	""",
+])
+
+# ╔═╡ 656e982b-d805-4a75-b3e6-53a4444e5374
+md"""
+## Struct definition
+"""
+
+# ╔═╡ 0f088a21-7d5f-43f7-b99f-688338b61dc6
+begin
+"""
+	PlutoPlot(p::Plot; kwargs...)
+
+A wrapper around `PlotlyBase.Plot` to provide optimized visualization within Pluto notebooks exploiting `@htl` from HypertextLiteral.
+
+# Fields
+- `Plot::PlotlyBase.Plot`
+- `plotly_listeners::Dict{String, Vector{HypertextLitera.JavaScript}}`
+- `classList::Vector{String}`
+
+Once the wrapper has been created, the underlying `Plot` object can be accessed from the `Plot` field of the `PlutoPlot` object.
+
+Custom listeners to [plotly events](https://plotly.com/javascript/plotlyjs-events/) can be added to the `PlutoPlot` as *javascript* functions using the [`add_plotly_listener!`](@ref) function.
+
+Multiple listeners can be associated to each event, and they are executed in the order they are added.
+
+A list of custom CSS classes can be added to the PlutoPlot by using the [`add_class!`](@ref) and [`remove_class!`](@ref) functions.
+
+# Examples
+```julia
+p = PlutoPlot(Plot(rand(10)))
+add_plotly_listener!(p, "plotly_click", "e => console.log(e)")
+add_class!(p, "custom_class")
+```
+"""
+Base.@kwdef struct PlutoPlot
+	Plot::PlotlyBase.Plot
+	plotly_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
+	classList::Vector{String} = String[]
+	script_contents::ScriptContents = ScriptContents(deepcopy(_default_script_contents))
+end
+PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
+end
+
+# ╔═╡ 64ce91b4-aaa3-45ec-b4d6-f24457167667
+function _preprocess(pp::PlutoPlot)
+	p = pp.Plot
+    out = Dict(
+        :data => _preprocess(p.data),
+        :layout => _preprocess(p.layout),
+        :frames => _preprocess(p.frames),
+        :config => _preprocess(p.config)
+    )
+
+    if templates.default !== "none" && PlotlyBase._isempty(get(out[:layout], :template, Dict()))
+        out[:layout][:template] = _preprocess(templates[templates.default])
+    end
+    out
+end
+
+# ╔═╡ 4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
+md"""
+## Add plotly listeners
+"""
+
+# ╔═╡ de2a547b-3ccd-4f56-96c0-81a7d9b2d272
+"""
+	add_plotly_listener!(p::PlutoPlot, event_name::String, listener::HypertextLiteral.JavaScript)
+	add_plotly_listener!(p::PlutoPlot, event_name::String, listener::String)
+
+Add a custom *javascript* `listener` (to be provided as `String` or directly as `HypertextLiteral.JavaScript`) to the `PlutoPlot` object `p`, and associated to the [plotly event](https://plotly.com/javascript/plotlyjs-events/) specified by `event_name`.
+
+The listeners are added to the HTML plot div after rendering. The div where the plot is inserted can be accessed using the variable named `PLOT` inside the listener code.
+
+See also: [`htl_js`](@ref)
+
+# Examples:
+```julia
+p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
+add_plotly_listener!(p, "plotly_relayout", htl_js(\"\"\"
+function(e) {
+
+console.log(PLOT) // logs the plot div inside the developer console
+
+}
+\"\"\"
+```
+"""
+function add_plotly_listener!(p::PlutoPlot, event_name::String, listener::JS)
+	ldict = p.plotly_listeners
+	listeners_array = get!(ldict, event_name, JS[])
+	push!(listeners_array, listener)
+	return p
+end;
+
+# ╔═╡ 35e643ab-e3ea-427b-85f2-685b6b6103b8
+add_plotly_listener!(p::PlutoPlot, event_name, listener::String) = add_plotly_listener!(p, event_name, htl_js(listener))
+
+# ╔═╡ 0215aea2-eb79-449e-8dee-a32ca3c5d5f9
+md"""
+## add_class!
+"""
+
+# ╔═╡ 4c6a1004-52ca-40c1-915a-081c0a3c5fbf
+"""
+	add_class!(p::PlutoPlot, className::String)
+
+Add a CSS class with name `className` to the list of custom classes that are added to the PLOT div when displayed inside Pluto. This can be used to give custom CSS styles to certain plots.
+
+See also: [`remove_class!`](@ref)
+"""
+function add_class!(p::PlutoPlot, className::String)
+	cl = p.classList
+	if className ∉ cl
+		push!(cl, className)
+	end
+	return p
+end
+
+# ╔═╡ 87af8c6f-3d6d-44c6-87bb-588e01829339
+md"""
+## remove_class!
+"""
+
+# ╔═╡ 50077612-a858-48a0-a187-a9de1489f34f
+"""
+	remove_class!(p::PlutoPlot, className::String)
+
+Remove a CSS class with name `className` (if present) from the list of custom classes that are added to the PLOT div when displayed inside Pluto. This can be used to give custom CSS styles to certain plots.
+
+See also: [`add_class!`](@ref)
+"""
+function remove_class!(p::PlutoPlot, className::String)
+	cl = p.classList
+	idx = findfirst(x -> x === className, cl)
+	if idx !== nothing
+		deleteat!(cl, idx)
+	end
+	return p
+end
+
+# ╔═╡ 49fe75d5-844d-46d5-a251-7023706a7f92
+let
+	p = PlutoPlot(Plot())
+	add_class!(p, "lol")
+	remove_class!(p, "lola")
+	p.classList
+end
+
+# ╔═╡ 73290c37-481a-4f7d-a92d-038766702890
+md"""
+# plot Method
+"""
+
+# ╔═╡ c3fcc72a-389c-456a-aba5-cbfb4a798c9e
+function plot(args...;kwargs...) 
+	@nospecialize
+	PlutoPlot(Plot(args...;kwargs...))
+end
+
+# ╔═╡ f6a63433-553c-4857-b767-33465eb22934
+let
+	p = plot(rand(10,4))
+	asd = p.script_contents
+	push!(asd,htl_js("console.log('SANTA MADRE')"))
+	p
+end
+
+# ╔═╡ 18e74f8f-39b6-4c8f-a06f-214d4e9dc6fb
+plot(scatter(x = 1:10, y = rand(10)), Layout(title = "TITLE", template = "none"))
+
+# ╔═╡ 8a047414-cd5d-4491-a143-eb30578928ce
+md"""
+# Show Method
+"""
+
+# ╔═╡ f9d1e69f-7a07-486d-b43a-334c1c77790a
+function _show(pp::PlutoPlot, script_id = "pluto-plotly-div")
+ver = htl_js(PLOTLY_VERSION[])
+suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
+@htl """
+	<script id=$(script_id)>
+		// We start by putting all the variable interpolation here at the beginning
+
+		// Publish the plot object to JS
+		let plot_obj = $(publish_to_js(_preprocess(pp)))
+		// Get the listeners
+		const plotly_listeners = $(pp.plotly_listeners)
+		// Deal with eventual custom classes
+		let custom_classlist = $(pp.classList)
+
+		// Load the plotly library
+		if (!window.Plotly) {
+			const {plotly} = await import('https://cdn.plot.ly/plotly-$(ver).$(suffix)')
+		}
+
+		// Check if we have to force local mathjax font cache
+		if ($(force_pluto_mathjax_local()) && window?.MathJax?.config?.svg?.fontCache === 'global') {
+			window.MathJax.config.svg.fontCache = 'local'
+		}
+
+		$(pp.script_contents)
+
+		return PLOT
+	</script>
+"""
+end
+
 # ╔═╡ d42d4694-e05d-4e0e-a198-79a3a5cb688a
 function Base.show(io::IO, mime::MIME"text/html", plt::PlutoPlot)
 	show(io, mime, _show(plt, plotly_script_id(io)))
@@ -475,8 +533,15 @@ md"""
 ## Slider + UIRevision
 """
 
+# ╔═╡ de0cb780-ff4e-4236-89c4-4c3163337cfc
+@bind clk Clock()
+
 # ╔═╡ dd23fe10-a8d5-461a-85a8-e03468cdcd97
-@bind N Slider(50:50:250)
+# @bind N Slider(50:50:250)
+N =let 
+	clk
+	rand(50:100)
+end
 
 # ╔═╡ 8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
 pp = Plot(scatter3d(x = rand(N), y = rand(N), z = rand(N), mode="markers"), Layout(
@@ -568,10 +633,10 @@ visible_points = let
 	if ismissing(limits)
 		points
 	else
-	xrange = limits["xaxis"]
-	yrange = limits["yaxis"]
-	func(x,y) = x >= xrange[1] && x <= xrange[2] && y >= yrange[1] && y <= yrange[2]
-	filter(x -> func(x...), points)
+		xrange = limits["xaxis"]
+		yrange = limits["yaxis"]
+		func(x,y) = x >= xrange[1] && x <= xrange[2] && y >= yrange[1] && y <= yrange[2]
+		filter(x -> func(x...), points)
 	end
 end
 
@@ -700,6 +765,46 @@ html"""
 	}
 </style>
 """
+
+# ╔═╡ cb3f5ee4-5504-4337-8a8d-d45784f54c85
+md"""
+## Sphere
+"""
+
+# ╔═╡ e0271a15-08b5-470f-a2d2-6f064cd3a2b2
+function sphere(radius, origin = [0,0,0]; N = 50)
+u = range(0, 2π, N)
+v = range(0, π, N)
+x = [radius * cos(u) * sin(v) + origin[1] for u ∈ u, v ∈ v]
+y = [radius * sin(u) * sin(v) + origin[2] for u ∈ u, v ∈ v]
+z = [radius * cos(v) + origin[3] for u ∈ u, v ∈ v]
+	surface(;x,y,z)
+end
+
+# ╔═╡ cb1f840f-8d99-4076-9554-7d8ba56e9865
+@bind M Slider(0:90)
+
+# ╔═╡ 22245242-80a6-4a5b-815e-39b469002f84
+let
+	s = sphere(1)
+	r = 2
+	i = 0
+	# M = 90
+	x = [r*cosd(M)]
+	y = [r*sind(M)]
+	z = [0]
+	sat = scatter3d(;x,y,z, mode = "markers")
+	data = [s,sat]
+	plot(data, Layout(
+		uirevision = 1,
+		scene = attr(
+		xaxis_range = [-3,3],
+		yaxis_range = [-3,3],
+		zaxis_range = [-3,3],
+		aspectmode = "cube",
+	),
+	))
+end
 
 # ╔═╡ 2fa13939-eba2-4d25-b461-56be79fc1db6
 md"""
@@ -1015,22 +1120,12 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
 # ╠═90fd960f-65b3-4d8c-b8a8-42d3be8c770f
 # ╠═e9d43bc6-390e-43c3-becb-d1584202da41
-# ╟─fa975cb6-4ec1-419a-bcd6-527c0762a533
-# ╟─8b57581f-65b3-4edf-abe3-9dfa4ed82ed5
-# ╠═03bf1bc5-37a9-4b02-bff7-f8b42500c4fc
-# ╠═0f088a21-7d5f-43f7-b99f-688338b61dc6
-# ╟─4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
-# ╠═de2a547b-3ccd-4f56-96c0-81a7d9b2d272
-# ╠═35e643ab-e3ea-427b-85f2-685b6b6103b8
-# ╟─0215aea2-eb79-449e-8dee-a32ca3c5d5f9
-# ╠═4c6a1004-52ca-40c1-915a-081c0a3c5fbf
-# ╟─87af8c6f-3d6d-44c6-87bb-588e01829339
-# ╠═50077612-a858-48a0-a187-a9de1489f34f
-# ╠═49fe75d5-844d-46d5-a251-7023706a7f92
-# ╟─8a047414-cd5d-4491-a143-eb30578928ce
-# ╠═f9d1e69f-7a07-486d-b43a-334c1c77790a
-# ╠═d42d4694-e05d-4e0e-a198-79a3a5cb688a
 # ╟─16f4b455-086b-4a8b-8767-26fb00a77aad
+# ╠═03bf1bc5-37a9-4b02-bff7-f8b42500c4fc
+# ╠═6a4a5cc2-dca5-4f5d-a7e2-9b1f2fbaa406
+# ╠═441b20b3-ef9a-4d8a-a6b0-6b6be151a3dd
+# ╠═23d4a0c0-9f8c-46db-ac4d-d88af58ac9c1
+# ╠═271fd3a7-8347-407d-92d0-2d49758cb3f1
 # ╟─907d51fd-9aaf-43d0-a83b-879cae330a0b
 # ╠═10da78b9-9a67-4cd8-9453-c01ea4baabeb
 # ╠═ea88edae-c1a1-4cd3-95da-fd6d5cf337ff
@@ -1051,9 +1146,31 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─4e296bdd-cbd4-4d43-a769-0b4a80d7dec9
 # ╠═628c6e1f-03eb-43a2-8092-a2f61cf6bcbd
 # ╠═ebcc9c42-9928-4a20-a307-02ee6ef726d0
+# ╟─fa975cb6-4ec1-419a-bcd6-527c0762a533
+# ╟─8b57581f-65b3-4edf-abe3-9dfa4ed82ed5
+# ╠═f5491a94-5ea8-4459-b6ee-5d37f2ba6188
+# ╠═92f5a728-6c57-47b7-9929-e2e19f91da2f
+# ╟─656e982b-d805-4a75-b3e6-53a4444e5374
+# ╠═0f088a21-7d5f-43f7-b99f-688338b61dc6
+# ╟─4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
+# ╠═de2a547b-3ccd-4f56-96c0-81a7d9b2d272
+# ╠═35e643ab-e3ea-427b-85f2-685b6b6103b8
+# ╟─0215aea2-eb79-449e-8dee-a32ca3c5d5f9
+# ╠═4c6a1004-52ca-40c1-915a-081c0a3c5fbf
+# ╟─87af8c6f-3d6d-44c6-87bb-588e01829339
+# ╠═50077612-a858-48a0-a187-a9de1489f34f
+# ╠═49fe75d5-844d-46d5-a251-7023706a7f92
+# ╠═73290c37-481a-4f7d-a92d-038766702890
+# ╠═c3fcc72a-389c-456a-aba5-cbfb4a798c9e
+# ╠═f6a63433-553c-4857-b767-33465eb22934
+# ╠═18e74f8f-39b6-4c8f-a06f-214d4e9dc6fb
+# ╟─8a047414-cd5d-4491-a143-eb30578928ce
+# ╠═f9d1e69f-7a07-486d-b43a-334c1c77790a
+# ╠═d42d4694-e05d-4e0e-a198-79a3a5cb688a
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251
 # ╟─0c30855c-6542-4b1a-9427-3a8427e75210
 # ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
+# ╠═de0cb780-ff4e-4236-89c4-4c3163337cfc
 # ╠═dd23fe10-a8d5-461a-85a8-e03468cdcd97
 # ╠═ccf62e33-8fcf-45d9-83ed-c7de80800b76
 # ╠═1460ece1-7828-4e93-ac37-e979b874b492
@@ -1077,6 +1194,10 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═2dd5534f-ce46-4770-b0f3-6e16005b3a90
 # ╠═f69c6955-800c-461e-b464-cab4989913f6
 # ╠═bfe5f717-4702-4316-808a-726fefef9e7e
+# ╟─cb3f5ee4-5504-4337-8a8d-d45784f54c85
+# ╠═e0271a15-08b5-470f-a2d2-6f064cd3a2b2
+# ╠═cb1f840f-8d99-4076-9554-7d8ba56e9865
+# ╠═22245242-80a6-4a5b-815e-39b469002f84
 # ╟─2fa13939-eba2-4d25-b461-56be79fc1db6
 # ╟─5a324fba-1033-4dcf-b10c-1fa4f231355c
 # ╠═9f2c0123-7e1a-43b7-861a-d059bb28f776
