@@ -70,6 +70,11 @@ md"""
 # ╔═╡ 03bf1bc5-37a9-4b02-bff7-f8b42500c4fc
 const JS = HypertextLiteral.JavaScript
 
+# ╔═╡ c3dcd4d9-5e57-4189-a7f8-524afd6db1e6
+md"""
+## Hyperscript.content hack!
+"""
+
 # ╔═╡ 6a4a5cc2-dca5-4f5d-a7e2-9b1f2fbaa406
 md"""
 ## ScriptContents struct
@@ -366,6 +371,10 @@ Base.@kwdef struct PlutoPlot
 end
 PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
 end
+
+# ╔═╡ 214cae09-fb98-4ca8-8475-62563e31f665
+# This is needed till next version of HypertextLiteral is out (current is 0.9.3). See https://github.com/JuliaPluto/HypertextLiteral.jl/issues/28 for details
+HypertextLiteral.content(p::PlutoPlot) = HypertextLiteral.Render(p)
 
 # ╔═╡ 64ce91b4-aaa3-45ec-b4d6-f24457167667
 function _preprocess(pp::PlutoPlot)
@@ -1203,6 +1212,8 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═e9d43bc6-390e-43c3-becb-d1584202da41
 # ╟─16f4b455-086b-4a8b-8767-26fb00a77aad
 # ╠═03bf1bc5-37a9-4b02-bff7-f8b42500c4fc
+# ╟─c3dcd4d9-5e57-4189-a7f8-524afd6db1e6
+# ╠═214cae09-fb98-4ca8-8475-62563e31f665
 # ╠═6a4a5cc2-dca5-4f5d-a7e2-9b1f2fbaa406
 # ╠═441b20b3-ef9a-4d8a-a6b0-6b6be151a3dd
 # ╠═23d4a0c0-9f8c-46db-ac4d-d88af58ac9c1
