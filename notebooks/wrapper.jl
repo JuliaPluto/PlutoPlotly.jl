@@ -373,8 +373,7 @@ HypertextLiteral.content(p::PlutoPlot) = HypertextLiteral.Render(p)
 # ╔═╡ 1686debe-6d74-4ec5-bf25-12346c8045c2
 function push_script!(p::PlutoPlot, items::Vararg{String,N}) where N
 	@nospecialize
-	push!(p.script_contents.vec, htl_js.(items)...)
-	return p
+	push_script!(p, htl_js.(items)...)
 end
 
 # ╔═╡ 64ce91b4-aaa3-45ec-b4d6-f24457167667
@@ -537,14 +536,6 @@ function plot(args...;kwargs...)
 	PlutoPlot(Plot(args...;kwargs...))
 end
 
-# ╔═╡ f6a63433-553c-4857-b767-33465eb22934
-let
-	p = plot(rand(10,4))
-	asd = p.script_contents
-	push!(asd,htl_js("console.log('SANTA MADRE')"))
-	p
-end
-
 # ╔═╡ 18e74f8f-39b6-4c8f-a06f-214d4e9dc6fb
 plot(scatter(x = 1:10, y = rand(10)), Layout(title = "TITLE", template = "none"))
 
@@ -629,6 +620,13 @@ end
 let
 	p = plot(rand(4))
 	push_script!(p, "console.log('PUSHED')")
+end
+
+# ╔═╡ f6a63433-553c-4857-b767-33465eb22934
+let
+	p = plot(rand(10,4))
+	push_script!(p,htl_js("console.log('MAGIC PUSH SCRIPT')"))
+	p
 end
 
 # ╔═╡ 8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
