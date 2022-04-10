@@ -299,14 +299,27 @@ const _default_script_contents = htl_js.([
 				PLOT.on(key, listener)
 			}
 		}
+		// Assign the JS event listeners
+		for (const [key, listener_vec] of Object.entries(js_listeners)) {
+			for (const listener of listener_vec) {
+				PLOT.addEventListener(key, listener)
+			}
+		}
 	}
 	)
 	""",
 	"""
 
 	invalidation.then(() => {
-		// Remove all listeners
+		// Remove all plotly listeners
 		PLOT.removeAllListeners()
+		// Remove all JS listeners
+		for (const [key, listener_vec] of Object.entries(js_listeners)) {
+			for (const listener of listener_vec) {
+				PLOT.removeEventListener(key, listener)
+			}
+		}
+		// Remove the resizeObserver
 		resizeObserver.disconnect()
 	})
 	""",
@@ -347,6 +360,7 @@ add_class!(p, "custom_class")
 Base.@kwdef struct PlutoPlot
 	Plot::PlotlyBase.Plot
 	plotly_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
+	js_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
 	classList::Vector{String} = String[]
 	script_contents::ScriptContents = ScriptContents(deepcopy(_default_script_contents))
 end
@@ -383,7 +397,10 @@ Add a custom *javascript* `listener` (to be provided as `String` or directly as 
 
 The listeners are added to the HTML plot div after rendering. The div where the plot is inserted can be accessed using the variable named `PLOT` inside the listener code.
 
-See also: [`htl_js`](@ref)
+# Differences with `add_js_listener!`
+This function adds a listener using the plotly internal events via the `on` function. These events differ from the standard javascript ones and provide data specific to the plot.
+
+See also: [`add_js_listener!`](@ref), [`htl_js`](@ref)
 
 # Examples:
 ```julia
@@ -406,6 +423,47 @@ end;
 
 # ╔═╡ 35e643ab-e3ea-427b-85f2-685b6b6103b8
 add_plotly_listener!(p::PlutoPlot, event_name, listener::String) = add_plotly_listener!(p, event_name, htl_js(listener))
+
+# ╔═╡ 3cc48426-1c39-4afe-bf3e-7f4aa2197fca
+md"""
+## Add JS listeners
+"""
+
+# ╔═╡ 67137f84-a284-4615-b7a8-729f0a412939
+"""
+	add_js_listener!(p::PlutoPlot, event_name::String, listener::HypertextLiteral.JavaScript)
+	add_js_listener!(p::PlutoPlot, event_name::String, listener::String)
+
+Add a custom *javascript* `listener` (to be provided as `String` or directly as `HypertextLiteral.JavaScript`) to the `PlutoPlot` object `p`, and associated to the javascript event specified by `event_name`.
+
+The listeners are added to the HTML plot div after rendering. The div where the plot is inserted can be accessed using the variable named `PLOT` inside the listener code.
+
+# Differences with `add_plotly_listener!`
+This function adds standard javascript events via the `addEventListener` function. These events differ from the plotly specific events.
+
+See also: [`add_plotly_listener!`](@ref), [`htl_js`](@ref)
+
+# Examples:
+```julia
+p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
+add_js_listener!(p, "mousedown", htl_js(\"\"\"
+function(e) {
+
+console.log(PLOT) // logs the plot div inside the developer console when pressing down the mouse
+
+}
+\"\"\"
+```
+"""
+function add_js_listener!(p::PlutoPlot, event_name::String, listener::JS)
+	ldict = p.js_listeners
+	listeners_array = get!(ldict, event_name, JS[])
+	push!(listeners_array, listener)
+	return p
+end;
+
+# ╔═╡ 83906aab-d4ac-4c2b-b7a4-718edb0c2a18
+add_js_listener!(p::PlutoPlot, event_name, listener::String) = add_js_listener!(p, event_name, htl_js(listener))
 
 # ╔═╡ 0215aea2-eb79-449e-8dee-a32ca3c5d5f9
 md"""
@@ -495,8 +553,10 @@ suffix = htl_js(LOAD_MINIFIED[] ? "min.js" : "js")
 
 		// Publish the plot object to JS
 		let plot_obj = $(publish_to_js(_preprocess(pp)))
-		// Get the listeners
+		// Get the plotly listeners
 		const plotly_listeners = $(pp.plotly_listeners)
+		// Get the JS listeners
+		const js_listeners = $(pp.js_listeners)
 		// Deal with eventual custom classes
 		let custom_classlist = $(pp.classList)
 
@@ -686,6 +746,27 @@ function(e) {
 }
 	"""))
 	p.plotly_listeners
+end
+
+# ╔═╡ de101f40-27db-43ea-91ed-238502ceaaf7
+md"""
+## JS Listener
+"""
+
+# ╔═╡ 6c709fa0-7a53-4554-ab2a-d8181267ec93
+lololol = 1
+
+# ╔═╡ 671296b9-6743-48d6-9c4d-1beac2b505b5
+let
+	lololol
+	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
+	add_js_listener!(p, "mousedown", htl_js("""
+function(e) {
+    
+	console.log('MOUSEDOWN!')
+	
+}
+	"""))
 end
 
 # ╔═╡ 6128ff76-3f1f-4144-bb3d-f44678210013
@@ -1155,6 +1236,9 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─4ebd0ae4-9f4f-42b2-980e-a25550d01b6b
 # ╠═de2a547b-3ccd-4f56-96c0-81a7d9b2d272
 # ╠═35e643ab-e3ea-427b-85f2-685b6b6103b8
+# ╠═3cc48426-1c39-4afe-bf3e-7f4aa2197fca
+# ╠═67137f84-a284-4615-b7a8-729f0a412939
+# ╠═83906aab-d4ac-4c2b-b7a4-718edb0c2a18
 # ╟─0215aea2-eb79-449e-8dee-a32ca3c5d5f9
 # ╠═4c6a1004-52ca-40c1-915a-081c0a3c5fbf
 # ╟─87af8c6f-3d6d-44c6-87bb-588e01829339
@@ -1184,6 +1268,9 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═f8f7b530-1ded-4ce0-a7d9-a8c92afb95c7
 # ╠═c3b1a198-ef19-4a54-9c32-d9ea32a63812
 # ╠═e9fc2030-c2f0-48e9-a807-424039e796b2
+# ╟─de101f40-27db-43ea-91ed-238502ceaaf7
+# ╠═6c709fa0-7a53-4554-ab2a-d8181267ec93
+# ╠═671296b9-6743-48d6-9c4d-1beac2b505b5
 # ╟─6128ff76-3f1f-4144-bb3d-f44678210013
 # ╠═a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
 # ╟─aaf0fe61-d5e6-4d93-8a22-7f97f1249b35
