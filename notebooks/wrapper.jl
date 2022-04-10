@@ -85,12 +85,6 @@ struct ScriptContents
 	vec::Vector{JS}
 end
 
-# ╔═╡ 23d4a0c0-9f8c-46db-ac4d-d88af58ac9c1
-function Base.push!(collection::ScriptContents, items...)
-	@nospecialize
-	push!(collection.vec, items...)
-end
-
 # ╔═╡ 271fd3a7-8347-407d-92d0-2d49758cb3f1
 function HypertextLiteral.print_script(io::IO, value::ScriptContents)
 	for el ∈ value.vec
@@ -376,6 +370,13 @@ end
 # This is needed till next version of HypertextLiteral is out (current is 0.9.3). See https://github.com/JuliaPluto/HypertextLiteral.jl/issues/28 for details
 HypertextLiteral.content(p::PlutoPlot) = HypertextLiteral.Render(p)
 
+# ╔═╡ 1686debe-6d74-4ec5-bf25-12346c8045c2
+function push_script!(p::PlutoPlot, items::Vararg{String,N}) where N
+	@nospecialize
+	push!(p.script_contents.vec, htl_js.(items)...)
+	return p
+end
+
 # ╔═╡ 64ce91b4-aaa3-45ec-b4d6-f24457167667
 function _preprocess(pp::PlutoPlot)
 	p = pp.Plot
@@ -610,6 +611,24 @@ md"""
 N =let 
 	clk
 	rand(50:100)
+end
+
+# ╔═╡ 6da3c910-a350-4a7e-b481-88942c97686b
+"""
+	push_script!(p::PlutoPlot, items...)
+Add script contents contained in collection `items` at the end of the plot show method script.
+The `item` must either be a collection of `String` or `HypertextLiteral.JavaScript` elements
+"""
+function push_script!(p::PlutoPlot, items::Vararg{JS,N}) where N
+	@nospecialize
+	push!(p.script_contents.vec, items...)
+	return p
+end
+
+# ╔═╡ fdc22972-b8aa-4202-bb4e-bfff92574814
+let
+	p = plot(rand(4))
+	push_script!(p, "console.log('PUSHED')")
 end
 
 # ╔═╡ 8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
@@ -1216,8 +1235,10 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═214cae09-fb98-4ca8-8475-62563e31f665
 # ╠═6a4a5cc2-dca5-4f5d-a7e2-9b1f2fbaa406
 # ╠═441b20b3-ef9a-4d8a-a6b0-6b6be151a3dd
-# ╠═23d4a0c0-9f8c-46db-ac4d-d88af58ac9c1
 # ╠═271fd3a7-8347-407d-92d0-2d49758cb3f1
+# ╠═6da3c910-a350-4a7e-b481-88942c97686b
+# ╠═1686debe-6d74-4ec5-bf25-12346c8045c2
+# ╠═fdc22972-b8aa-4202-bb4e-bfff92574814
 # ╟─907d51fd-9aaf-43d0-a83b-879cae330a0b
 # ╠═10da78b9-9a67-4cd8-9453-c01ea4baabeb
 # ╠═ea88edae-c1a1-4cd3-95da-fd6d5cf337ff
