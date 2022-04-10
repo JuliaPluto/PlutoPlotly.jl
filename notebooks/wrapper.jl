@@ -262,7 +262,7 @@ const _default_script_contents = htl_js.([
 	PLOT.style.width = plot_obj.layout.width ? "" : "100%"
 	
 	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
-	PLOT.style.height = plot_obj.layout.height ? "" :
+	PLOT.style.height = plot_obj.layout.height ? plot_obj.layout.height + "px" :
 		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
 	""",
 	"""
@@ -552,7 +552,7 @@ pp = Plot(scatter3d(x = rand(N), y = rand(N), z = rand(N), mode="markers"), Layo
 		zaxis_range = [-1,2],
 		aspectmode = "cube",
 	),
-	# height = 350
+	height = 550
 	# autosize = true,
 ));
 
