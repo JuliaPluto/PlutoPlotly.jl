@@ -5,6 +5,7 @@ version = "0.3.3"
 
 [deps]
 AbstractPlutoDingetjes = "6e696c72-6542-2067-7265-42206c756150"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
@@ -15,9 +16,9 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
 AbstractPlutoDingetjes = "1"
-PlotlyBase = "0.8"
-julia = "1.6"
 HypertextLiteral = "0.9"
-Reexport = "1"
-PlutoUI = "0.7"
 LaTeXStrings = "1"
+PlotlyBase = "0.8"
+PlutoUI = "0.7"
+Reexport = "1"
+julia = "1.6"

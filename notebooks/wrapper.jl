@@ -29,6 +29,9 @@ using AbstractPlutoDingetjes
 # ╔═╡ fc52e423-1370-4ca9-95dc-090815278a4a
 using PlutoUI
 
+# ╔═╡ a9e7c04a-2d60-4727-9e24-a6dd9a0ee73c
+using Dates
+
 # ╔═╡ 7bd46437-8af0-4a15-87e9-1508869e1600
 TableOfContents()
 
@@ -164,6 +167,9 @@ This function is basically `_json_lower` from PlotlyBase, but we do it directly 
 # ╔═╡ 2380a265-700d-4fed-a52e-f6fa1ce41391
 # Defaults to JSON.lower for generic non-overloaded types
 _preprocess(x) = PlotlyBase.JSON.lower(x)
+
+# ╔═╡ 65638528-ed6b-4e67-9cda-70390db81f64
+_preprocess(x::TimeType) = sprint(print, x)
 
 # ╔═╡ bc727ded-8675-420d-806e-0b49357118e5
 begin
@@ -913,6 +919,20 @@ let
 	))
 end
 
+# ╔═╡ ebdc0ebc-da58-49c8-a992-5924045c2cac
+md"""
+## Plot Dates
+"""
+
+# ╔═╡ 6d74e3fa-1806-40b0-9995-c1555519603d
+let
+	x = Date.(2000:2020)
+	y = rand(length(x))
+	plot(scatter(;x,y,name = "values", showlegend = true), Layout(
+		template = "none"
+	))
+end
+
 # ╔═╡ 2fa13939-eba2-4d25-b461-56be79fc1db6
 md"""
 # Re-execute errored cells
@@ -943,6 +963,7 @@ To do this, we put at the bottom of the notebook a javascript function that re-e
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 AbstractPlutoDingetjes = "6e696c72-6542-2067-7265-42206c756150"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
@@ -992,6 +1013,10 @@ deps = ["ColorTypes", "FixedPointNumbers", "Reexport"]
 git-tree-sha1 = "417b0ed7b8b838aa6ca0a87aadf1bb9eb111ce40"
 uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.12.8"
+
+[[CompilerSupportLibraries_jll]]
+deps = ["Artifacts", "Libdl"]
+uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 
 [[Dates]]
 deps = ["Printf"]
@@ -1069,7 +1094,7 @@ uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
 [[LinearAlgebra]]
-deps = ["Libdl"]
+deps = ["Libdl", "libblastrampoline_jll"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Logging]]
@@ -1091,6 +1116,10 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+
+[[OpenBLAS_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
+uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
 
 [[OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
@@ -1134,7 +1163,7 @@ deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 
 [[Random]]
-deps = ["Serialization"]
+deps = ["SHA", "Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[Reexport]]
@@ -1193,6 +1222,10 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
 
+[[libblastrampoline_jll]]
+deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
+uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+
 [[nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
@@ -1207,6 +1240,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═810fb486-10b5-460f-a25a-1a7c9d84e256
 # ╠═676d318f-b4a4-4949-a5db-1c3a5fd9fa68
 # ╠═fc52e423-1370-4ca9-95dc-090815278a4a
+# ╠═a9e7c04a-2d60-4727-9e24-a6dd9a0ee73c
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
 # ╠═4a18fa5d-7c73-468b-bed2-3acff51e3981
 # ╠═0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
@@ -1234,6 +1268,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─e6b52b32-def4-4d71-80ca-e43530b1e704
 # ╟─77fe2c5d-f3dd-4779-92a4-e0ceadb639a9
 # ╠═2380a265-700d-4fed-a52e-f6fa1ce41391
+# ╠═65638528-ed6b-4e67-9cda-70390db81f64
 # ╠═bc727ded-8675-420d-806e-0b49357118e5
 # ╠═f9c0a331-1f1c-4648-9c24-5e9e16d6be18
 # ╠═b0d77b4f-da8f-4a0b-a244-043b2e3bdfae
@@ -1300,6 +1335,8 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═e0271a15-08b5-470f-a2d2-6f064cd3a2b2
 # ╠═cb1f840f-8d99-4076-9554-7d8ba56e9865
 # ╠═22245242-80a6-4a5b-815e-39b469002f84
+# ╟─ebdc0ebc-da58-49c8-a992-5924045c2cac
+# ╠═6d74e3fa-1806-40b0-9995-c1555519603d
 # ╟─2fa13939-eba2-4d25-b461-56be79fc1db6
 # ╟─5a324fba-1033-4dcf-b10c-1fa4f231355c
 # ╠═9f2c0123-7e1a-43b7-861a-d059bb28f776
