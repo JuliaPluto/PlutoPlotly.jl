@@ -175,7 +175,7 @@ _preprocess(x::TimeType) = sprint(print, x)
 begin
 	_preprocess(x::Union{Bool,String,Number,Nothing,Missing}) = x
 	_preprocess(x::Union{Tuple,AbstractArray}) = _preprocess.(x)
-	_preprocess(m::Matrix{<:Number}) = [collect(r) for r ∈ eachrow(m)]
+	_preprocess(m::AbstractMatrix{<:Number}) = [collect(r) for r ∈ eachcol(m)]
 	_preprocess(d::Dict) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(d))
 	_preprocess(a::PlotlyBase.HasFields) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(a.fields))
 	_preprocess(c::PlotlyBase.Cycler) = c.vals
@@ -933,6 +933,54 @@ let
 	))
 end
 
+# ╔═╡ 7054b9ce-cd00-42cf-b81c-bc27b29f4714
+md"""
+## Heatmap/Contour tests
+"""
+
+# ╔═╡ 5b5293bf-81b3-4e80-995a-f15f91971bd4
+md"""
+This is testing the expected behavior of heatmap and contour plots as per [https://github.com/JuliaPlots/PlotlyJS.jl/issues/355](https://github.com/JuliaPlots/PlotlyJS.jl/issues/355)
+"""
+
+# ╔═╡ 3612826c-0af0-4fef-aafe-112a2948f669
+let
+	plasma = [[0.0, "#0c0786"],
+	          [0.1, "#40039c"],
+	          [0.2, "#6a00a7"],
+	          [0.3, "#8f0da3"],
+	          [0.4, "#b02a8f"],
+	          [0.5, "#cb4777"],
+	          [0.6, "#e06461"],
+	          [0.7, "#f2844b"],
+	          [0.8, "#fca635"],
+	          [0.9, "#fcce25"],
+	          [1.0, "#eff821"]] 
+	plot(heatmap(z=[1 24 30; 28 18 40; 36 54  7], colorscale=plasma), Layout(
+		template = "none",
+		yaxis = attr(
+			scaleanchor = "x",
+			scaleratio = 1,
+		)
+	))
+end
+
+# ╔═╡ ce90eb60-98ed-4901-9218-ed8466bb03c7
+let
+	a, b = -1., 1.
+	c, d= 0., 1.
+	nx, ny= 200, 100
+	hx = (b-a)/(nx-1)
+	x = a:hx:b
+	hy = (d-c)/(ny-1)
+	y=c:hy:d
+	X = x' .* ones(length(y))
+	Y = ones(length(x))'.*y
+	Z= sin.(pi*pi*(X.*X+Y.*Y));
+	print(size(Z))
+	plot(contour(x=x, y=y, z=Z), Layout(width=650, height=350, template = "none"))
+end
+
 # ╔═╡ 2fa13939-eba2-4d25-b461-56be79fc1db6
 md"""
 # Re-execute errored cells
@@ -1337,6 +1385,10 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═22245242-80a6-4a5b-815e-39b469002f84
 # ╟─ebdc0ebc-da58-49c8-a992-5924045c2cac
 # ╠═6d74e3fa-1806-40b0-9995-c1555519603d
+# ╟─7054b9ce-cd00-42cf-b81c-bc27b29f4714
+# ╟─5b5293bf-81b3-4e80-995a-f15f91971bd4
+# ╠═3612826c-0af0-4fef-aafe-112a2948f669
+# ╠═ce90eb60-98ed-4901-9218-ed8466bb03c7
 # ╟─2fa13939-eba2-4d25-b461-56be79fc1db6
 # ╟─5a324fba-1033-4dcf-b10c-1fa4f231355c
 # ╠═9f2c0123-7e1a-43b7-861a-d059bb28f776
