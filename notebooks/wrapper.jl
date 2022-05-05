@@ -163,7 +163,7 @@ This function is basically `_json_lower` from PlotlyBase, but we do it directly 
 
 # ╔═╡ 2380a265-700d-4fed-a52e-f6fa1ce41391
 # Defaults to JSON.lower for generic non-overloaded types
-_preprocess(x) = PlotlyBase.JSON.lower
+_preprocess(x) = PlotlyBase.JSON.lower(x)
 
 # ╔═╡ bc727ded-8675-420d-806e-0b49357118e5
 begin
