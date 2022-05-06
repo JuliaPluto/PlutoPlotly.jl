@@ -977,7 +977,7 @@ let
 	X = x' .* ones(length(y))
 	Y = ones(length(x))'.*y
 	Z= sin.(pi*pi*(X.*X+Y.*Y));
-	print(size(Z))
+	# print(size(Z))
 	plot(contour(x=x, y=y, z=Z), Layout(width=650, height=350, template = "none"))
 end
 
