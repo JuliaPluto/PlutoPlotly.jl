@@ -9,7 +9,7 @@ include("../notebooks/wrapper.jl")
 
 function __init__()
 	if !is_inside_pluto()
-		@warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly"
+		@warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly.\nNOTE: If you receive this warning during pre-compilation or sysimage creation, you can ignore this warning."
 	end
 end
 
