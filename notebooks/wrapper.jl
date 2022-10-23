@@ -18,6 +18,7 @@ end
 begin
 	using PlotlyBase
 	using HypertextLiteral
+	using Colors
 end
 
 # ╔═╡ 810fb486-10b5-460f-a25a-1a7c9d84e256
@@ -206,6 +207,26 @@ end
 # ╔═╡ b8e1b177-6686-4b58-8c4c-991d9c148520
 # Escape latexstrings
 _preprocess(s::LaTeXString) = s.s
+
+# ╔═╡ d1a08479-2814-4d1c-8af9-510aaa4c9089
+begin
+	# Process colors
+	_preprocess(c::Color) = @views begin
+		s = hex(c, :rrggbb)
+		r = parse(Int, s[1:2]; base = 16)
+		g = parse(Int, s[3:4]; base = 16)
+		b = parse(Int, s[5:6]; base = 16)
+		return "rgb($r,$g,$b)"
+	end
+	_preprocess(c::TransparentColor) = @views begin
+		s = hex(c, :rrggbbaa)
+		r = parse(Int, s[1:2]; base = 16)
+		g = parse(Int, s[3:4]; base = 16)
+		b = parse(Int, s[5:6]; base = 16)
+		a = parse(Int, s[7:8]; base = 16)
+		return "rgba($r,$g,$b,$(a/255))"
+	end
+end
 
 # ╔═╡ a060a009-aee3-46f2-b70f-1811a27d06fa
 md"""
@@ -631,6 +652,18 @@ end
 md"""
 # Tests
 """
+
+# ╔═╡ 359d22e8-b13d-420b-b409-b18136c3ff3b
+md"""
+## Colors.jl colors
+"""
+
+# ╔═╡ e54cc4c4-2a93-4d44-90ed-5944edbf4b0f
+let
+	red = scatter(;y=rand(10), line_color = RGB(1,0,0))
+	green_transp = scatter(;y=rand(10), line_color = RGBA(0,1,0, .3))
+	plot([red, green_transp])
+end
 
 # ╔═╡ 0c30855c-6542-4b1a-9427-3a8427e75210
 md"""
@@ -1086,6 +1119,7 @@ To do this, we put at the bottom of the notebook a javascript function that re-e
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 AbstractPlutoDingetjes = "6e696c72-6542-2067-7265-42206c756150"
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
@@ -1094,6 +1128,7 @@ PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
 AbstractPlutoDingetjes = "~1.1.4"
+Colors = "~0.12.8"
 HypertextLiteral = "~0.9.3"
 LaTeXStrings = "~1.3.0"
 PlotlyBase = "~0.8.18"
@@ -1418,6 +1453,7 @@ version = "17.4.0+0"
 # ╠═b0d77b4f-da8f-4a0b-a244-043b2e3bdfae
 # ╠═64ce91b4-aaa3-45ec-b4d6-f24457167667
 # ╠═b8e1b177-6686-4b58-8c4c-991d9c148520
+# ╠═d1a08479-2814-4d1c-8af9-510aaa4c9089
 # ╟─a060a009-aee3-46f2-b70f-1811a27d06fa
 # ╠═f15f831f-6418-4656-80e5-47057662552d
 # ╠═3f6c98c6-879f-48f3-9885-52e0cc99295a
@@ -1449,6 +1485,8 @@ version = "17.4.0+0"
 # ╠═f9d1e69f-7a07-486d-b43a-334c1c77790a
 # ╠═d42d4694-e05d-4e0e-a198-79a3a5cb688a
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251
+# ╟─359d22e8-b13d-420b-b409-b18136c3ff3b
+# ╠═e54cc4c4-2a93-4d44-90ed-5944edbf4b0f
 # ╟─0c30855c-6542-4b1a-9427-3a8427e75210
 # ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
 # ╠═de0cb780-ff4e-4236-89c4-4c3163337cfc
