@@ -10,6 +10,14 @@ p = Plot(args...)
 PlutoPlot(p)
 ```
 
+One could also used the convenience exported function `plot`:
+```julia	
+function plot(args...;kwargs...) 
+	@nospecialize
+	PlutoPlot(Plot(args...;kwargs...))
+end
+```
+
 # Features
 
 ## Persistent Layout
