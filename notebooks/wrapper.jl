@@ -44,6 +44,13 @@ else
 	x -> x
 end
 
+# ╔═╡ 413ffc5c-c53f-48b0-922d-4c7f8718507c
+currently_running_cell_id::Ref{Base.UUID} = if is_inside_pluto()
+	PlutoRunner.currently_running_cell_id
+else
+	Ref(Base.UUID(zero(UInt128)))
+end
+
 # ╔═╡ 0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
 """
 	htl_js(x)
@@ -260,7 +267,7 @@ As example, one can create a plot and force its width to 400px in CSS by using t
 \"\"\"
 ```
 """
-prepend_cell_selector(str::AbstractString="")::String = "pluto-cell[id='$(PlutoRunner.currently_running_cell_id[])'] $str" |> strip
+prepend_cell_selector(str::AbstractString="")::String = "pluto-cell[id='$(currently_running_cell_id[])'] $str" |> strip
 
 # ╔═╡ 3f6c98c6-879f-48f3-9885-52e0cc99295a
 prepend_cell_selector(selectors) = join(map(prepend_cell_selector, selectors), ",\n")
@@ -1422,6 +1429,7 @@ version = "17.4.0+0"
 # ╠═a9e7c04a-2d60-4727-9e24-a6dd9a0ee73c
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
 # ╠═4a18fa5d-7c73-468b-bed2-3acff51e3981
+# ╠═413ffc5c-c53f-48b0-922d-4c7f8718507c
 # ╠═0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
 # ╠═90fd960f-65b3-4d8c-b8a8-42d3be8c770f
 # ╠═e9d43bc6-390e-43c3-becb-d1584202da41
