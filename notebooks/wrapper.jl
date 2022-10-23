@@ -852,6 +852,54 @@ $(Plot(rand(10)) |> PlutoPlot)
 </div>
 """
 
+# ╔═╡ b45cc21d-bfff-4375-a524-95108661a2ef
+md"""
+## flexbox + bind
+"""
+
+# ╔═╡ 4ea48316-62d9-4b24-bb1d-c9fd1db044dc
+@htl """
+<div style='height: 400px; display: flex'>
+$(@bind asd plot(rand(10)))
+
+$(plot(rand(10)))
+</div>
+<style>
+	$(prepend_cell_selector(["bond", "div.js-plotly-plot"])) {
+		flex: 1;
+	}
+</style>
+"""
+
+# ╔═╡ 62126774-e246-473b-9d0b-92e967cd36ac
+md"""
+## flexbox + PlutoUI.ExperimentalLayout.hbox
+"""
+
+# ╔═╡ cfa78790-aa4c-4c7b-8a9f-198987338516
+# Without bonds, the plots resize automatically inside hbox
+PlutoUI.ExperimentalLayout.hbox([plot(rand(10)), plot(rand(10))])
+
+# ╔═╡ 340262a2-c823-4e19-8f19-9a05f4504bb5
+# When you wrap plots in bonds, the subplots do not automatically resize to the cell width
+PlutoUI.ExperimentalLayout.hbox([(@bind asdasd2_val plot(rand(10))), plot(rand(10))])
+
+# ╔═╡ 21682322-13a7-4575-8846-19e61fb8667d
+# We need to specify flex-grow to allow resizing
+html"""
+<style>
+	div.hbox_test bond {
+		flex: 2;
+	}
+	div.hbox_test div.js-plotly-plot {
+		flex: 1;
+	}
+</style>
+"""
+
+# ╔═╡ a7ef3dfc-d6ad-41c2-bccb-a794e26e80bb
+PlutoUI.ExperimentalLayout.hbox([(@bind asdasd1_val plot(rand(10))), plot(rand(10))]; class="hbox_test")
+
 # ╔═╡ aaf0fe61-d5e6-4d93-8a22-7f97f1249b35
 md"""
 ## flexbox + uirevision
@@ -878,16 +926,6 @@ $(Plot(rand(10)) |> PlutoPlot)
 </div>
 """
 end
-
-# ╔═╡ 8b1ab8a6-d2a7-4a15-9690-d83ebaed5c19
-html"""
-<style>
-	.js-plotly-plot {
-		flex-grow: 1;
-		flex-shrink: 1;
-	}
-</style>
-"""
 
 # ╔═╡ 38a81414-0bcd-4d71-af1d-fe154d2ae09a
 md"""
@@ -1432,10 +1470,16 @@ version = "17.4.0+0"
 # ╠═671296b9-6743-48d6-9c4d-1beac2b505b5
 # ╟─6128ff76-3f1f-4144-bb3d-f44678210013
 # ╠═a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
+# ╟─b45cc21d-bfff-4375-a524-95108661a2ef
+# ╠═4ea48316-62d9-4b24-bb1d-c9fd1db044dc
+# ╟─62126774-e246-473b-9d0b-92e967cd36ac
+# ╠═cfa78790-aa4c-4c7b-8a9f-198987338516
+# ╠═340262a2-c823-4e19-8f19-9a05f4504bb5
+# ╠═21682322-13a7-4575-8846-19e61fb8667d
+# ╠═a7ef3dfc-d6ad-41c2-bccb-a794e26e80bb
 # ╟─aaf0fe61-d5e6-4d93-8a22-7f97f1249b35
 # ╠═6e12592d-01fe-455a-a19c-7544258b9791
 # ╠═36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf
-# ╠═8b1ab8a6-d2a7-4a15-9690-d83ebaed5c19
 # ╟─38a81414-0bcd-4d71-af1d-fe154d2ae09a
 # ╠═2dd5534f-ce46-4770-b0f3-6e16005b3a90
 # ╠═f69c6955-800c-461e-b464-cab4989913f6
