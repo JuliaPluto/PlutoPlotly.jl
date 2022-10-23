@@ -101,7 +101,7 @@ md"""
 """
 
 # ╔═╡ 10da78b9-9a67-4cd8-9453-c01ea4baabeb
-const PLOTLY_VERSION = Ref("2.11.1")
+const PLOTLY_VERSION = Ref("2.16.1")
 
 # ╔═╡ ea88edae-c1a1-4cd3-95da-fd6d5cf337ff
 function change_plotly_version(ver::String)
