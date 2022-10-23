@@ -207,6 +207,43 @@ end
 # Escape latexstrings
 _preprocess(s::LaTeXString) = s.s
 
+# ╔═╡ a060a009-aee3-46f2-b70f-1811a27d06fa
+md"""
+## prepend\_cell\_selector
+"""
+
+# ╔═╡ f15f831f-6418-4656-80e5-47057662552d
+"""
+	prepend_cell_selector(selector="")
+	prepend_cell_selector(selectors)
+
+Prepends a CSS selector (represented by the argument `selector`) with a selector of the current pluto-cell (of the form `pluto-cell[id='cell_id']`, where `cell_id` is the currently running cell).
+
+It can be used to ease creating style sheets (using `@htl` from HypertextLiteral.jl) with selector that only apply to the cell where they are executed.
+
+When called with a vector of selectors as input, prepends each selector and joins them together using `,` as separator.
+
+`prepend_cell_selector("div") = pluto-cell[id='\$cell_id'] div`
+
+`prepend_cell_selector(["div", "span"]) = pluto-cell[id='\$cell_id'] div, pluto-cell[id='\$cell_id'] span`
+
+As example, one can create a plot and force its width to 400px in CSS by using the following snippet:
+```julia
+@htl \"\"\"
+\$(plot(rand(10)))
+<style>
+	\$(prepend_cell_selector("div.js-plotly-plot")) {
+		width: 400px !important;
+	}
+</style>
+\"\"\"
+```
+"""
+prepend_cell_selector(str::AbstractString="")::String = "pluto-cell[id='$(PlutoRunner.currently_running_cell_id[])'] $str" |> strip
+
+# ╔═╡ 3f6c98c6-879f-48f3-9885-52e0cc99295a
+prepend_cell_selector(selectors) = join(map(prepend_cell_selector, selectors), ",\n")
+
 # ╔═╡ 4e296bdd-cbd4-4d43-a769-0b4a80d7dec9
 md"""
 ## Unique Counter
@@ -1343,6 +1380,9 @@ version = "17.4.0+0"
 # ╠═b0d77b4f-da8f-4a0b-a244-043b2e3bdfae
 # ╠═64ce91b4-aaa3-45ec-b4d6-f24457167667
 # ╠═b8e1b177-6686-4b58-8c4c-991d9c148520
+# ╟─a060a009-aee3-46f2-b70f-1811a27d06fa
+# ╠═f15f831f-6418-4656-80e5-47057662552d
+# ╠═3f6c98c6-879f-48f3-9885-52e0cc99295a
 # ╟─4e296bdd-cbd4-4d43-a769-0b4a80d7dec9
 # ╠═628c6e1f-03eb-43a2-8092-a2f61cf6bcbd
 # ╠═ebcc9c42-9928-4a20-a307-02ee6ef726d0
