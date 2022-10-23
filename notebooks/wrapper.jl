@@ -92,6 +92,12 @@ md"""
 """
 
 # ╔═╡ 441b20b3-ef9a-4d8a-a6b0-6b6be151a3dd
+"""
+	ScriptContents
+Wrapper around a vector of `HypertextLiteral.JavaScript` elements. It has a custom print implementation of `HypertextLiteral.print_script` in order to allow serialization of its various elements inside a script tag.
+
+It is used inside the PlutoPlot to allow modularity and ease customization of the script contents that is used to generate the plotlyjs plot in Javascript.
+"""
 struct ScriptContents
 	vec::Vector{JS}
 end
@@ -410,15 +416,21 @@ A wrapper around `PlotlyBase.Plot` to provide optimized visualization within Plu
 # Fields
 - `Plot::PlotlyBase.Plot`
 - `plotly_listeners::Dict{String, Vector{HypertextLitera.JavaScript}}`
+- `js_listeners::Dict{String, Vector{HypertextLitera.JavaScript}}`
 - `classList::Vector{String}`
+- `script_contents::ScriptContents`
 
 Once the wrapper has been created, the underlying `Plot` object can be accessed from the `Plot` field of the `PlutoPlot` object.
 
-Custom listeners to [plotly events](https://plotly.com/javascript/plotlyjs-events/) can be added to the `PlutoPlot` as *javascript* functions using the [`add_plotly_listener!`](@ref) function.
+Custom listeners to [plotly events](https://plotly.com/javascript/plotlyjs-events/) are saved inside the `plotly_listeners` field and can be added to the `PlutoPlot` as *javascript* functions using the [`add_plotly_listener!`](@ref) function.
+
+Custom listeners to normal javascript events can instead be added to the `PlutoPlot` as *javascript* functions using the [`add_js_listener!`](@ref) function.
 
 Multiple listeners can be associated to each event, and they are executed in the order they are added.
 
 A list of custom CSS classes can be added to the PlutoPlot by using the [`add_class!`](@ref) and [`remove_class!`](@ref) functions.
+
+Finally, the contents of the script tag generating the plot are stored in the field `script_contents` which is of type [`ScriptContents`](@ref). The elements of `script_contents` are written serially inside the javascript script tag. The displayed plot can be customized by modifying the elements of this field.
 
 # Examples
 ```julia
@@ -426,6 +438,8 @@ p = PlutoPlot(Plot(rand(10)))
 add_plotly_listener!(p, "plotly_click", "e => console.log(e)")
 add_class!(p, "custom_class")
 ```
+
+See also: [`ScriptContents`](@ref), [`add_js_listener!`](@ref), [`add_plotly_listener!`](@ref)
 """
 Base.@kwdef struct PlutoPlot
 	Plot::PlotlyBase.Plot
@@ -1437,7 +1451,7 @@ version = "17.4.0+0"
 # ╠═03bf1bc5-37a9-4b02-bff7-f8b42500c4fc
 # ╟─c3dcd4d9-5e57-4189-a7f8-524afd6db1e6
 # ╠═214cae09-fb98-4ca8-8475-62563e31f665
-# ╠═6a4a5cc2-dca5-4f5d-a7e2-9b1f2fbaa406
+# ╟─6a4a5cc2-dca5-4f5d-a7e2-9b1f2fbaa406
 # ╠═441b20b3-ef9a-4d8a-a6b0-6b6be151a3dd
 # ╠═271fd3a7-8347-407d-92d0-2d49758cb3f1
 # ╠═6da3c910-a350-4a7e-b481-88942c97686b
