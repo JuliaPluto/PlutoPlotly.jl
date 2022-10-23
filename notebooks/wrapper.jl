@@ -45,10 +45,10 @@ else
 end
 
 # ╔═╡ 413ffc5c-c53f-48b0-922d-4c7f8718507c
-currently_running_cell_id::Ref{Base.UUID} = if is_inside_pluto()
-	PlutoRunner.currently_running_cell_id
+current_cell_id()::Base.UUID = if is_inside_pluto()
+	Main.PlutoRunner.currently_running_cell_id[]
 else
-	Ref(Base.UUID(zero(UInt128)))
+	Base.UUID(zero(UInt128))
 end
 
 # ╔═╡ 0ae3f943-4f9b-4cfb-aa76-3bcdc7dc9963
@@ -267,7 +267,7 @@ As example, one can create a plot and force its width to 400px in CSS by using t
 \"\"\"
 ```
 """
-prepend_cell_selector(str::AbstractString="")::String = "pluto-cell[id='$(currently_running_cell_id[])'] $str" |> strip
+prepend_cell_selector(str::AbstractString="")::String = "pluto-cell[id='$(current_cell_id())'] $str" |> strip
 
 # ╔═╡ 3f6c98c6-879f-48f3-9885-52e0cc99295a
 prepend_cell_selector(selectors) = join(map(prepend_cell_selector, selectors), ",\n")
