@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.13
+# v0.19.14
 
 using Markdown
 using InteractiveUtils
@@ -338,7 +338,7 @@ const _default_script_contents = htl_js.([
 	PLOT.style.width = plot_obj.layout.width ? "" : "100%"
 	
 	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
-	PLOT.style.height = plot_obj.layout.height ? plot_obj.layout.height + "px" :
+	PLOT.style.height = plot_obj.layout.height ? "" :
 		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
 	""",
 	"""
@@ -357,11 +357,13 @@ const _default_script_contents = htl_js.([
 
 	// Create the resizeObserver to make the plot even more responsive! :magic:
 	const resizeObserver = new ResizeObserver(entries => {
+		PLOT.style.height = plot_obj.layout.height ? "" :
+		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
 		/* 
 		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 
 		See https://github.com/plotly/plotly.js/issues/6156 for details
 		*/
-		Plotly.relayout(PLOT, {autosize: true, plutoresize: true})
+		Plotly.relayout(PLOT, {..._.pick(PLOT.layout, ['width','height']), autosize: true, plutoresize: true})
 	})
 
 	resizeObserver.observe(PLOT)
@@ -684,6 +686,23 @@ let
 	red = scatter(;y=rand(10), line_color = RGB(1,0,0))
 	green_transp = scatter(;y=rand(10), line_color = RGBA(0,1,0, .3))
 	plot([red, green_transp])
+end
+
+# ╔═╡ 3e5b09a9-6d18-4d2f-a37b-ac260ea36646
+md"""
+## Respect provided height/width
+"""
+
+# ╔═╡ 070820c5-082f-4428-8d5e-1fdd1ce29eba
+let
+	@htl """
+	<div class="try-resize">
+	$(plot(rand(10), Layout(
+		width = 400,
+		#height= 400
+	)))
+	</div>
+	"""
 end
 
 # ╔═╡ 0c30855c-6542-4b1a-9427-3a8427e75210
@@ -1509,6 +1528,8 @@ version = "17.4.0+0"
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251
 # ╟─359d22e8-b13d-420b-b409-b18136c3ff3b
 # ╠═e54cc4c4-2a93-4d44-90ed-5944edbf4b0f
+# ╠═3e5b09a9-6d18-4d2f-a37b-ac260ea36646
+# ╠═070820c5-082f-4428-8d5e-1fdd1ce29eba
 # ╟─0c30855c-6542-4b1a-9427-3a8427e75210
 # ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
 # ╠═de0cb780-ff4e-4236-89c4-4c3163337cfc
