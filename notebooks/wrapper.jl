@@ -188,6 +188,7 @@ _preprocess(x::TimeType) = sprint(print, x)
 # ╔═╡ bc727ded-8675-420d-806e-0b49357118e5
 begin
 	_preprocess(x::Union{Bool,String,Number,Nothing,Missing}) = x
+	_preprocess(x::Symbol) = string(x)
 	_preprocess(x::Union{Tuple,AbstractArray}) = _preprocess.(x)
 	_preprocess(m::AbstractMatrix{<:Number}) = [collect(r) for r ∈ eachcol(m)]
 	_preprocess(d::Dict) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(d))
