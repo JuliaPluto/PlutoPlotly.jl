@@ -190,8 +190,11 @@ begin
 	_preprocess(x::Union{Bool,String,Number,Nothing,Missing}) = x
 	_preprocess(x::Symbol) = string(x)
 	_preprocess(x::Union{Tuple,AbstractArray}) = _preprocess.(x)
-	_preprocess(v::Vector{<:Number}) = v
-	_preprocess(A::Array{<:Number}) = [_preprocess(collect(s)) for s ∈ eachslice(A; dims = ndims(A))]
+	_preprocess(A::AbstractArray{<:Number, N}) where N = if N == 1
+		collect(A)
+	else
+		[_preprocess(collect(s)) for s ∈ eachslice(A; dims = ndims(A))]
+	end
 	_preprocess(d::Dict) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(d))
 	_preprocess(a::PlotlyBase.HasFields) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(a.fields))
 	_preprocess(c::PlotlyBase.Cycler) = c.vals
