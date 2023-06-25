@@ -190,7 +190,8 @@ begin
 	_preprocess(x::Union{Bool,String,Number,Nothing,Missing}) = x
 	_preprocess(x::Symbol) = string(x)
 	_preprocess(x::Union{Tuple,AbstractArray}) = _preprocess.(x)
-	_preprocess(m::AbstractMatrix{<:Number}) = [collect(r) for r ∈ eachcol(m)]
+	_preprocess(v::Vector{<:Number}) = v
+	_preprocess(A::Array{<:Number}) = [_preprocess(collect(s)) for s ∈ eachslice(A; dims = ndims(A))]
 	_preprocess(d::Dict) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(d))
 	_preprocess(a::PlotlyBase.HasFields) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(a.fields))
 	_preprocess(c::PlotlyBase.Cycler) = c.vals
@@ -676,6 +677,32 @@ end
 md"""
 # Tests
 """
+
+# ╔═╡ 6d49055d-0347-4bce-a2c5-f1568596e2e6
+md"""
+## Image
+"""
+
+# ╔═╡ c56df6f6-865e-4af8-b8c0-429b021af1eb
+md"""
+This is testing the expected behavior of image traces as per [Issue #16](https://github.com/JuliaPluto/PlutoPlotly.jl/issues/16)
+"""
+
+# ╔═╡ 464964d1-ada4-4ec3-8df1-eaeb8ea28e4a
+# We check that the new definition works as the old one for matrices
+let
+	a = rand(5,6)
+	t1 = _preprocess(a) == [collect(r) for r in eachcol(a)]
+end
+
+# ╔═╡ 7ba8b496-f7c4-4fbc-a168-dc3d7af92d0c
+image_issue = image(;z = rand(3,5,3)*255)
+
+# ╔═╡ f6ed3a0a-e548-4b99-9cf7-085991a5c99e
+plot(image_issue)
+
+# ╔═╡ 0f9f50f8-95c8-4cb5-96f2-e4ce177ca2dd
+Plot(image_issue)
 
 # ╔═╡ 359d22e8-b13d-420b-b409-b18136c3ff3b
 md"""
@@ -1535,6 +1562,12 @@ version = "17.4.0+0"
 # ╠═f9d1e69f-7a07-486d-b43a-334c1c77790a
 # ╠═d42d4694-e05d-4e0e-a198-79a3a5cb688a
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251
+# ╟─6d49055d-0347-4bce-a2c5-f1568596e2e6
+# ╟─c56df6f6-865e-4af8-b8c0-429b021af1eb
+# ╠═464964d1-ada4-4ec3-8df1-eaeb8ea28e4a
+# ╠═7ba8b496-f7c4-4fbc-a168-dc3d7af92d0c
+# ╠═f6ed3a0a-e548-4b99-9cf7-085991a5c99e
+# ╠═0f9f50f8-95c8-4cb5-96f2-e4ce177ca2dd
 # ╟─359d22e8-b13d-420b-b409-b18136c3ff3b
 # ╠═e54cc4c4-2a93-4d44-90ed-5944edbf4b0f
 # ╠═3e5b09a9-6d18-4d2f-a37b-ac260ea36646
