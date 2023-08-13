@@ -3,11 +3,23 @@ module PlutoPlotly
 using Reexport
 @reexport using PlotlyBase
 
+using HypertextLiteral
 using PackageExtensionCompat
+using AbstractPlutoDingetjes
+using Dates
+using LaTeXStrings
+using Colors
 
-export PlutoPlot, get_plotly_version, change_plotly_version, check_plotly_version, force_pluto_mathjax_local, htl_js, add_plotly_listener!, add_class!, remove_class!, add_js_listener!
+export PlutoPlot, get_plotly_version, change_plotly_version,
+check_plotly_version, force_pluto_mathjax_local, htl_js, add_plotly_listener!,
+add_class!, remove_class!, add_js_listener!
 export plot, push_script!, prepend_cell_selector
-include("../notebooks/wrapper.jl")
+include("main_struct.jl")
+include("basics.jl")
+include("mathjax.jl")
+include("preprocess.jl")
+include("js_helpers.jl")
+include("show.jl")
 
 function __init__()
 	# if !is_inside_pluto()
