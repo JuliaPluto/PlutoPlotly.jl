@@ -9,6 +9,8 @@ using AbstractPlutoDingetjes
 using Dates
 using BaseDirs
 using TOML
+using Colors
+using LaTeXStrings
 using Markdown
 using Downloads: download
 
