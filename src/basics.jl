@@ -1,8 +1,6 @@
 publish_to_js = if is_inside_pluto()
 	Main.PlutoRunner.publish_to_js
 else
-	@warn "You are trying to show a PlutoPlot outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly.
-	NOTE: If you receive this warning during pre-compilation or sysimage creation, you can ignore this warning."
 	x -> x
 end
 
