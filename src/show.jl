@@ -1,8 +1,4 @@
-function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSION[], minified = LOAD_MINIFIED[])
-plotly_url = let
-    name = "plotly.js-dist" * (minified ? "-min" : "")
-    "https://esm.sh/$name@$ver" |> htl_js
-end
+function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSION[])
 @htl """
 	<script id=$(script_id)>
 		// We start by putting all the variable interpolation here at the beginning
@@ -17,7 +13,15 @@ end
 		let custom_classlist = $(pp.classList)
 
 		// Load the plotly library
-        const {default: Plotly} = await import("$plotly_url")
+		let Plotly = undefined
+		try {
+			let _mod = await import($(get_plotly_src("$ver", "local")))
+			Plotly = _mod.default
+		} catch (e) {
+			console.log("Local load failed, trying with the web esm.sh version")
+			let _mod = await import($(get_plotly_src("$ver", "esm")))
+			Plotly = _mod.default
+		}
 
 		// Check if we have to force local mathjax font cache
 		if ($(force_pluto_mathjax_local()) && window?.MathJax?.config?.svg?.fontCache === 'global') {

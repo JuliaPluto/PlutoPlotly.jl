@@ -1,6 +1,4 @@
-# This is only used to simplify debugging (by setting this to false) the plotly internal functions using the developer console
-const LOAD_MINIFIED = Ref(true)
-const PLOTLY_VERSION = Ref("2.25.1")
+const PLOTLY_VERSION = Ref("2.25.2")
 const JS = HypertextLiteral.JavaScript
 
 """

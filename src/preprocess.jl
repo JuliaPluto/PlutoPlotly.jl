@@ -56,6 +56,7 @@ function _preprocess(pc::PlotlyBase.PlotConfig)
     out
 end
 
+# Files that will be later moved to an extension. At the moment it's pointless because PlotlyBase uses those internally anyway.
 _preprocess(s::LaTeXString) = s.s
 
 # Colors, they can be put inside an extension

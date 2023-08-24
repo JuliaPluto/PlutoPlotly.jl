@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.26
+# v0.19.27
 
 using Markdown
 using InteractiveUtils
@@ -20,18 +20,20 @@ begin
 	using PlutoUI
 	using PlutoExtras
 	using Dates
+	using Colors
 end
 
 # ╔═╡ 70dc8fa0-cc32-4ebe-af0d-62b5bb3a82ed
 @fromparent begin
 	using ^
 	using >.HypertextLiteral
-	using >.Colors
-	using >.LaTeXStrings
 end
 
 # ╔═╡ 7bd46437-8af0-4a15-87e9-1508869e1600
 ExtendedTableOfContents()
+
+# ╔═╡ 0820a893-26a3-49e9-bbc9-13db0a6fccee
+PlutoPlotly._fromparent_dict_
 
 # ╔═╡ acba5003-a456-4c1a-a53f-71a3bec30251
 md"""
@@ -136,7 +138,7 @@ let
 	
 }
 	"""))
-	_show(p)
+	PlutoPlotly._show(p)
 end
 
 # ╔═╡ 1460ece1-7828-4e93-ac37-e979b874b492
@@ -299,6 +301,9 @@ $(plot(rand(10)))
 	}
 </style>
 """
+
+# ╔═╡ e92a0cf8-f869-4737-a465-db17318498a2
+asd
 
 # ╔═╡ 62126774-e246-473b-9d0b-92e967cd36ac
 md"""
@@ -485,43 +490,19 @@ let
 	plot(contour(x=x, y=y, z=Z), Layout(width=650, height=350, template = "none"))
 end
 
-# ╔═╡ 2fa13939-eba2-4d25-b461-56be79fc1db6
-md"""
-# Re-execute errored cells
-"""
-
-# ╔═╡ 5a324fba-1033-4dcf-b10c-1fa4f231355c
-md"""
-Since we have functions defined at the bottom of the notebook, when first opening the notebook some of the tests above will error and would need to be re-executed after all the function definitions are loaded. 
-
-To do this, we put at the bottom of the notebook a javascript function that re-executes all the errored cells
-"""
-
-# ╔═╡ 9f2c0123-7e1a-43b7-861a-d059bb28f776
-# # Not really needed anymore after putting the tests at the bottom
-
-# @htl """
-# <script>
-# const jlerrors = document.querySelectorAll('jlerror')
-# for (const err of jlerrors) {
-# 	const cell = err.closest('pluto-cell')
-# 	const runbut = cell.querySelector('button.runcell')
-# 	runbut.click()
-# }
-# </script>
-# """
-
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 PlutoDevMacros = "a0499f29-c39b-4c5c-807c-88074221b949"
 PlutoExtras = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
-PlutoDevMacros = "~0.5.5"
-PlutoExtras = "~0.7.5"
+Colors = "~0.12.10"
+PlutoDevMacros = "~0.5.7"
+PlutoExtras = "~0.7.8"
 PlutoUI = "~0.7.37"
 """
 
@@ -550,6 +531,12 @@ deps = ["FixedPointNumbers", "Random"]
 git-tree-sha1 = "eb7f0f8307f71fac7c606984ea5fb2817275d6e4"
 uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
 version = "0.11.4"
+
+[[Colors]]
+deps = ["ColorTypes", "FixedPointNumbers", "Reexport"]
+git-tree-sha1 = "fc08e5930ee9a4e03f84bfb5211cb54e7769758a"
+uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
+version = "0.12.10"
 
 [[CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -638,9 +625,9 @@ version = "0.1.4"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
-git-tree-sha1 = "42324d08725e200c23d4dfb549e0d5d89dede2d2"
+git-tree-sha1 = "9ee1618cbf5240e6d4e0371d6f24065083f60c48"
 uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-version = "0.5.10"
+version = "0.5.11"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -668,9 +655,9 @@ uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
 version = "0.3.21+4"
 
 [[OrderedCollections]]
-git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
+git-tree-sha1 = "2e73fe17cac3c62ad1aebe70d44c963c3cfdc3e3"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.4.1"
+version = "1.6.2"
 
 [[Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
@@ -685,15 +672,15 @@ version = "1.9.2"
 
 [[PlutoDevMacros]]
 deps = ["HypertextLiteral", "InteractiveUtils", "MacroTools", "Markdown", "Pkg", "Random", "TOML"]
-git-tree-sha1 = "44b59480bdd690eb31b32f4ba3418e0731145cea"
+git-tree-sha1 = "51e747644116b5806936ad355f1e32e124ec04b1"
 uuid = "a0499f29-c39b-4c5c-807c-88074221b949"
-version = "0.5.5"
+version = "0.5.7"
 
 [[PlutoExtras]]
 deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "OrderedCollections", "PlutoDevMacros", "PlutoUI", "REPL"]
-git-tree-sha1 = "4df3a485d53900720b052b3dc30225ed5ab4204b"
+git-tree-sha1 = "2ce56cb64b4c346406a855105850e7ba68d2197c"
 uuid = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
-version = "0.7.5"
+version = "0.7.8"
 
 [[PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
@@ -703,9 +690,9 @@ version = "0.7.52"
 
 [[PrecompileTools]]
 deps = ["Preferences"]
-git-tree-sha1 = "9673d39decc5feece56ef3940e5dafba15ba0f81"
+git-tree-sha1 = "03b4c25b43cb84cee5c90aa9b5ea0a78fd848d2f"
 uuid = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
-version = "1.1.2"
+version = "1.2.0"
 
 [[Preferences]]
 deps = ["TOML"]
@@ -810,6 +797,7 @@ version = "17.4.0+0"
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
 # ╠═72c073fd-5f1b-4af0-901b-aaa901f0f273
 # ╠═70dc8fa0-cc32-4ebe-af0d-62b5bb3a82ed
+# ╠═0820a893-26a3-49e9-bbc9-13db0a6fccee
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251
 # ╟─6d49055d-0347-4bce-a2c5-f1568596e2e6
 # ╟─c56df6f6-865e-4af8-b8c0-429b021af1eb
@@ -818,7 +806,7 @@ version = "17.4.0+0"
 # ╠═0f9f50f8-95c8-4cb5-96f2-e4ce177ca2dd
 # ╟─359d22e8-b13d-420b-b409-b18136c3ff3b
 # ╠═e54cc4c4-2a93-4d44-90ed-5944edbf4b0f
-# ╠═3e5b09a9-6d18-4d2f-a37b-ac260ea36646
+# ╟─3e5b09a9-6d18-4d2f-a37b-ac260ea36646
 # ╠═070820c5-082f-4428-8d5e-1fdd1ce29eba
 # ╟─0c30855c-6542-4b1a-9427-3a8427e75210
 # ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
@@ -843,6 +831,7 @@ version = "17.4.0+0"
 # ╠═a5823eb2-3aaa-4791-bdc8-196eac2ccf2e
 # ╟─b45cc21d-bfff-4375-a524-95108661a2ef
 # ╠═4ea48316-62d9-4b24-bb1d-c9fd1db044dc
+# ╠═e92a0cf8-f869-4737-a465-db17318498a2
 # ╟─62126774-e246-473b-9d0b-92e967cd36ac
 # ╠═cfa78790-aa4c-4c7b-8a9f-198987338516
 # ╠═340262a2-c823-4e19-8f19-9a05f4504bb5
@@ -865,8 +854,5 @@ version = "17.4.0+0"
 # ╟─5b5293bf-81b3-4e80-995a-f15f91971bd4
 # ╠═3612826c-0af0-4fef-aafe-112a2948f669
 # ╠═ce90eb60-98ed-4901-9218-ed8466bb03c7
-# ╟─2fa13939-eba2-4d25-b461-56be79fc1db6
-# ╟─5a324fba-1033-4dcf-b10c-1fa4f231355c
-# ╠═9f2c0123-7e1a-43b7-861a-d059bb28f776
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
