@@ -26,6 +26,8 @@ include("mathjax.jl")
 include("preprocess.jl")
 include("js_helpers.jl")
 include("show.jl")
+# Forward methods of PlotlyBase to support PlutoPlot objects
+include("plotlybase_forward.jl")
 
 function __init__()
 	# if !is_inside_pluto()
