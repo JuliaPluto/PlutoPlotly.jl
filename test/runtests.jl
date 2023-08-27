@@ -1,3 +1,3 @@
 using SafeTestsets
 
-@safetestset "PlotlyKaleido Extension" begin include("plotlykaleido.jl") end
+@safetestset "Extensions" begin include("extensions.jl") end

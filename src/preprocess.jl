@@ -28,7 +28,7 @@ _preprocess(x::Union{Bool,String,Number,Nothing,Missing}) = x
 _preprocess(x::Symbol) = string(x)
 _preprocess(x::Union{Tuple,AbstractArray}) = _preprocess.(x)
 _preprocess(A::AbstractArray{<:Number, N}) where N = if N == 1
-    collect(A)
+    collect(_preprocess.(A))
 else
     [_preprocess(collect(s)) for s ∈ eachslice(A; dims = ndims(A))]
 end
