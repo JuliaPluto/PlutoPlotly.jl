@@ -2,6 +2,8 @@ using PlutoPlotly
 using PlotlyKaleido
 using Test
 
+PlotlyKaleido.start()
+
 mktempdir() do dir
     cd() do 
         p = plot(rand(10,4))
