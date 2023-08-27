@@ -24,7 +24,7 @@ function maybe_put_plotly_in_pluto(v)
     # We check whether the plotly library has been already loaded in this Pluto location, and we copy it otherwise
     for subdir in ("frontend-dist", "frontend")
         dist_path = joinpath(pluto_path, subdir)
-        isdir(dist_path) || error("Something went wrong")
+        isdir(dist_path) || (subdir === "frontend" ? error("Something went wrong") : continue)
         file_path = joinpath(dist_path, "plotlyjs", "$name.min.js")
         if !isfile(file_path)
             isdir(joinpath(dist_path, "plotlyjs")) || mkdir(joinpath(dist_path, "plotlyjs"))
