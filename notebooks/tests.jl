@@ -1,6 +1,8 @@
 ### A Pluto.jl notebook ###
 # v0.19.27
 
+#> custom_attrs = ["hide-enabled"]
+
 using Markdown
 using InteractiveUtils
 
@@ -340,7 +342,7 @@ md"""
 """
 
 # ╔═╡ 6e12592d-01fe-455a-a19c-7544258b9791
-voila = 1
+voila = 10
 
 # ╔═╡ 36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf
 let

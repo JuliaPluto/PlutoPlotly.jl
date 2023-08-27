@@ -4,7 +4,6 @@ using Reexport
 @reexport using PlotlyBase
 
 using HypertextLiteral
-using PackageExtensionCompat
 using AbstractPlutoDingetjes
 using Dates
 using BaseDirs
@@ -32,7 +31,6 @@ function __init__()
 	# if !is_inside_pluto()
 	# 	@warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly.\nNOTE: If you receive this warning during pre-compilation or sysimage creation, you can ignore this warning."
 	# end
-    @require_extensions
 end
 
 end
