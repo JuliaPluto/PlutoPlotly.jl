@@ -1,5 +1,9 @@
 publish_to_js = if is_inside_pluto()
-	Main.PlutoRunner.publish_to_js
+	if isdefined(Main.PlutoRunner, :core_published_to_js)
+		Main.PlutoRunner.PublishedToJavascript
+	else
+		Main.PlutoRunner.publish_to_js
+	end
 else
 	x -> x
 end
@@ -80,13 +84,26 @@ As example, one can create a plot and force its width to 400px in CSS by using t
 prepend_cell_selector(str::AbstractString="")::String = "pluto-cell[id='$(current_cell_id())'] $str" |> strip
 prepend_cell_selector(selectors) = join(map(prepend_cell_selector, selectors), ",\n")
 
+const IO_DICT = Ref{Tuple{<:IO, Dict{UInt, Int}}}((IOBuffer(), Dict{UInt, Int}()))
+function get_IO_DICT(io::IO)
+	old_io = first(IO_DICT[])
+	dict = if old_io === io
+		last(IO_DICT[])
+	else
+		d = Dict{UInt, Int}()
+		IO_DICT[] = (io, d)
+		d
+	end
+	return dict
+end
+
 ## Unique Counter ##
 function unique_io_counter(io::IO, identifier = "script_id")
 	!get(io, :is_pluto, false) && return -1 # We simply return -1 if not inside pluto
-	# By default pluto inserts a dict inside the IOContext under key :extra_items. See https://github.com/fonsp/Pluto.jl/blob/10747db7ed512c6b3a9881c5cdb2a4daadea766d/src/runner/PlutoRunner.jl#L786
-	dict = io.dict[:extra_items]
-	# The dict has key of type Tuple{ObjectID, Int64}, so we a custom key with our custom identifier where we will store the counter 
-	key = (objectid(identifier), 0)
+	# We extract (or create if not existing) a dictionary that will keep track of instances of the same script name
+	dict = get_IO_DICT(io)
+	# We use the objectid as the key
+	key = objectid(identifier)
 	counter = get(dict, key, 0) + 1
 	# Update the counter on the dict that is shared within this IOContext
 	dict[key] = counter
