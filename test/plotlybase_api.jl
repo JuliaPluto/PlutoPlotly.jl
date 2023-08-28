@@ -259,7 +259,7 @@ end
 
     @testset "add_trace!" begin
         df = stack(DataFrame(x=1:10, one=1, two=2, three=3, four=4, five=5, six=6, seven=7), Not(:x))
-        p = Plot(df, x=:x, y=:value, facet_col=:variable, facet_col_wrap=2)
+        p = plot(df, x=:x, y=:value, facet_col=:variable, facet_col_wrap=2)
         @test length(p.data) == 7
         @test size(p.layout.subplots.grid_ref) == (4, 2)
 
@@ -278,7 +278,7 @@ end
 end
 
 @testset "add_shape!" begin
-    p = Plot(Layout(Subplots(rows=2, cols=2)))
+    p = plot(Layout(Subplots(rows=2, cols=2)))
     add_trace!(p, scatter(y=rand(4)), row="all", col="all")
     add_shape!(p, rect(x0=2, x1=4, y0=0.2, y1=0.5, line_color="purple"), row="all", col="all")
     @test length(p.layout.shapes) == 4
@@ -304,13 +304,13 @@ end
         ],
         layout = (hovermode = "unified",)
     )
-    plots = Plot[
-        Plot(fig)
-        Plot((layout = fig.layout, data = fig.data))
-        Plot((;frames=[], fig...))
-        Plot((;fig..., frames=[]))
-        Plot((layout = fig.layout, frames = [], data = fig.data))
-        Plot((data = fig.data, frames = [], layout = fig.layout))
+    plots = PlutoPlot[
+        plot(fig)
+        plot((layout = fig.layout, data = fig.data))
+        plot((;frames=[], fig...))
+        plot((;fig..., frames=[]))
+        plot((layout = fig.layout, frames = [], data = fig.data))
+        plot((data = fig.data, frames = [], layout = fig.layout))
     ]
     p1 = plots[1];
     for p2 in plots[2:end]
@@ -340,7 +340,7 @@ end
 
     # Create subplots, using "domain" type for pie charts
     layout = Layout(Subplots(rows=2, cols=2, specs=fill(Spec(kind="domain"), 2, 2)))
-    fig = Plot(layout)
+    fig = plot(layout)
     
 
     # Define pie charts
@@ -361,4 +361,15 @@ end
     @test !isempty(fig.data[1].domain_y)
     @test !isempty(fig.data[1].domain_x)
 
+end
+
+@testset "Random Additional Coverage Tests" begin
+        t1, t2, t3, l, p = fresh_data()
+        # test on plot object
+        p2 = relayout(p, Dict{Symbol,Any}(:title => "Fuzzy"); xaxis_title="wuzzy")
+        relayout!(p, Dict{Symbol,Any}(:title => "Fuzzy"); xaxis_title="wuzzy")
+        @test p2.layout == p.layout
+        @test p2.layout !== p.layout
+
+        @test_nowarn [p p;p p]
 end
