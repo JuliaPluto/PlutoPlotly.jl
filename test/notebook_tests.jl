@@ -24,3 +24,13 @@ eval_in_nb(sn, expr) = WorkspaceManager.eval_fetch_in_workspace(sn, expr)
     end
     SessionActions.shutdown(ss, nb)
 end
+
+@testset "make_subplots_tests.jl" begin
+    ss = ServerSession(; options)
+    path = joinpath(notebook_dir, "make_subplots_tests.jl")
+    nb = SessionActions.open(ss, path; run_async=false)
+    for cell in nb.cells
+        @test noerror(cell)
+    end
+    SessionActions.shutdown(ss, nb)
+end
