@@ -17,6 +17,7 @@ export PlutoPlot, get_plotly_version, change_plotly_version,
 check_plotly_version, force_pluto_mathjax_local, htl_js, add_plotly_listener!,
 add_class!, remove_class!, add_js_listener!
 export plot, push_script!, prepend_cell_selector
+export make_subplots
 
 include("local_plotly_library.jl")
 
@@ -26,6 +27,8 @@ include("mathjax.jl")
 include("preprocess.jl")
 include("js_helpers.jl")
 include("show.jl")
+# Forward methods of PlotlyBase to support PlutoPlot objects
+include("plotlybase_forward.jl")
 
 function __init__()
 	# if !is_inside_pluto()

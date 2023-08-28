@@ -163,6 +163,15 @@ Base.@kwdef struct PlutoPlot
 end
 PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
 
+# Getter that extract the underlying Plot object data
+function Base.getproperty(p::PlutoPlot, s::Symbol)
+	if hasfield(Plot, s)
+		getfield(getfield(p, :Plot), s)
+	else
+		getfield(p, s)
+	end
+end
+
 function plot(args...;kwargs...) 
 	@nospecialize
 	PlutoPlot(Plot(args...;kwargs...))
