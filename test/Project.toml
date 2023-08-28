@@ -1,5 +1,6 @@
 [deps]
 PlotlyKaleido = "f2990250-8cf9-495f-b13a-cce12b45703c"
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
