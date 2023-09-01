@@ -28,7 +28,7 @@ _preprocess(s::AbstractString) = String(s)
 
 _preprocess(x::Real) = Float32(x)
 
-_preprocess(x::Union{Bool,String,Number,Nothing,Missing}) = x
+_preprocess(x::Union{Bool,String,Nothing,Missing}) = x
 _preprocess(x::Symbol) = string(x)
 _preprocess(x::Union{Tuple,AbstractArray}) = _preprocess.(x)
 _preprocess(A::AbstractArray{<:Number, N}) where N = if N == 1
