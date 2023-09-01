@@ -10,7 +10,7 @@ force_pluto_mathjax_local(true)
 
 @test ColorScheme([Colors.RGB(0.0, 0.0, 0.0), Colors.RGB(1.0, 1.0, 1.0)],
 "custom", "twotone, black and white") |> _preprocess == [(0.0, "rgb(0,0,0)"), (1.0, "rgb(255,255,255)")]
-@test _preprocess("asda"[1:3]) === "asd"
+@test _preprocess(SubString("asda",1:3)) === "asd"
 @test _preprocess(:lol) === "lol"
 @test _preprocess(true) === true
 @test _preprocess(Cycler((1,2))) == [1,2]
