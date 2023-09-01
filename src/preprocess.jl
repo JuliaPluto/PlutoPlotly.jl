@@ -24,6 +24,8 @@ end
 _preprocess(x) = PlotlyBase.JSON.lower(x) # Default
 _preprocess(x::TimeType) = sprint(print, x) # For handling datetimes
 
+_preprocess(s::AbstractString) = String(s)
+
 _preprocess(x::Union{Bool,String,Number,Nothing,Missing}) = x
 _preprocess(x::Symbol) = string(x)
 _preprocess(x::Union{Tuple,AbstractArray}) = _preprocess.(x)
