@@ -4,7 +4,7 @@ function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSI
 		// We start by putting all the variable interpolation here at the beginning
 
 		// Publish the plot object to JS
-		let plot_obj = $(publish_to_js(_preprocess(pp)))
+		let plot_obj = $(maybe_publish_to_js(_preprocess(pp)))
 		// Get the plotly listeners
 		const plotly_listeners = $(pp.plotly_listeners)
 		// Get the JS listeners
