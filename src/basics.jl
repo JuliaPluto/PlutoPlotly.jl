@@ -1,11 +1,11 @@
-publish_to_js = if is_inside_pluto()
+maybe_publish_to_js(x) = if is_inside_pluto()
 	if isdefined(Main.PlutoRunner, :core_published_to_js)
-		Main.PlutoRunner.PublishedToJavascript
+		Main.PlutoRunner.PublishedToJavascript(x)
 	else
-		Main.PlutoRunner.publish_to_js
+		Main.PlutoRunner.publish_to_js(x)
 	end
 else
-	x -> x
+	x
 end
 
 current_cell_id()::Base.UUID = if is_inside_pluto()

@@ -36,7 +36,9 @@ _preprocess(A::AbstractArray{<:Number, N}) where N = if N == 1
 else
     [_preprocess(collect(s)) for s ∈ eachslice(A; dims = ndims(A))]
 end
-_preprocess(d::Dict) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(d))
+function _preprocess(d::Dict) 
+    Dict{Any,Any}(k => _preprocess(k === :range ? Tuple(v) : v) for (k, v) in pairs(d))
+end
 _preprocess(a::PlotlyBase.HasFields) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(a.fields))
 _preprocess(c::PlotlyBase.Cycler) = c.vals
 function _preprocess(c::PlotlyBase.ColorScheme)::Vector{Tuple{Float64,String}}
