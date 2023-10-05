@@ -2,15 +2,23 @@ function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSI
 @htl """
 	<script id=$(script_id)>
 		// We start by putting all the variable interpolation here at the beginning
+		// We have to convert all typedarrays in the layout to normal arrays. See Issue #25
+		// We use lodash for this for compactness
+		function removeTypedArray(o) {
+			return _.isTypedArray(o) ? Array.from(o) :
+			_.isPlainObject(o) ? _.mapValues(o, removeTypedArray) : 
+			o
+		}
 
 		// Publish the plot object to JS
-		let plot_obj = $(maybe_publish_to_js(_preprocess(pp)))
+		let plot_obj = _.update($(maybe_publish_to_js(_preprocess(pp))), "layout", removeTypedArray)
 		// Get the plotly listeners
 		const plotly_listeners = $(pp.plotly_listeners)
 		// Get the JS listeners
 		const js_listeners = $(pp.js_listeners)
 		// Deal with eventual custom classes
 		let custom_classlist = $(pp.classList)
+
 
 		// Load the plotly library
 		let Plotly = undefined
