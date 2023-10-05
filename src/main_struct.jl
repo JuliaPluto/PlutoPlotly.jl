@@ -1,56 +1,57 @@
-const PLOTLY_VERSION = Ref("2.25.2")
-const JS = HypertextLiteral.JavaScript
+const PLOTLY_VERSION = Ref("2.26.1")
 
-"""
-	ScriptContents
-Wrapper around a vector of `HypertextLiteral.JavaScript` elements. It has a custom print implementation of `HypertextLiteral.print_script` in order to allow serialization of its various elements inside a script tag.
+const SCType = Dictionary{String, Union{Function, Script}}
 
-It is used inside the PlutoPlot to allow modularity and ease customization of the script contents that is used to generate the plotlyjs plot in Javascript.
-"""
-struct ScriptContents
-	vec::Vector{JS}
-end
+# This will contain the default contents of the script generating the plot
+const _default_script_contents = SCType()
 
-function HypertextLiteral.print_script(io::IO, value::ScriptContents)
-	for el ∈ value.vec
-		print(io, el.content, '\n')
-	end
-end
+# We declare it here but define it later
+function _load_data_JS end
 
-"""
-	htl_js(x)
-Simple convenience constructor for `HypertextLiteral.JavaScript` objects, renamed and re-exported from HypertextLiteral for convenience in case HypertextLiteral is not explicitly loaded alongisde PlutoPlotly.
+set!(_default_script_contents, "publish_to_js", _load_data_JS)
 
-See also: [`add_plotly_listeners!`](@ref)
-"""
-htl_js(x) = HypertextLiteral.JavaScript(x)
-
-const _default_script_contents = htl_js.([
-	"""
+# Preamble
+set!(_default_script_contents, "PLOT variable", DualScript(
+	# This is rendered inside of Pluto
+	PlutoScript("""
 	// Flag to check if this cell was  manually ran or reactively ran
 	const firstRun = this ? false : true
 	const PLOT = this ?? document.createElement("div");
 	const parent = currentScript.parentElement
 	const isPlutoWrapper = parent.classList.contains('raw-html-wrapper')
-	""",
-	"""
+
 	if (firstRun) {
 		// It seem plot divs would not autosize themself inside flexbox containers without this
 		parent.appendChild(PLOT)
 	}
-	""",
-	"""
+	"""),
+	# This is rendered outside of Pluto
+	NormalScript("""
+	const PLOT = document.createElement("div")
+	""")
+))
+
+# Adjust width/height
+set!(_default_script_contents, "adjust widht/height", DualScript(
+	# This is rendered inside of Pluto
+	PlutoScript("""
 	// If width is not specified, set it to 100%
 	PLOT.style.width = plot_obj.layout.width ? "" : "100%"
 	
 	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
 	PLOT.style.height = plot_obj.layout.height ? "" :
 		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
-	""",
-	"""
+	"""),
+	# This is rendered outside of Pluto
+	NormalScript()
+))
 
-
+# classlist
+set!(_default_script_contents, "classlist", DualScript(
+	# This is rendered inside of Pluto
+	PlutoScript("""
 	PLOT.classList.forEach(cn => {
+		// This is necessary for cleaning up the classlist
 		if (cn !== 'js-plotly-plot' && !custom_classlist.includes(cn)) {
 			PLOT.classList.toggle(cn, false)
 		}
@@ -58,9 +59,20 @@ const _default_script_contents = htl_js.([
 	for (const className of custom_classlist) {
 		PLOT.classList.toggle(className, true)
 	}
-	""",
-	"""
+	"""),
+	# This is rendered outside of Pluto
+	NormalScript("""
+	for (const className of custom_classlist) {
+		PLOT.classList.toggle(className, true)
+	}
+	""")
+))
 
+# resizeObserver
+set!(_default_script_contents, "resizeObserver", DualScript(
+	# This is rendered inside of Pluto
+	PlutoScript(;
+	body = """
 	// Create the resizeObserver to make the plot even more responsive! :magic:
 	const resizeObserver = new ResizeObserver(entries => {
 		PLOT.style.height = plot_obj.layout.height ? "" :
@@ -74,8 +86,19 @@ const _default_script_contents = htl_js.([
 
 	resizeObserver.observe(PLOT)
 	""",
-	"""
+	invalidation = """
+		// Remove the resizeObserver
+		resizeObserver.disconnect()
+	"""),
+	# This is rendered outside of Pluto
+	NormalScript()
+))
 
+# Plotly.react
+set!(_default_script_contents, "Plotly.react", let
+	# This is rendered inside of Pluto
+	ps = PlutoScript(;
+	body = """
 	Plotly.react(PLOT, plot_obj).then(() => {
 		// Assign the Plotly event listeners
 		for (const [key, listener_vec] of Object.entries(plotly_listeners)) {
@@ -92,9 +115,7 @@ const _default_script_contents = htl_js.([
 	}
 	)
 	""",
-	"""
-
-	invalidation.then(() => {
+	invalidation = """
 		// Remove all plotly listeners
 		PLOT.removeAllListeners()
 		// Remove all JS listeners
@@ -103,11 +124,13 @@ const _default_script_contents = htl_js.([
 				PLOT.removeEventListener(key, listener)
 			}
 		}
-		// Remove the resizeObserver
-		resizeObserver.disconnect()
-	})
-	""",
-])
+	""")
+	# Outside of Pluto we simply re-use the body
+	ns = NormalScript(ps.body)
+	DualScript(ps, ns)
+end)
+
+set!(_default_script_contents, "returned_element", DualScript(""; returned_element = "PLOT"))
 
 """
 	PlutoPlot(p::Plot; kwargs...)
@@ -156,10 +179,10 @@ See also: [`ScriptContents`](@ref), [`add_js_listener!`](@ref), [`add_plotly_lis
 """
 Base.@kwdef struct PlutoPlot
 	Plot::PlotlyBase.Plot
-	plotly_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
-	js_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
+	plotly_listeners::Dict{String, Vector{String}} = Dict{String, Vector{String}}()
+	js_listeners::Dict{String, Vector{String}} = Dict{String, Vector{String}}()
 	classList::Vector{String} = String[]
-	script_contents::ScriptContents = ScriptContents(deepcopy(_default_script_contents))
+	script_contents::SCType = deepcopy(_default_script_contents)
 end
 PlutoPlot(p::PlotlyBase.Plot; kwargs...) = PlutoPlot(;kwargs..., Plot = p)
 
@@ -175,4 +198,51 @@ end
 function plot(args...;kwargs...) 
 	@nospecialize
 	PlutoPlot(Plot(args...;kwargs...))
+end
+
+_pluto_default_iocontext() = try
+	Main.PlutoRunner.default_iocontext 
+catch
+	IOContext(devnull)
+end
+
+# Create a ScriptContent using the IOContext from PlutoRunner (to avoid breaking core_publish_to_js)
+_pluto_sc(h::HypertextLiteral.Result) = ScriptContent(h; iocontext = _pluto_default_iocontext())
+
+# Load data from the PlutoPlot object to JavaScript
+function _load_data_JS(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSION[], kwargs...)
+	common = @htl("""
+	<script>
+		// Publish the plot object to JS
+		let plot_obj = $pp
+		// Get the plotly listeners
+		const plotly_listeners = $(pp.plotly_listeners)
+		// Get the JS listeners
+		const js_listeners = $(pp.js_listeners)
+		// Deal with eventual custom classes
+		let custom_classlist = $(pp.classList)
+
+		// Load the plotly library
+		let Plotly = undefined
+		try {
+			let _mod = await import($(get_plotly_src("$ver", "local")))
+			Plotly = _mod.default
+		} catch (e) {
+			console.log("Local load failed, trying with the web esm.sh version")
+			let _mod = await import($(get_plotly_src("$ver", "esm")))
+			Plotly = _mod.default
+		}
+	</script>
+	""") 
+	ps = PlutoScript(@htl("""
+	<script>
+		$(common |> _pluto_sc)
+		// Check if we have to force local mathjax font cache
+		if ($(force_pluto_mathjax_local()) && window?.MathJax?.config?.svg?.fontCache === 'global') {
+			window.MathJax.config.svg.fontCache = 'local'
+		}
+	</script>
+	""") |> _pluto_sc)
+	ns = NormalScript(ScriptContent(common))
+	return DualScript(ps, ns; id = script_id)
 end

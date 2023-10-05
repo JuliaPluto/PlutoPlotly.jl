@@ -24,9 +24,9 @@ console.log(PLOT) // logs the plot div inside the developer console when pressin
 \"\"\"
 ```
 """
-function add_js_listener!(p::PlutoPlot, event_name::String, listener::JS)
+function add_js_listener!(p::PlutoPlot, event_name::String, listener::String)
 	ldict = p.js_listeners
-	listeners_array = get!(ldict, event_name, JS[])
+	listeners_array = get!(ldict, event_name, String[])
 	push!(listeners_array, listener)
 	return p
 end
@@ -72,7 +72,7 @@ end
 Add script contents contained in collection `items` at the end of the plot show method script.
 The `item` must either be a collection of `String` or `HypertextLiteral.JavaScript` elements
 """
-function push_script!(p::PlutoPlot, items::Vararg{JS,N}) where N
+function push_script!(p::PlutoPlot, items::Vararg{Union{Script, ScriptContent, Function},N}) where N
 	@nospecialize
 	push!(p.script_contents.vec, items...)
 	return p
@@ -104,9 +104,9 @@ console.log(PLOT) // logs the plot div inside the developer console
 \"\"\"
 ```
 """
-function add_plotly_listener!(p::PlutoPlot, event_name::String, listener::JS)
+function add_plotly_listener!(p::PlutoPlot, event_name::String, listener::String)
 	ldict = p.plotly_listeners
-	listeners_array = get!(ldict, event_name, JS[])
+	listeners_array = get!(ldict, event_name, String[])
 	push!(listeners_array, listener)
 	return p
 end

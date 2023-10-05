@@ -1,9 +1,5 @@
 maybe_publish_to_js(x) = if is_inside_pluto()
-	if isdefined(Main.PlutoRunner, :core_published_to_js)
-		Main.PlutoRunner.PublishedToJavascript(x)
-	else
-		Main.PlutoRunner.publish_to_js(x)
-	end
+	published_to_js(x)
 else
 	x
 end
@@ -13,15 +9,6 @@ current_cell_id()::Base.UUID = if is_inside_pluto()
 else
 	Base.UUID(zero(UInt128))
 end
-
-function Base.show(io::IO, mime::MIME"text/html", s::JS)
-    if is_inside_pluto()
-        show(io, mime, Markdown.MD(Markdown.Code("js",s.content)))
-    else
-        show(io, MIME"text/plain",s)
-    end
-end
-
 
 ## Plotly Version ##
 function change_plotly_version(ver::String)
