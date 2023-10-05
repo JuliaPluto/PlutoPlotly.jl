@@ -1,4 +1,4 @@
-const PLOTLY_VERSION = Ref("2.25.2")
+const PLOTLY_VERSION = Ref("2.26.2")
 const JS = HypertextLiteral.JavaScript
 
 """
