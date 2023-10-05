@@ -1,3 +1,11 @@
+const SKIP_FLOAT32 = Ref(false)
+skip_float32(f) = let
+    SKIP_FLOAT32[] = true
+    out = f()
+    SKIP_FLOAT32[] = false
+    out
+end
+
 #=
 This function is basically `_json_lower` from PlotlyBase, but we do it directly
 on the PlutoPlot to avoid the modifying the behavior of `_json_lower` for `Plot`
@@ -26,7 +34,7 @@ _preprocess(x::TimeType) = sprint(print, x) # For handling datetimes
 
 _preprocess(s::AbstractString) = String(s)
 
-_preprocess(x::Real) = Float32(x)
+_preprocess(x::Real) = SKIP_FLOAT32[] ? x : Float32(x)
 
 _preprocess(x::Union{Bool,String,Nothing,Missing}) = x
 _preprocess(x::Symbol) = string(x)
@@ -37,7 +45,7 @@ else
     [_preprocess(collect(s)) for s ∈ eachslice(A; dims = ndims(A))]
 end
 function _preprocess(d::Dict) 
-    Dict{Any,Any}(k => _preprocess(k === :range ? Tuple(v) : v) for (k, v) in pairs(d))
+    Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(d))
 end
 _preprocess(a::PlotlyBase.HasFields) = Dict{Any,Any}(k => _preprocess(v) for (k, v) in pairs(a.fields))
 _preprocess(c::PlotlyBase.Cycler) = c.vals
