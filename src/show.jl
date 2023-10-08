@@ -1,21 +1,57 @@
-function _show(pp::PlutoPlot; kwargs...)
-	make_script([
-		x isa Function ? x(pp; kwargs...) : x for x in pp.script_contents
-	])
+function plot_script(pp::PlutoPlot; kwargs...)
+	gen = (x isa Function ? x(pp; kwargs...) : x for x in pp.script_contents)
+	reduce(vcat, gen) |> make_script
 end
 
+function PlutoCombineHTL.print_html(io::IO, plt::PlutoPlot; full_html = false, pluto = is_inside_pluto(io), kwargs...)
+	script = plot_script(plt; pluto, kwargs...)
+	if full_html
+		println(io, "<!DOCTYPE html>")
+		println(io, "<html>")
+		println(io, "<head></head>")
+		println(io, "<body>")
+	end
+	print_html(io, script; pluto, kwargs...)
+	if full_html
+		println(io, "</body>")
+		println(io, "</html>")
+	end
+end
+
+Base.show(io::IO, ::MIME"juliavscode/html", plt::PlutoPlot) = 
+print_html(io, plt; pluto = false, full_html = true)
+
 function Base.show(io::IO, mime::MIME"text/html", plt::PlutoPlot)
-	show(io, mime, _show(plt; script_id =  plotly_script_id(io)))
+	show(io, mime, plot_script(plt; script_id =  plotly_script_id(io)))
 	# show(io, mime, _show(plt))
 end
 
-function Base.show(io::IO, mime::MIME"text/javascript", plt::PlutoPlot)
-	if is_inside_pluto(io)
-		show(io, mime, published_to_js(_preprocess(plt)))
-	else
-		# We use HypertextLiteral to print the Dict out f _preprocess
-		HypertextLiteral.print_script(io, _preprocess(plt))
-	end
+function PlutoCombineHTL.print_javascript(io::IO, pts::PrintToScript{<:DisplayLocation, PlutoPlot}; pluto = is_inside_pluto(io))
+	# Extract the PlutoPlot
+	pp = pts.el
+	_publish = x -> print_javascript(io, x; pluto)
+	# We publish the plot obj
+	print(io, "
+	// Publish the plot object to JS
+	let plot_obj = ")
+	_publish(_preprocess(pp))
+	# We publish the listeners
+	## Plotly
+	print(io, "
+	// Publish the plotly listeners
+	const plotly_listeners = ")
+	_publish(pp.plotly_listeners)
+	## JS
+	print(io, "
+	// Publish the JS listeners
+	const js_listeners = ")
+	_publish(pp.js_listeners)
+	# Custom classes
+	print(io, "
+	// Deal with eventual custom classes
+	const custom_classlist = ")
+	_publish(pp.classList)
+	println(io)
 end
 
 #= Fix for Julia 1.10 

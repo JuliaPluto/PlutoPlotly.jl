@@ -15,6 +15,7 @@ using Markdown
 using Downloads: download
 
 using PlutoDevMacros.PlutoCombineHTL.WithTypes
+using PlutoDevMacros.PlutoCombineHTL: plutodefault, print_javascript, print_html
 using Dictionaries
 
 export PlutoPlot, get_plotly_version, change_plotly_version,
@@ -26,6 +27,7 @@ export make_subplots
 include("local_plotly_library.jl")
 
 include("main_struct.jl")
+include("default_scriptcontents.jl")
 include("basics.jl")
 include("mathjax.jl")
 include("preprocess.jl")

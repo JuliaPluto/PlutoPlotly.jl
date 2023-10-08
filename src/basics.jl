@@ -86,7 +86,7 @@ end
 
 ## Unique Counter ##
 function unique_io_counter(io::IO, identifier = "script_id")
-	!get(io, :is_pluto, false) && return -1 # We simply return -1 if not inside pluto
+	is_inside_pluto(io) || return -1 # We simply return -1 if not inside pluto
 	# We extract (or create if not existing) a dictionary that will keep track of instances of the same script name
 	dict = get_IO_DICT(io)
 	# We use the objectid as the key
