@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.27
+# v0.19.29
 
 #> custom_attrs = ["hide-enabled"]
 
@@ -146,6 +146,22 @@ let
     p
 end
 
+# ╔═╡ bdb3efbb-7a07-494b-bf8e-3ced7ffc49c5
+md"""
+## hcat
+"""
+
+# ╔═╡ 5f711a53-0e31-4e38-b640-5a1cb2a5c8d6
+hcat(plot(rand(4)), plot(rand(4)))
+
+# ╔═╡ 9cf8e6ef-d06d-4140-8730-1d2f9720f9dd
+md"""
+## vcat
+"""
+
+# ╔═╡ c0fa557c-4922-4729-8e45-75c2c4c6f065
+vcat(plot(rand(4)), plot(rand(4)))
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -154,8 +170,8 @@ PlutoExtras = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
-PlutoDevMacros = "~0.5.7"
-PlutoExtras = "~0.7.8"
+PlutoDevMacros = "~0.5.8"
+PlutoExtras = "~0.7.10"
 PlutoUI = "~0.7.52"
 """
 
@@ -163,9 +179,9 @@ PlutoUI = "~0.7.52"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.2"
+julia_version = "1.10.0-beta2"
 manifest_format = "2.0"
-project_hash = "c6313dc9dc845e8656a997180043b467212250b0"
+project_hash = "f50c3104111b5d594359e3dd1628a076c5fe269d"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -192,7 +208,7 @@ version = "0.11.4"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.0.5+0"
+version = "1.0.5+1"
 
 [[deps.Dates]]
 deps = ["Printf"]
@@ -243,12 +259,12 @@ version = "0.21.4"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
-version = "0.6.3"
+version = "0.6.4"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "7.84.0+0"
+version = "8.0.1+1"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -257,7 +273,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
-version = "1.10.2+0"
+version = "1.11.0+1"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -287,14 +303,14 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
-version = "2.28.2+0"
+version = "2.28.2+1"
 
 [[deps.Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
-version = "2022.10.11"
+version = "2023.1.10"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -303,12 +319,7 @@ version = "1.2.0"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
-version = "0.3.21+4"
-
-[[deps.OrderedCollections]]
-git-tree-sha1 = "2e73fe17cac3c62ad1aebe70d44c963c3cfdc3e3"
-uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.6.2"
+version = "0.3.23+2"
 
 [[deps.Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
@@ -319,19 +330,19 @@ version = "2.7.2"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "FileWatching", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-version = "1.9.2"
+version = "1.10.0"
 
 [[deps.PlutoDevMacros]]
 deps = ["HypertextLiteral", "InteractiveUtils", "MacroTools", "Markdown", "Pkg", "Random", "TOML"]
-git-tree-sha1 = "51e747644116b5806936ad355f1e32e124ec04b1"
+git-tree-sha1 = "6ce1d9f7c078b493812161349c48735dee275466"
 uuid = "a0499f29-c39b-4c5c-807c-88074221b949"
-version = "0.5.7"
+version = "0.5.8"
 
 [[deps.PlutoExtras]]
-deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "OrderedCollections", "PlutoDevMacros", "PlutoUI", "REPL"]
-git-tree-sha1 = "2ce56cb64b4c346406a855105850e7ba68d2197c"
+deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "PlutoDevMacros", "PlutoUI", "REPL", "Reexport"]
+git-tree-sha1 = "beedecb30d8ed0874773d5641f5ce5ee2bfeeded"
 uuid = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
-version = "0.7.8"
+version = "0.7.10"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
@@ -347,9 +358,9 @@ version = "1.2.0"
 
 [[deps.Preferences]]
 deps = ["TOML"]
-git-tree-sha1 = "7eb1686b4f04b82f96ed7a4ea5890a4f0c7a09f1"
+git-tree-sha1 = "00805cd429dcb4870060ff49ef443486c262e38e"
 uuid = "21216c6a-2e73-6563-6e65-726566657250"
-version = "1.4.0"
+version = "1.4.1"
 
 [[deps.Printf]]
 deps = ["Unicode"]
@@ -360,7 +371,7 @@ deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 
 [[deps.Random]]
-deps = ["SHA", "Serialization"]
+deps = ["SHA"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[deps.Reexport]]
@@ -381,6 +392,7 @@ uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 [[deps.SparseArrays]]
 deps = ["Libdl", "LinearAlgebra", "Random", "Serialization", "SuiteSparse_jll"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+version = "1.10.0"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -390,7 +402,7 @@ version = "1.9.0"
 [[deps.SuiteSparse_jll]]
 deps = ["Artifacts", "Libdl", "Pkg", "libblastrampoline_jll"]
 uuid = "bea87d4a-7f5b-5778-9afe-8cc45184846c"
-version = "5.10.1+6"
+version = "7.2.0+1"
 
 [[deps.TOML]]
 deps = ["Dates"]
@@ -426,22 +438,22 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
-version = "1.2.13+0"
+version = "1.2.13+1"
 
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
-version = "5.8.0+0"
+version = "5.8.0+1"
 
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.48.0+0"
+version = "1.52.0+1"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
-version = "17.4.0+0"
+version = "17.4.0+2"
 """
 
 # ╔═╡ Cell order:
@@ -459,5 +471,9 @@ version = "17.4.0+0"
 # ╠═b0e75a40-158e-488d-9aa3-2ffdcfed139e
 # ╟─dff22380-9496-4615-8fad-516086dadf40
 # ╠═8b1ebbce-c0a2-4ac8-8cf8-52afeda5cb72
+# ╟─bdb3efbb-7a07-494b-bf8e-3ced7ffc49c5
+# ╠═5f711a53-0e31-4e38-b640-5a1cb2a5c8d6
+# ╟─9cf8e6ef-d06d-4140-8730-1d2f9720f9dd
+# ╠═c0fa557c-4922-4729-8e45-75c2c4c6f065
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

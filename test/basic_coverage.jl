@@ -1,8 +1,13 @@
 using Test
 using PlutoPlotly
-using PlutoPlotly: _preprocess
+using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32
 using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler
 
+@test SKIP_FLOAT32[] == false
+@test skip_float32() do
+    SKIP_FLOAT32[]
+end == true
+@test SKIP_FLOAT32[] == false
 
 @test force_pluto_mathjax_local() === false
 force_pluto_mathjax_local(true)

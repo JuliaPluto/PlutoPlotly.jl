@@ -1,4 +1,4 @@
-const PLOTLY_VERSION = Ref("2.26.1")
+const PLOTLY_VERSION = Ref("2.26.2")
 
 const SCType = Dictionary{String, Union{Function, Script}}
 
@@ -213,8 +213,15 @@ _pluto_sc(h::HypertextLiteral.Result) = ScriptContent(h; iocontext = _pluto_defa
 function _load_data_JS(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSION[], kwargs...)
 	common = @htl("""
 	<script>
+		// We have to convert all typedarrays in the layout to normal arrays. See Issue #25
+		// We use lodash for this for compactness
+		function removeTypedArray(o) {
+			return _.isTypedArray(o) ? Array.from(o) :
+			_.isPlainObject(o) ? _.mapValues(o, removeTypedArray) : 
+			o
+		}
 		// Publish the plot object to JS
-		let plot_obj = $pp
+		let plot_obj = _.update($(maybe_publish_to_js(_preprocess(pp))), "layout", removeTypedArray)
 		// Get the plotly listeners
 		const plotly_listeners = $(pp.plotly_listeners)
 		// Get the JS listeners
