@@ -1,6 +1,7 @@
 const PLOTLY_VERSION = Ref("2.26.2")
 
-const SCType = Dictionary{String, Union{Function, Script}}
+const SCType = Dictionary{String, Union{Function, Script, PrintToScript}}
+const JS = HypertextLiteral.JavaScript
 
 # This will contain the default contents of the script generating the plot
 const _default_script_contents = SCType()
@@ -53,8 +54,8 @@ See also: [`ScriptContents`](@ref), [`add_js_listener!`](@ref), [`add_plotly_lis
 """
 Base.@kwdef struct PlutoPlot
 	Plot::PlotlyBase.Plot
-	plotly_listeners::Dict{String, Vector{String}} = Dict{String, Vector{String}}()
-	js_listeners::Dict{String, Vector{String}} = Dict{String, Vector{String}}()
+	plotly_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
+	js_listeners::Dict{String, Vector{JS}} = Dict{String, Vector{JS}}()
 	classList::Vector{String} = String[]
 	script_contents::SCType = deepcopy(_default_script_contents)
 end

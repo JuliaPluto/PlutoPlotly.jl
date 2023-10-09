@@ -170,8 +170,8 @@ PlutoExtras = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
-PlutoDevMacros = "~0.5.8"
-PlutoExtras = "~0.7.10"
+PlutoDevMacros = "~0.6.0"
+PlutoExtras = "~0.7.11"
 PlutoUI = "~0.7.52"
 """
 
@@ -181,7 +181,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.0-beta2"
 manifest_format = "2.0"
-project_hash = "f50c3104111b5d594359e3dd1628a076c5fe269d"
+project_hash = "46f2e02ace855d54b6bc9494b62148b187ae7606"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -213,6 +213,12 @@ version = "1.0.5+1"
 [[deps.Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
+
+[[deps.DocStringExtensions]]
+deps = ["LibGit2"]
+git-tree-sha1 = "2fb1e02f2b635d0845df5d7c167fec4dd739b00d"
+uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+version = "0.9.3"
 
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
@@ -333,16 +339,16 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 version = "1.10.0"
 
 [[deps.PlutoDevMacros]]
-deps = ["HypertextLiteral", "InteractiveUtils", "MacroTools", "Markdown", "Pkg", "Random", "TOML"]
-git-tree-sha1 = "6ce1d9f7c078b493812161349c48735dee275466"
+deps = ["AbstractPlutoDingetjes", "DocStringExtensions", "HypertextLiteral", "InteractiveUtils", "MacroTools", "Markdown", "Pkg", "Random", "TOML"]
+git-tree-sha1 = "06fa4aa7a8f2239eec99cf54eeddd34f3d4359be"
 uuid = "a0499f29-c39b-4c5c-807c-88074221b949"
-version = "0.5.8"
+version = "0.6.0"
 
 [[deps.PlutoExtras]]
-deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "PlutoDevMacros", "PlutoUI", "REPL", "Reexport"]
-git-tree-sha1 = "beedecb30d8ed0874773d5641f5ce5ee2bfeeded"
+deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "PlutoDevMacros", "PlutoUI", "REPL"]
+git-tree-sha1 = "382b530c2ebe31f4a44cb055642bbd71197fbd20"
 uuid = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
-version = "0.7.10"
+version = "0.7.11"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]

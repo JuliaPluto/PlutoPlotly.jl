@@ -30,6 +30,7 @@ function PlutoCombineHTL.print_javascript(io::IO, pts::PrintToScript{<:DisplayLo
 	# Extract the PlutoPlot
 	pp = pts.el
 	_publish = x -> print_javascript(io, x; pluto)
+	_publish_listeners = x -> HypertextLiteral.print_script(io, x)
 	# We publish the plot obj
 	print(io, "
 	// Publish the plot object to JS
@@ -40,12 +41,12 @@ function PlutoCombineHTL.print_javascript(io::IO, pts::PrintToScript{<:DisplayLo
 	print(io, "
 	// Publish the plotly listeners
 	const plotly_listeners = ")
-	_publish(pp.plotly_listeners)
+	_publish_listeners(pp.plotly_listeners)
 	## JS
 	print(io, "
 	// Publish the JS listeners
 	const js_listeners = ")
-	_publish(pp.js_listeners)
+	_publish_listeners(pp.js_listeners)
 	# Custom classes
 	print(io, "
 	// Deal with eventual custom classes
