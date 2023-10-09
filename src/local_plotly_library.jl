@@ -19,7 +19,7 @@ end
 function maybe_put_plotly_in_pluto(v)
     name = get_local_name(v)
     pluto_path = pluto_server_folder()
-    pluto_path !== nothing || return false
+    pluto_path === nothing && return true
     maybe_add_plotly_local(v)
     # We check whether the plotly library has been already loaded in this Pluto location, and we copy it otherwise
     for subdir in ("frontend-dist", "frontend")

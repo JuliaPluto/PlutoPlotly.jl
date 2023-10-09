@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.27
+# v0.19.29
 
 #> custom_attrs = ["hide-enabled"]
 
@@ -136,7 +136,7 @@ pp = Plot(scatter3d(x = rand(N), y = rand(N), z = rand(N), mode="markers"), Layo
 # ╔═╡ ccf62e33-8fcf-45d9-83ed-c7de80800b76
 let
 	p = PlutoPlot(pp)
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+	add_plotly_listener!(p, "plotly_relayout", """
 	(e) => {
 
 	console.log(e)
@@ -154,8 +154,7 @@ let
    	console.log('plot_obj: ',plot_obj.layout.scene?.camera?.eye)
 	
 }
-	"""))
-	PlutoPlotly._show(p)
+	""")
 end
 
 # ╔═╡ 1460ece1-7828-4e93-ac37-e979b874b492
@@ -228,40 +227,39 @@ md"""
 # ╔═╡ c3b1a198-ef19-4a54-9c32-d9ea32a63812
 let
 	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+	add_plotly_listener!(p, "plotly_relayout", """
 function(e) {
     
 	console.log('listener 1')
 	
 }
-	"""))
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+	""")
+	add_plotly_listener!(p, "plotly_relayout", """
 function(e) {
     
 	console.log('listener 2')
 	
 }
-	"""))
-	@htl "$p"
+	""")
 end
 
 # ╔═╡ e9fc2030-c2f0-48e9-a807-424039e796b2
 let
 	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+	add_plotly_listener!(p, "plotly_relayout", """
 function(e) {
     
 	console.log('listener 1')
 	
 }
-	"""))
-	add_plotly_listener!(p, "plotly_relayout", htl_js("""
+	""")
+	add_plotly_listener!(p, "plotly_relayout", """
 function(e) {
     
 	console.log('listener 2')
 	
 }
-	"""))
+	""")
 	p.plotly_listeners
 end
 
@@ -277,13 +275,13 @@ lololol = 1
 let
 	lololol
 	p = PlutoPlot(Plot(rand(10), Layout(uirevision = 1)))
-	add_js_listener!(p, "mousedown", htl_js("""
+	add_js_listener!(p, "mousedown", """
 function(e) {
     
 	console.log('MOUSEDOWN!')
 	
 }
-	"""))
+	""")
 end
 
 # ╔═╡ 6128ff76-3f1f-4144-bb3d-f44678210013
@@ -518,8 +516,8 @@ PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
 Colors = "~0.12.10"
-PlutoDevMacros = "~0.5.8"
-PlutoExtras = "~0.7.9"
+PlutoDevMacros = "0.6"
+PlutoExtras = "0.7"
 PlutoUI = "~0.7.52"
 """
 
@@ -529,7 +527,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.0-beta2"
 manifest_format = "2.0"
-project_hash = "becb366eb1628f34a109423203d027d4a184385e"
+project_hash = "6b1e8a02b00ef43bc0119f5085df2925b6e55084"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -567,6 +565,12 @@ version = "1.0.5+1"
 [[deps.Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
+
+[[deps.DocStringExtensions]]
+deps = ["LibGit2"]
+git-tree-sha1 = "2fb1e02f2b635d0845df5d7c167fec4dd739b00d"
+uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+version = "0.9.3"
 
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
@@ -687,16 +691,16 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 version = "1.10.0"
 
 [[deps.PlutoDevMacros]]
-deps = ["HypertextLiteral", "InteractiveUtils", "MacroTools", "Markdown", "Pkg", "Random", "TOML"]
-git-tree-sha1 = "6ce1d9f7c078b493812161349c48735dee275466"
+deps = ["AbstractPlutoDingetjes", "DocStringExtensions", "HypertextLiteral", "InteractiveUtils", "MacroTools", "Markdown", "Pkg", "Random", "TOML"]
+git-tree-sha1 = "06fa4aa7a8f2239eec99cf54eeddd34f3d4359be"
 uuid = "a0499f29-c39b-4c5c-807c-88074221b949"
-version = "0.5.8"
+version = "0.6.0"
 
 [[deps.PlutoExtras]]
-deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "PlutoDevMacros", "PlutoUI", "REPL", "Reexport"]
-git-tree-sha1 = "aad38509250eaa0840d2aadd73ef23c2a89bdb4a"
+deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "PlutoDevMacros", "PlutoUI", "REPL"]
+git-tree-sha1 = "382b530c2ebe31f4a44cb055642bbd71197fbd20"
 uuid = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
-version = "0.7.9"
+version = "0.7.11"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
@@ -712,9 +716,9 @@ version = "1.2.0"
 
 [[deps.Preferences]]
 deps = ["TOML"]
-git-tree-sha1 = "7eb1686b4f04b82f96ed7a4ea5890a4f0c7a09f1"
+git-tree-sha1 = "00805cd429dcb4870060ff49ef443486c262e38e"
 uuid = "21216c6a-2e73-6563-6e65-726566657250"
-version = "1.4.0"
+version = "1.4.1"
 
 [[deps.Printf]]
 deps = ["Unicode"]
@@ -833,7 +837,7 @@ version = "17.4.0+2"
 # ╠═de0cb780-ff4e-4236-89c4-4c3163337cfc
 # ╠═dd23fe10-a8d5-461a-85a8-e03468cdcd97
 # ╠═ccf62e33-8fcf-45d9-83ed-c7de80800b76
-# ╠═1460ece1-7828-4e93-ac37-e979b874b492
+# ╟─1460ece1-7828-4e93-ac37-e979b874b492
 # ╠═18c80ea2-0df4-40ea-bd87-f8fee463161e
 # ╠═ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
 # ╟─c3e29c94-941d-4a52-a358-c4ffbfc8cab8

@@ -5,6 +5,7 @@ using Reexport
 
 using HypertextLiteral
 using AbstractPlutoDingetjes
+using AbstractPlutoDingetjes.Display
 using Dates
 using BaseDirs
 using TOML
@@ -12,6 +13,10 @@ using Colors
 using LaTeXStrings
 using Markdown
 using Downloads: download
+
+using PlutoDevMacros.PlutoCombineHTL.WithTypes
+using PlutoDevMacros.PlutoCombineHTL: plutodefault, print_javascript, print_html
+using Dictionaries
 
 export PlutoPlot, get_plotly_version, change_plotly_version,
 check_plotly_version, force_pluto_mathjax_local, htl_js, add_plotly_listener!,
@@ -22,6 +27,7 @@ export make_subplots
 include("local_plotly_library.jl")
 
 include("main_struct.jl")
+include("default_scriptcontents.jl")
 include("basics.jl")
 include("mathjax.jl")
 include("preprocess.jl")
