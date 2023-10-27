@@ -95,7 +95,6 @@ let container_rect = { width: 0, height: 0, top: 0, left: 0 };
 function unpop_container() {
   CONTAINER.classList.toggle("popped-out", false);
   CONTAINER.style.height = container_rect.height + "px";
-  remove_container_height = true; // This is a hack to remove the height from the container afther the resize
   CONTAINER.style.width = "";
   CONTAINER.style.top = "";
   CONTAINER.style.left = "";

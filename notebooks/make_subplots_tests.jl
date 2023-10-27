@@ -27,6 +27,9 @@ md"""
 # ╔═╡ 8a7f8c23-488d-4133-8da6-799343fe00de
 ExtendedTableOfContents()
 
+# ╔═╡ 724c19c9-b4a9-4b3b-99aa-9e803b6d412b
+default_plotly_template("none")
+
 # ╔═╡ b68cb4f2-fdbe-414f-9a6a-59786720b29f
 md"""
 # Tests
@@ -64,6 +67,14 @@ end
 md"""
 ## with\_make_subplots2
 """
+
+# ╔═╡ 429c68e6-b9ed-42a8-aeac-1e78ba91e768
+let
+    p = make_subplots(rows=2, cols=2, shared_yaxes=true)
+    add_trace!(p, scatter(x=0:2, y=10:12), row=1, col=1)
+    relayout!(p, title_text="Multiple Subplots with Shared Y-Axes")
+	p.layout.template
+end
 
 # ╔═╡ a975e09b-7ff1-4a3b-a667-62448770ab68
 let
@@ -461,11 +472,13 @@ version = "17.4.0+2"
 # ╠═5a2798a7-d2e4-42a5-9007-6262d7c3b411
 # ╠═dd8ddf0a-9085-4c9d-821d-8e7ed78d33c3
 # ╠═8a7f8c23-488d-4133-8da6-799343fe00de
+# ╠═724c19c9-b4a9-4b3b-99aa-9e803b6d412b
 # ╟─b68cb4f2-fdbe-414f-9a6a-59786720b29f
 # ╟─5e45b2bd-02a5-40c3-8665-ec453997193a
 # ╟─46144daf-e075-4440-8054-6293cff1f228
 # ╠═e90ed0c4-efb4-4f76-9093-abe381f6ef5c
 # ╟─96e17c39-3bfc-4372-9a3b-78dd1974f4ab
+# ╠═429c68e6-b9ed-42a8-aeac-1e78ba91e768
 # ╠═a975e09b-7ff1-4a3b-a667-62448770ab68
 # ╟─55ebabe9-e864-4905-82e7-d4ccc2eab75d
 # ╠═b0e75a40-158e-488d-9aa3-2ffdcfed139e

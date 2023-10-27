@@ -1,12 +1,5 @@
 function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSION[])
 @htl """
-	<div class='plutoplotly-container'>
-	<div class='plutoplotly-clipboard-header hidden'>
-		<span class='plot-height'>Height: <span></span>px</span>
-		<span class='plot-width'>Width: <span></span>px</span>
-		<span class='plot-scale'>Scale: <span contenteditable=true style='padding: 0 5px'>1</span></span>
-		<button class='plot-copy'>Copy</button>
-	</div>
 	<script id=$(script_id)>
 		// We start by putting all the variable interpolation here at the beginning
 		// We have to convert all typedarrays in the layout to normal arrays. See Issue #25
@@ -45,53 +38,8 @@ function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSI
 
 		$(pp.script_contents)
 
-		return PLOT
+		return CONTAINER
 	</script>
-	</div>
-	<style>
-		.plutoplotly-container {
-			width: 100%;
-			height: 100%;
-			min-height: 0;
-			min-width: 0;
-		}
-		.plutoplotly-container .js-plotly-plot .plotly div {
-			margin: 0 auto; // This centers the plot
-		}
-		.plutoplotly-container.popped-out {
-			overflow: auto;
-			z-index: 1000;
-			position: fixed;
-			resize: both;
-			background: var(--main-bg-color);
-			border: 3px solid var(--kbd-border-color);
-			border-radius: 12px;
-			border-top-left-radius: 0px;
-			border-top-right-radius: 0px;
-		}
-		.plutoplotly-clipboard-header {
-			background: var(--main-bg-color);
-			display: flex;
-			border: 3px solid var(--kbd-border-color);
-			border-top-left-radius: 12px;
-			border-top-right-radius: 12px;
-			position: fixed;
-			z-index: 1001;
-			cursor: move;
-			transform: translate(0px, -100%);
-			padding: 5px;
-		}
-		.plutoplotly-clipboard-header > span {
-			display: inline-block;
-			flex: 1
-		}
-		.plot-scale > span {
-			cursor: text;
-		}
-		.plutoplotly-clipboard-header.hidden {
-			display: none;
-		}
-	</style>
 """
 end
 

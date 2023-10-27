@@ -1,4 +1,5 @@
 const PLOTLY_VERSION = Ref("2.26.2")
+const DEFAULT_TEMPLATE = Ref("plotly")
 const JS = HypertextLiteral.JavaScript
 
 """
@@ -142,4 +143,23 @@ end
 function plotly_script_id(io::IO)
 	counter = unique_io_counter(io, "plotly-plot")
 	return "plot_$counter"
+end
+
+"""
+	default_plotly_template()::String
+	default_plotly_template(name::Union{String, Symbol})::String
+Return the name of the currently selected plotly template (following the synthax to set Templates from PlotlyBase) as a string.
+
+If called with a `Symbol` or `String`, change the default template to the provided `name` and return the name as a String.
+"""
+function default_plotly_template()
+	template = DEFAULT_TEMPLATE[] 
+	@info "The default plotly template is $template"
+	template
+end
+default_plotly_template(s::String) = default_plotly_template(Symbol(s))
+function default_plotly_template(s::Symbol)
+	s in PlotlyBase.templates.available || s === :none || error("The provided template $s is not available")
+	DEFAULT_TEMPLATE[] = string(s)
+	default_plotly_template()
 end

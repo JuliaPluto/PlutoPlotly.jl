@@ -2,8 +2,18 @@ const _default_script_contents = htl_js.([
 	"""
 	// Flag to check if this cell was  manually ran or reactively ran
 	const firstRun = this ? false : true
-	const CONTAINER = currentScript.parentElement
-	const PLOT = this ?? document.createElement("div");
+	firstRun && console.log('firstRun')
+	const CONTAINER = this ?? html`
+	<div class='plutoplotly-container'>
+	<div class='plutoplotly-clipboard-header hidden'>
+		<span class='plot-height'>Height: <span></span>px</span>
+		<span class='plot-width'>Width: <span></span>px</span>
+		<span class='plot-scale'>Scale: <span contenteditable=true style='padding: 0 5px'>1</span></span>
+		<button class='plot-copy'>Copy</button>
+	</div>
+	</div>
+	`
+	const PLOT = CONTAINER.querySelector('.js-plotly-plot') ?? CONTAINER.appendChild(html`<div>`)
 	const parent = CONTAINER.parentElement
 	// We use a controller to remove event listeners upon invalidation
 	const controller = new AbortController()
@@ -17,15 +27,61 @@ const _default_script_contents = htl_js.([
 	}, { signal: controller.signal })
 	""",
 	"""
+		firstRun && CONTAINER.appendChild(html`
+		<style>
+		.plutoplotly-container {
+			width: 100%;
+			height: 100%;
+			min-height: 0;
+			min-width: 0;
+		}
+		.plutoplotly-container .js-plotly-plot .plotly div {
+			margin: 0 auto; // This centers the plot
+		}
+		.plutoplotly-container.popped-out {
+			overflow: auto;
+			z-index: 1000;
+			position: fixed;
+			resize: both;
+			background: var(--main-bg-color);
+			border: 3px solid var(--kbd-border-color);
+			border-radius: 12px;
+			border-top-left-radius: 0px;
+			border-top-right-radius: 0px;
+		}
+		.plutoplotly-clipboard-header {
+			background: var(--main-bg-color);
+			display: flex;
+			border: 3px solid var(--kbd-border-color);
+			border-top-left-radius: 12px;
+			border-top-right-radius: 12px;
+			position: fixed;
+			z-index: 1001;
+			cursor: move;
+			transform: translate(0px, -100%);
+			padding: 5px;
+		}
+		.plutoplotly-clipboard-header > span {
+			display: inline-block;
+			flex: 1
+		}
+		.plot-scale > span {
+			cursor: text;
+		}
+		.plutoplotly-clipboard-header.hidden {
+			display: none;
+		}
+	</style>
+	`)
+	""",
+	"""
 	let original_height = plot_obj.layout.height
 	let original_width = plot_obj.layout.width
 	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
 	// We define a variable to check whether we still have to remove the fixed height
-	let remove_container_height = false
-	if (firstRun) {
-		CONTAINER.style.height = (original_height ?? 400) + 'px'
-		remove_container_height = true
-	}
+	let remove_container_height = firstRun
+	let container_height = original_height ?? PLOT.container_height ?? 400
+	CONTAINER.style.height = container_height + 'px'
 	""",
 	clipboard_script,
 	"""
@@ -60,6 +116,8 @@ const _default_script_contents = htl_js.([
 			borderY: parseFloat(container_cs.borderTopWidth) + parseFloat(container_cs.borderBottomWidth),
 		}
 		let rect = CONTAINER.getBoundingClientRect()
+		// We save the height in the PLOT object
+		PLOT.container_height = rect.height
 		if (remove_container_height) {
 			// This is needed to avoid the first resize upon plot creation to already be without a fixed height
 			CONTAINER.style.height = ''
@@ -91,7 +149,8 @@ const _default_script_contents = htl_js.([
 			height: original_height ?? size.height,
 			plutoresize: true,
 		}
-		Plotly.relayout(PLOT, config)
+		Plotly.relayout(PLOT, config).then(() => {
+		})
 	})
 
 	resizeObserver.observe(CONTAINER)

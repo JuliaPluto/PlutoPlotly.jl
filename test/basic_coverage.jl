@@ -22,3 +22,5 @@ force_pluto_mathjax_local(true)
 @test _preprocess(1) === 1.0f0
 @test _preprocess(L"3+2") === raw"$3+2$"
 
+@test default_plotly_template() === "plotly"
+@test default_plotly_template("none") === "none"
