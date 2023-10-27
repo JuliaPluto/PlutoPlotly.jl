@@ -1,5 +1,6 @@
 function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSION[])
 @htl """
+	<div class='plutoplotly-container'>
 	<script id=$(script_id)>
 		// We start by putting all the variable interpolation here at the beginning
 		// We have to convert all typedarrays in the layout to normal arrays. See Issue #25
@@ -40,6 +41,18 @@ function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSI
 
 		return PLOT
 	</script>
+	</div>
+	<style>
+		.plutoplotly-container {
+			width: 100%;
+			height: 100%;
+			min-height: 0;
+			min-width: 0;
+		}
+		.plutoplotly-container .js-plotly-plot .plotly div {
+			margin: 0 auto; // This centers the plot
+		}
+	</style>
 """
 end
 

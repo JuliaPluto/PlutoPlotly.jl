@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.27
+# v0.19.29
 
 #> custom_attrs = ["hide-enabled"]
 
@@ -94,16 +94,10 @@ md"""
 """
 
 # ╔═╡ 070820c5-082f-4428-8d5e-1fdd1ce29eba
-let
-	@htl """
-	<div class="try-resize">
-	$(plot(rand(10), Layout(
+plot(rand(10), Layout(
 		width = 400,
-		#height= 400
-	)))
-	</div>
-	"""
-end
+		height= 300
+	))
 
 # ╔═╡ 0c30855c-6542-4b1a-9427-3a8427e75210
 md"""
@@ -306,6 +300,7 @@ md"""
 """
 
 # ╔═╡ 4ea48316-62d9-4b24-bb1d-c9fd1db044dc
+# When you add @bind, to allow automatic resizing you need to set the bond display property to 'contents'.
 @htl """
 <div style='height: 400px; display: flex'>
 $(@bind asd plot(rand(10)))
@@ -313,8 +308,8 @@ $(@bind asd plot(rand(10)))
 $(plot(rand(10)))
 </div>
 <style>
-	$(prepend_cell_selector(["bond", "div.js-plotly-plot"])) {
-		flex: 1;
+	$(prepend_cell_selector(["bond"])) {
+		display: contents;
 	}
 </style>
 """
@@ -332,24 +327,15 @@ md"""
 PlutoUI.ExperimentalLayout.hbox([plot(rand(10)), plot(rand(10))])
 
 # ╔═╡ 340262a2-c823-4e19-8f19-9a05f4504bb5
-# When you wrap plots in bonds, the subplots do not automatically resize to the cell width
-PlutoUI.ExperimentalLayout.hbox([(@bind asdasd2_val plot(rand(10))), plot(rand(10))])
-
-# ╔═╡ 21682322-13a7-4575-8846-19e61fb8667d
-# We need to specify flex-grow to allow resizing
-html"""
+# When you add @bind, to allow automatic resizing you need to set the bond display property to 'contents'.
+@htl("""
+$(PlutoUI.ExperimentalLayout.hbox([(@bind asdasd2_val plot(rand(10))), plot(rand(10))]))
 <style>
-	div.hbox_test bond {
-		flex: 2;
-	}
-	div.hbox_test div.js-plotly-plot {
-		flex: 1;
+	$(prepend_cell_selector(["bond"])) {
+		display: contents;
 	}
 </style>
-"""
-
-# ╔═╡ a7ef3dfc-d6ad-41c2-bccb-a794e26e80bb
-PlutoUI.ExperimentalLayout.hbox([(@bind asdasd1_val plot(rand(10))), plot(rand(10))]; class="hbox_test")
+""")
 
 # ╔═╡ aaf0fe61-d5e6-4d93-8a22-7f97f1249b35
 md"""
@@ -361,15 +347,16 @@ voila = 10
 
 # ╔═╡ 36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf
 let
+	#  We need to add min-height: 0 to the top level flex children to avoid the issue in https://stackoverflow.com/questions/36247140/why-dont-flex-items-shrink-past-content-size 
 	voila
 	@htl """
 <div style='height: 550px; display: flex; flex-direction: column;'>
-<div style='display: flex; flex: 1 1 0'>
+<div style='display: flex; flex: 1 1 0; min-height: 0'>
 $(Plot(rand(10), Layout(uirevision = 1)) |> PlutoPlot)
 
 $(Plot(rand(10)) |> PlutoPlot)
 </div>
-<div style='display: flex; flex: 1 1 0'>
+<div style='display: flex; flex: 1 1 0; min-height: 0'>
 $(Plot(rand(10)) |> PlutoPlot)
 
 $(Plot(rand(10)) |> PlutoPlot)
@@ -828,12 +815,12 @@ version = "17.4.0+2"
 # ╠═e54cc4c4-2a93-4d44-90ed-5944edbf4b0f
 # ╟─3e5b09a9-6d18-4d2f-a37b-ac260ea36646
 # ╠═070820c5-082f-4428-8d5e-1fdd1ce29eba
-# ╟─0c30855c-6542-4b1a-9427-3a8427e75210
+# ╠═0c30855c-6542-4b1a-9427-3a8427e75210
 # ╠═8bf75ceb-e4ae-4c6c-8ab0-a81350f19bc7
 # ╠═de0cb780-ff4e-4236-89c4-4c3163337cfc
 # ╠═dd23fe10-a8d5-461a-85a8-e03468cdcd97
 # ╠═ccf62e33-8fcf-45d9-83ed-c7de80800b76
-# ╠═1460ece1-7828-4e93-ac37-e979b874b492
+# ╟─1460ece1-7828-4e93-ac37-e979b874b492
 # ╠═18c80ea2-0df4-40ea-bd87-f8fee463161e
 # ╠═ce29fa1f-0c52-4d38-acbd-0a96cb3b9ce6
 # ╟─c3e29c94-941d-4a52-a358-c4ffbfc8cab8
@@ -841,7 +828,7 @@ version = "17.4.0+2"
 # ╠═73945da3-af45-41fb-9c5d-6fbba6362256
 # ╠═684ef6d7-c1ae-4af3-b1bd-f54bc29d7b53
 # ╠═ea9faecf-ecd7-483b-99ad-ede08ba05383
-# ╠═f8f7b530-1ded-4ce0-a7d9-a8c92afb95c7
+# ╟─f8f7b530-1ded-4ce0-a7d9-a8c92afb95c7
 # ╠═c3b1a198-ef19-4a54-9c32-d9ea32a63812
 # ╠═e9fc2030-c2f0-48e9-a807-424039e796b2
 # ╟─de101f40-27db-43ea-91ed-238502ceaaf7
@@ -855,8 +842,6 @@ version = "17.4.0+2"
 # ╟─62126774-e246-473b-9d0b-92e967cd36ac
 # ╠═cfa78790-aa4c-4c7b-8a9f-198987338516
 # ╠═340262a2-c823-4e19-8f19-9a05f4504bb5
-# ╠═21682322-13a7-4575-8846-19e61fb8667d
-# ╠═a7ef3dfc-d6ad-41c2-bccb-a794e26e80bb
 # ╟─aaf0fe61-d5e6-4d93-8a22-7f97f1249b35
 # ╠═6e12592d-01fe-455a-a19c-7544258b9791
 # ╠═36c4a5b1-03f2-4f5f-b9af-822a8f7c8cdf

@@ -27,25 +27,26 @@ htl_js(x) = HypertextLiteral.JavaScript(x)
 
 const _default_script_contents = htl_js.([
 	"""
-	// Flag to check if this cell was  manually ran or reactively ran
-	const firstRun = this ? false : true
+	const CONTAINER = currentScript.parentElement
 	const PLOT = this ?? document.createElement("div");
-	const parent = currentScript.parentElement
-	const isPlutoWrapper = parent.classList.contains('raw-html-wrapper')
+	const parent = CONTAINER.parentElement
+	// We have to add this to keep supporting @bind with the old API using PLOT
+	PLOT.addEventListener('input', (e) => {
+		console.log('a', e)
+		CONTAINER.value = PLOT.value
+		if (e.bubbles) {
+			return
+		}
+		CONTAINER.dispatchEvent(new CustomEvent('input'))
+	})
 	""",
 	"""
-	if (firstRun) {
-		// It seem plot divs would not autosize themself inside flexbox containers without this
-		parent.appendChild(PLOT)
-	}
-	""",
-	"""
-	// If width is not specified, set it to 100%
-	PLOT.style.width = plot_obj.layout.width ? "" : "100%"
-	
+	let original_height = plot_obj.layout.height
+	let original_width = plot_obj.layout.width
 	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
-	PLOT.style.height = plot_obj.layout.height ? "" :
-		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
+	CONTAINER.style.height = (original_height ?? 400) + 'px'
+	// We define a variable to check whether we still have to remove the fixed height
+	let remove_container_height = true
 	""",
 	"""
 
@@ -60,19 +61,43 @@ const _default_script_contents = htl_js.([
 	}
 	""",
 	"""
+	function computeSize() {
+		let cs = window.getComputedStyle(PLOT, null);
+		// Remove Padding
+		let padd = {
+		paddingX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight),
+		paddingY: parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom),
+		borderX: parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth),
+		borderY: parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth),
+		}
+		let rect = CONTAINER.getBoundingClientRect()
+		if (remove_container_height) {
+			// This is needed to avoid the first resize upon plot creation to already be without a fixed height
+			CONTAINER.style.height = ''
+			remove_container_height = false
+		}
+		return {
+			width: rect.width - padd.paddingX - padd.borderX,
+			height: rect.height - padd.paddingY - padd.borderY,
+		}
+	}
 
 	// Create the resizeObserver to make the plot even more responsive! :magic:
 	const resizeObserver = new ResizeObserver(entries => {
-		PLOT.style.height = plot_obj.layout.height ? "" :
-		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
+		let size = computeSize()
 		/* 
 		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 
 		See https://github.com/plotly/plotly.js/issues/6156 for details
 		*/
-		Plotly.relayout(PLOT, {..._.pick(PLOT.layout, ['width','height']), autosize: true, plutoresize: true})
+		let config = {
+			width: original_width ?? size.width,
+			height: original_height ?? size.height,
+			plutoresize: true,
+		}
+		Plotly.relayout(PLOT, config)
 	})
 
-	resizeObserver.observe(PLOT)
+	resizeObserver.observe(CONTAINER)
 	""",
 	"""
 
