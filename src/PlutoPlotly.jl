@@ -21,8 +21,9 @@ export make_subplots
 
 include("local_plotly_library.jl")
 
-include("main_struct.jl")
 include("basics.jl")
+include("clipboard.jl")
+include("main_struct.jl")
 include("mathjax.jl")
 include("preprocess.jl")
 include("js_helpers.jl")

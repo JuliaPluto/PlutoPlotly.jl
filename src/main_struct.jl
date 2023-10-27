@@ -1,53 +1,33 @@
-const PLOTLY_VERSION = Ref("2.26.2")
-const JS = HypertextLiteral.JavaScript
-
-"""
-	ScriptContents
-Wrapper around a vector of `HypertextLiteral.JavaScript` elements. It has a custom print implementation of `HypertextLiteral.print_script` in order to allow serialization of its various elements inside a script tag.
-
-It is used inside the PlutoPlot to allow modularity and ease customization of the script contents that is used to generate the plotlyjs plot in Javascript.
-"""
-struct ScriptContents
-	vec::Vector{JS}
-end
-
-function HypertextLiteral.print_script(io::IO, value::ScriptContents)
-	for el ∈ value.vec
-		print(io, el.content, '\n')
-	end
-end
-
-"""
-	htl_js(x)
-Simple convenience constructor for `HypertextLiteral.JavaScript` objects, renamed and re-exported from HypertextLiteral for convenience in case HypertextLiteral is not explicitly loaded alongisde PlutoPlotly.
-
-See also: [`add_plotly_listeners!`](@ref)
-"""
-htl_js(x) = HypertextLiteral.JavaScript(x)
-
 const _default_script_contents = htl_js.([
 	"""
+	// Flag to check if this cell was  manually ran or reactively ran
+	const firstRun = this ? false : true
 	const CONTAINER = currentScript.parentElement
 	const PLOT = this ?? document.createElement("div");
 	const parent = CONTAINER.parentElement
+	// We use a controller to remove event listeners upon invalidation
+	const controller = new AbortController()
 	// We have to add this to keep supporting @bind with the old API using PLOT
 	PLOT.addEventListener('input', (e) => {
-		console.log('a', e)
 		CONTAINER.value = PLOT.value
 		if (e.bubbles) {
 			return
 		}
 		CONTAINER.dispatchEvent(new CustomEvent('input'))
-	})
+	}, { signal: controller.signal })
 	""",
 	"""
 	let original_height = plot_obj.layout.height
 	let original_width = plot_obj.layout.width
 	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
-	CONTAINER.style.height = (original_height ?? 400) + 'px'
 	// We define a variable to check whether we still have to remove the fixed height
-	let remove_container_height = true
+	let remove_container_height = false
+	if (firstRun) {
+		CONTAINER.style.height = (original_height ?? 400) + 'px'
+		remove_container_height = true
+	}
 	""",
+	clipboard_script,
 	"""
 
 
@@ -62,13 +42,22 @@ const _default_script_contents = htl_js.([
 	""",
 	"""
 	function computeSize() {
-		let cs = window.getComputedStyle(PLOT, null);
+		let plot_cs = window.getComputedStyle(PLOT, null);
 		// Remove Padding
-		let padd = {
-		paddingX: parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight),
-		paddingY: parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom),
-		borderX: parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth),
-		borderY: parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth),
+		let plot_pad = {
+			paddingX: parseFloat(plot_cs.paddingLeft) + parseFloat(plot_cs.paddingRight),
+			paddingY: parseFloat(plot_cs.paddingTop) + parseFloat(plot_cs.paddingBottom),
+			borderX: parseFloat(plot_cs.borderLeftWidth) + parseFloat(plot_cs.borderRightWidth),
+			borderY: parseFloat(plot_cs.borderTopWidth) + parseFloat(plot_cs.borderBottomWidth),
+			offsetTop: PLOT.offsetParent == CONTAINER ? PLOT.offsetTop : 0,
+			offsetLeft: PLOT.offsetParent == CONTAINER ? PLOT.offsetLeft : 0
+		}
+		let container_cs = window.getComputedStyle(CONTAINER, null);
+		let container_pad = {
+			paddingX: parseFloat(container_cs.paddingLeft) + parseFloat(container_cs.paddingRight),
+			paddingY: parseFloat(container_cs.paddingTop) + parseFloat(container_cs.paddingBottom),
+			borderX: parseFloat(container_cs.borderLeftWidth) + parseFloat(container_cs.borderRightWidth),
+			borderY: parseFloat(container_cs.borderTopWidth) + parseFloat(container_cs.borderBottomWidth),
 		}
 		let rect = CONTAINER.getBoundingClientRect()
 		if (remove_container_height) {
@@ -76,10 +65,18 @@ const _default_script_contents = htl_js.([
 			CONTAINER.style.height = ''
 			remove_container_height = false
 		}
-		return {
-			width: rect.width - padd.paddingX - padd.borderX,
-			height: rect.height - padd.paddingY - padd.borderY,
+		const sz = {
+			width: rect.width - plot_pad.paddingX - plot_pad.borderX - plot_pad.offsetLeft - container_pad.paddingX - container_pad.borderX,
+			height: rect.height - plot_pad.paddingY - plot_pad.borderY - plot_pad.offsetTop - container_pad.paddingY - container_pad.borderY,
 		}
+		CLIPBOARD_HEADER.style.width = rect.width + 'px'
+		CLIPBOARD_HEADER.style.left = rect.left + 'px'
+		console.log({
+			rect, sz, container_pad, plot_pad,
+		})
+		height_span.innerText = sz.height
+		width_span.innerText = sz.width
+		return sz
 	}
 
 	// Create the resizeObserver to make the plot even more responsive! :magic:
@@ -111,7 +108,9 @@ const _default_script_contents = htl_js.([
 		// Assign the JS event listeners
 		for (const [key, listener_vec] of Object.entries(js_listeners)) {
 			for (const listener of listener_vec) {
-				PLOT.addEventListener(key, listener)
+				PLOT.addEventListener(key, listener, {
+					signal: controller.signal
+				})
 			}
 		}
 	}
@@ -123,11 +122,7 @@ const _default_script_contents = htl_js.([
 		// Remove all plotly listeners
 		PLOT.removeAllListeners()
 		// Remove all JS listeners
-		for (const [key, listener_vec] of Object.entries(js_listeners)) {
-			for (const listener of listener_vec) {
-				PLOT.removeEventListener(key, listener)
-			}
-		}
+		controller.abort()
 		// Remove the resizeObserver
 		resizeObserver.disconnect()
 	})

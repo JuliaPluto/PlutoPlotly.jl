@@ -1,3 +1,31 @@
+const PLOTLY_VERSION = Ref("2.26.2")
+const JS = HypertextLiteral.JavaScript
+
+"""
+	ScriptContents
+Wrapper around a vector of `HypertextLiteral.JavaScript` elements. It has a custom print implementation of `HypertextLiteral.print_script` in order to allow serialization of its various elements inside a script tag.
+
+It is used inside the PlutoPlot to allow modularity and ease customization of the script contents that is used to generate the plotlyjs plot in Javascript.
+"""
+struct ScriptContents
+	vec::Vector{JS}
+end
+
+function HypertextLiteral.print_script(io::IO, value::ScriptContents)
+	for el ∈ value.vec
+		print(io, el.content, '\n')
+	end
+end
+
+"""
+	htl_js(x)
+Simple convenience constructor for `HypertextLiteral.JavaScript` objects, renamed and re-exported from HypertextLiteral for convenience in case HypertextLiteral is not explicitly loaded alongisde PlutoPlotly.
+
+See also: [`add_plotly_listeners!`](@ref)
+"""
+htl_js(x) = HypertextLiteral.JavaScript(x)
+htl_js(x::HypertextLiteral.JavaScript) = x
+
 maybe_publish_to_js(x) = if is_inside_pluto()
 	if isdefined(Main.PlutoRunner, :core_published_to_js)
 		Main.PlutoRunner.PublishedToJavascript(x)
