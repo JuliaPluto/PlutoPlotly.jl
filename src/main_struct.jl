@@ -68,6 +68,9 @@ const _default_script_contents = htl_js.([
 			padding-left: 2px;
 			cursor: text;
 		}
+		.clipboard-span.format {
+			display: none;
+		}
 		.clipboard-span.filename {
 			flex: 0 0 100%;
 			text-align: center;
@@ -75,12 +78,15 @@ const _default_script_contents = htl_js.([
 			margin-top: 5px;
 			display: none;
 		}
+		.plutoplotly-container.filesave .clipboard-span.filename {
+			display: inline-block;
+		}
 		.clipboard-value.filename {
 			margin-left: 3px;
 			text-align: left;
 			min-width: min(60%, min-content);
 		}
-		.clipboard-span.format {
+		.plutoplotly-container.filesave .clipboard-span.format {
 			display: inline-flex;
 		}
 		.clipboard-span.format .label {
@@ -124,6 +130,7 @@ const _default_script_contents = htl_js.([
 			background-color: var(--kbd-border-color);
 		}
 		span.config-value {
+			font-weight: normal
 			color: var(--pluto-output-color);
 			display: none;
 			position: absolute;

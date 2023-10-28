@@ -284,7 +284,14 @@ function sendToClipboard(blob) {
 
 function copyImageToClipboard() {
   // We extract the image options from the provided parameters (if they exist)
-  Plotly.toImage(PLOT, PLOT._context.toImageButtonOptions).then(function (
+  const config = {}
+  for (const [key, container] of Object.entries(config_spans)) {
+    let val = container.config_value ?? (CONTAINER.isPoppedOut() ? container.ui_value : undefined)
+    // If we have undefined we don't create the key. We also ignore format because the clipboard only supports png.
+    if (val === undefined || key === 'format') {continue}
+    config[key] = val
+  }
+  Plotly.toImage(PLOT, config).then(function (
     dataUrl
   ) {
     fetch(dataUrl)
@@ -293,9 +300,23 @@ function copyImageToClipboard() {
   });
 }
 
+function saveImageToFile() {
+  const config = {}
+  for (const [key, container] of Object.entries(config_spans)) {
+    debugger
+    let val = container.config_value ?? (CONTAINER.isPoppedOut() ? container.ui_value : undefined)
+    // If we have undefined we don't create the key.
+    if (val === undefined) {continue}
+    config[key] = val
+  }
+  debugger
+  Plotly.downloadImage(PLOT, config)
+}
+
 let container_rect = { width: 0, height: 0, top: 0, left: 0 };
-function unpop_container() {
+function unpop_container(cl) {
   CONTAINER.classList.toggle("popped-out", false);
+  CONTAINER.classList.toggle(cl, false);
   // We fix the height back to the value it had before popout, also setting the flag to signal that upon first resize we remove the fixed inline-style
   CONTAINER.style.height = container_rect.height + "px";
   remove_container_size = true;
@@ -310,10 +331,11 @@ function unpop_container() {
   CLIPBOARD_HEADER.classList.toggle("hidden", true);
   return;
 }
-function popout_container() {
+function popout_container(cl) {
   if (CONTAINER.isPoppedOut()) {
-    return unpop_container();
+    return unpop_container(cl);
   }
+  CONTAINER.classList.toggle(cl, cl === undefined ? false : true)
   // We extract the current size of the container, save them and fix them
   const { width, height, top, left } = CONTAINER.getBoundingClientRect();
   container_rect = { width, height, top, left };
@@ -339,12 +361,12 @@ function popout_container() {
 
 CONTAINER.popOut = popout_container;
 
-function buttonClick(func) {
+function buttonClick(func, cl) {
   let nclicks = 0;
   return function (gd, ev) {
     nclicks += 1;
     if (nclicks > 1) {
-      popout_container();
+      popout_container(cl);
       nclicks = 0;
     } else {
       delay(300).then(() => {
@@ -367,7 +389,7 @@ plot_obj.config.modeBarButtonsToAdd = _.union(
   plot_obj.config.modeBarButtonsToAdd,
   [
     {
-      name: "Copy to Clipboard",
+      name: "Copy PNG to Clipboard",
       icon: {
         height: 520,
         width: 520,
@@ -375,6 +397,12 @@ plot_obj.config.modeBarButtonsToAdd = _.union(
       },
       direction: "up",
       click: buttonClick(copyImageToClipboard),
+    },
+    {
+      name: "Download Image",
+      icon: Plotly.Icons.camera,
+      direction: "up",
+      click: buttonClick(saveImageToFile, "filesave"),
     },
   ]
 );
