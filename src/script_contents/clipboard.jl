@@ -16,25 +16,46 @@ const CLIPBOARD_HEADER =
         >Height: <span class="clipboard-value height"></span>px</span
       >
       <span class="clipboard-span scale"
-        >Scale:
-        <span
-          class="clipboard-value scale"
-          contenteditable="true"
-          style="padding: 0 5px"
-          >1</span
-        ></span
-      >
-      <button class="clipboard-span copy">Copy</button>
+        >Scale: <span class="clipboard-value scale"></span
+      ></span>
+      <button class="clipboard-span copy">Set</button>
     </div>`
   );
-const value_spans = Object.fromEntries(
-  ["width", "height", "scale"].map((key) => {
-    return [key, CLIPBOARD_HEADER.querySelector(`.clipboard-value.\${key}`)];
-  })
-);
+const value_spans = {};
+for (const key of ["width", "height", "scale"]) {
+  const span = CLIPBOARD_HEADER.querySelector(`.clipboard-value.\${key}`);
+  value_spans[key] = span;
+  span.contentEditable = "true";
+  if (firstRun) {
+    let localValue;
+    Object.defineProperty(span, "value", {
+      get: () => localValue,
+      set: (val) => {
+        localValue = Math.round(val);
+        span.textContent = localValue;
+      },
+    });
+    // We also assign a listener so that the editable is blurred when enter is pressed
+    span.onkeydown = (e) => {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+        span.blur();
+      }
+    };
+  }
+}
 const copy_button = CLIPBOARD_HEADER.querySelector(".clipboard-span.copy");
 
+// We add a function to check if the clipboard is popped out
+CONTAINER.isPoppedOut = () => {
+  return CONTAINER.classList.contains("popped-out");
+};
+
 CLIPBOARD_HEADER.onmousedown = function (event) {
+  if (event.target.matches('span.clipboard-value')) {
+    console.log("We don't move!")
+    return
+  }
   const start = {
     left: parseFloat(CONTAINER.style.left),
     top: parseFloat(CONTAINER.style.top),
@@ -50,7 +71,7 @@ CLIPBOARD_HEADER.onmousedown = function (event) {
   }
 
   // move our absolutely positioned ball under the pointer
-  moveAt(event.pageX, event.pageY);
+  moveAt(event, start);
   function onMouseMove(event) {
     moveAt(event, start);
   }
@@ -123,16 +144,20 @@ function unpop_container() {
   CONTAINER.classList.toggle("popped-out", false);
   // We fix the height back to the value it had before popout, also setting the flag to signal that upon first resize we remove the fixed inline-style
   CONTAINER.style.height = container_rect.height + "px";
-  remove_container_height = true;
+  remove_container_size = true;
   // We set the other fixed inline-styles to null
   CONTAINER.style.width = "";
   CONTAINER.style.top = "";
   CONTAINER.style.left = "";
+  // We also remove the CLIPBOARD_HEADER
+  CLIPBOARD_HEADER.style.width = "";
+  CLIPBOARD_HEADER.style.left = "";
+  // Finally we remove the hidden class to the header
   CLIPBOARD_HEADER.classList.toggle("hidden", true);
   return;
 }
 function popout_container() {
-  if (CONTAINER.classList.contains("popped-out")) {
+  if (CONTAINER.isPoppedOut()) {
     return unpop_container();
   }
   // We extract the current size of the container, save them and fix them
@@ -158,6 +183,8 @@ function popout_container() {
   );
 }
 
+CONTAINER.popOut = popout_container;
+
 function buttonClick(func) {
   let nclicks = 0;
   return function (gd, ev) {
@@ -175,17 +202,26 @@ function buttonClick(func) {
     }
   };
 }
-// We do add a custom button to the mode bar
-plot_obj.config.modeBarButtonsToAdd = [
-  {
-    name: "Copy PNG to Clipboard",
-    icon: {
-      height: 520,
-      width: 520,
-      path: "M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z",
+
+// We remove the default download image button
+plot_obj.config.modeBarButtonsToRemove = _.union(
+  plot_obj.config.modeBarButtonsToRemove,
+  ["toImage"]
+);
+// We add the custom button to the modebar
+plot_obj.config.modeBarButtonsToAdd = _.union(
+  plot_obj.config.modeBarButtonsToAdd,
+  [
+    {
+      name: "Copy PNG to Clipboard",
+      icon: {
+        height: 520,
+        width: 520,
+        path: "M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z",
+      },
+      direction: "up",
+      click: buttonClick(copyImageToClipboard),
     },
-    direction: "up",
-    click: buttonClick(copyImageToClipboard),
-  },
-];
+  ]
+);
 """)

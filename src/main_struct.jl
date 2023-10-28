@@ -56,11 +56,13 @@ const _default_script_contents = htl_js.([
 			display: inline-block;
 			flex: 1
 		}
-		.plot-scale > span {
-			cursor: text;
-		}
 		.plutoplotly-clipboard-header.hidden {
 			display: none;
+		}
+		.clipboard-span .clipboard-value {
+			padding-right: 5px;
+			padding-left: 2px;
+			cursor: text;
 		}
 	</style>
 	`)
@@ -70,79 +72,12 @@ const _default_script_contents = htl_js.([
 	let original_width = plot_obj.layout.width
 	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
 	// We define a variable to check whether we still have to remove the fixed height
-	let remove_container_height = firstRun
+	let remove_container_size = firstRun
 	let container_height = original_height ?? PLOT.container_height ?? 400
 	CONTAINER.style.height = container_height + 'px'
 	""",
 	clipboard_script,
-	"""
-
-
-	PLOT.classList.forEach(cn => {
-		if (cn !== 'js-plotly-plot' && !custom_classlist.includes(cn)) {
-			PLOT.classList.toggle(cn, false)
-		}
-	})
-	for (const className of custom_classlist) {
-		PLOT.classList.toggle(className, true)
-	}
-	""",
-	"""
-	function computeSize() {
-		let plot_cs = window.getComputedStyle(PLOT, null);
-		// Remove Padding
-		let plot_pad = {
-			paddingX: parseFloat(plot_cs.paddingLeft) + parseFloat(plot_cs.paddingRight),
-			paddingY: parseFloat(plot_cs.paddingTop) + parseFloat(plot_cs.paddingBottom),
-			borderX: parseFloat(plot_cs.borderLeftWidth) + parseFloat(plot_cs.borderRightWidth),
-			borderY: parseFloat(plot_cs.borderTopWidth) + parseFloat(plot_cs.borderBottomWidth),
-			offsetTop: PLOT.offsetParent == CONTAINER ? PLOT.offsetTop : 0,
-			offsetLeft: PLOT.offsetParent == CONTAINER ? PLOT.offsetLeft : 0
-		}
-		let container_cs = window.getComputedStyle(CONTAINER, null);
-		let container_pad = {
-			paddingX: parseFloat(container_cs.paddingLeft) + parseFloat(container_cs.paddingRight),
-			paddingY: parseFloat(container_cs.paddingTop) + parseFloat(container_cs.paddingBottom),
-			borderX: parseFloat(container_cs.borderLeftWidth) + parseFloat(container_cs.borderRightWidth),
-			borderY: parseFloat(container_cs.borderTopWidth) + parseFloat(container_cs.borderBottomWidth),
-		}
-		let rect = CONTAINER.getBoundingClientRect()
-		// We save the height in the PLOT object
-		PLOT.container_height = rect.height
-		if (remove_container_height) {
-			// This is needed to avoid the first resize upon plot creation to already be without a fixed height
-			CONTAINER.style.height = ''
-			remove_container_height = false
-		}
-		const sz = {
-			width: rect.width - plot_pad.paddingX - plot_pad.borderX - plot_pad.offsetLeft - container_pad.paddingX - container_pad.borderX,
-			height: rect.height - plot_pad.paddingY - plot_pad.borderY - plot_pad.offsetTop - container_pad.paddingY - container_pad.borderY,
-		}
-		CLIPBOARD_HEADER.style.width = rect.width + 'px'
-		CLIPBOARD_HEADER.style.left = rect.left + 'px'
-		value_spans.height.innerText = sz.height
-		value_spans.width.innerText = sz.width
-		return sz
-	}
-
-	// Create the resizeObserver to make the plot even more responsive! :magic:
-	const resizeObserver = new ResizeObserver(entries => {
-		let size = computeSize()
-		/* 
-		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 
-		See https://github.com/plotly/plotly.js/issues/6156 for details
-		*/
-		let config = {
-			width: original_width ?? size.width,
-			height: original_height ?? size.height,
-			plutoresize: true,
-		}
-		Plotly.relayout(PLOT, config).then(() => {
-		})
-	})
-
-	resizeObserver.observe(CONTAINER)
-	""",
+	resizer_script,
 	"""
 
 	Plotly.react(PLOT, plot_obj).then(() => {

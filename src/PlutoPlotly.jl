@@ -23,6 +23,7 @@ include("local_plotly_library.jl")
 
 include("basics.jl")
 include("script_contents/clipboard.jl")
+include("script_contents/resizer.jl")
 include("main_struct.jl")
 include("mathjax.jl")
 include("preprocess.jl")
