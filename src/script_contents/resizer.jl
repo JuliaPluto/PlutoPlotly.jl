@@ -53,16 +53,16 @@ function changeContainerSize({ width, height }, sizeData = getSizeData()) {
 // We now create the function that will update the plot based on the values specified
 function updateFromHeader() {
   const header_data = {
-    height: value_spans.height.value,
-    width: value_spans.width.value,
+    height: config_spans.height.ui_value,
+    width: config_spans.width.ui_value,
   };
   changeContainerSize(header_data);
 }
 // We assign this function to the onblur event of width and height
 if (firstRun) {
-  for (const span of Object.values(value_spans)) {
-    span.onblur = (e) => {
-      span.value = span.textContent;
+  for (const container of Object.values(config_spans)) {
+    container.ui_span.onblur = (e) => {
+      container.ui_value = container.ui_span.textContent;
       updateFromHeader();
     };
   }
@@ -104,8 +104,8 @@ const resizeObserver = new ResizeObserver((entries) => {
   if (CONTAINER.isPoppedOut()) {
     CLIPBOARD_HEADER.style.width = container_rect.width + "px";
     CLIPBOARD_HEADER.style.left = container_rect.left + "px";
-    value_spans.height.value = plot_size.height;
-    value_spans.width.value = plot_size.width;
+    config_spans.height.ui_value = plot_size.height;
+    config_spans.width.ui_value = plot_size.width;
   }
   /* 
 		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 

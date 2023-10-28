@@ -5,14 +5,14 @@ function delay(ms) {
 }
 
 function getImageOptions() {
-  const o = plot_obj.config.toImageButtonOptions ?? {}
+  const o = plot_obj.config.toImageButtonOptions ?? {};
   return {
     format: o.format ?? "png",
     width: o.width ?? original_width,
     height: o.height ?? original_height,
     scale: o.scale ?? 1,
-    filename: 'newplot'
-  }
+    filename: "newplot",
+  };
 }
 
 const CLIPBOARD_HEADER =
@@ -21,108 +21,184 @@ const CLIPBOARD_HEADER =
     "afterbegin",
     html`<div class="plutoplotly-clipboard-header hidden">
       <span class="clipboard-span format"
-        ><span class="label">Format:</span><span class="clipboard-value format"></span></span
-      >
+        ><span class="label">Format:</span
+        ><span class="clipboard-value format"></span
+      ></span>
       <span class="clipboard-span width"
-        ><span class="label">Width:</span><span class="clipboard-value width"></span>px</span
+        ><span class="label">Width:</span
+        ><span class="clipboard-value width"></span>px</span
       >
       <span class="clipboard-span height"
-        ><span class="label">Height:</span><span class="clipboard-value height"></span>px</span
+        ><span class="label">Height:</span
+        ><span class="clipboard-value height"></span>px</span
       >
       <span class="clipboard-span scale"
-        ><span class="label">Scale:</span><span class="clipboard-value scale"></span
+        ><span class="label">Scale:</span
+        ><span class="clipboard-value scale"></span
       ></span>
-      <button class="clipboard-span copy">Set</button>
+      <button class="clipboard-span set">Set</button>
+      <button class="clipboard-span unset">Unset</button>
       <span class="clipboard-span filename"
-        ><span class="label">Filename:</span><span class="clipboard-value filename"></span
+        ><span class="label">Filename:</span
+        ><span class="clipboard-value filename"></span
       ></span>
     </div>`
   );
 
-const valid_formats = ["png", "svg", "webp", "jpeg", "full-json"];
-const value_spans = {};
-for (const [key, value] of Object.entries(getImageOptions())) {
-  const span = CLIPBOARD_HEADER.querySelector(`.clipboard-value.\${key}`);
-  value_spans[key] = span;
-  if (firstRun) {
-    span.contentEditable = "true";
-    let parse = (x) => x
-    let update = (x) => span.textContent = x
-    if (key === "width" || key === "height") {
-      parse = (x) => Math.round(parseFloat(x))
-    } else if (key === "scale") {
-      parse = parseFloat
-    } else if (key === "format") {
-      // We remove contentEditable
-      span.contentEditable = 'false'
-      // Here we first add the subspans for each option
-      const opts_div = span.appendChild(html`<div class="format-options"></div>`);
-      for (const fmt of valid_formats) {
-        const opt = opts_div.appendChild(html`<span class='format-option \${fmt}'>\${fmt}</span>`);
-        opt.onclick = (e) => {
-          span.value = opt.textContent
-        }
-      }
-      parse = (x) => {
-        return valid_formats.includes(x) ? x : localValue
-      }
-      update = (x) => {
-        for (const opt of opts_div.children) {
-          opt.classList.toggle("selected", opt.textContent === x);
-        }
-      }
-    } else {
-      // We only have filename here
+function checkConfigSync(container) {
+  const valid_classes = ['missing-config','matching-config','different-config']
+  function setClass(cl) {
+    for (const name of valid_classes) {
+      container.classList.toggle(name, name == cl)
     }
-    let localValue;
-    Object.defineProperty(span, "value", {
-      get: () => localValue,
-      set: (val) => {
-        if (val !== '') {
-          localValue = parse(val);
-        } 
-        update(localValue);
-      },
-    });
-    // We also assign a listener so that the editable is blurred when enter is pressed
-    span.onkeydown = (e) => {
-      if (e.keyCode === 13) {
-        e.preventDefault();
-        span.blur();
-      }
-    };
   }
-  span.value = value
+  // We use the custom getters we'll set up in the container
+  const {ui_value, config_value, config_span, key} = container
+  if (config_value === undefined) {
+    setClass('missing-config')
+      config_span.innerHTML = `The key <b><em>\${key}</em></b> is not present in the config.`
+    } else if (ui_value == config_value) {
+      setClass('matching-config')
+      config_span.innerHTML = `The key <b><em>\${key}</em></b> has the same value in the config and in the header.`
+    } else {
+      setClass('different-config')
+      config_span.innerHTML = `The key <b><em>\${key}</em></b> has a different value (<em>\${config_value}</em>) in the config.`
+  }
 }
 
+const valid_formats = ["png", "svg", "webp", "jpeg", "full-json"];
+function initializeUIValueSpan(span, key, value) {
+  const container = span.closest(".clipboard-span");
+  span.contentEditable = key === "format" ? "false" : "true";
+  let parse = (x) => x;
+  let update = (x) => (span.textContent = x);
+  if (key === "width" || key === "height") {
+    parse = (x) => Math.round(parseFloat(x));
+  } else if (key === "scale") {
+    parse = parseFloat;
+  } else if (key === "format") {
+    // We remove contentEditable
+    span.contentEditable = "false";
+    // Here we first add the subspans for each option
+    const opts_div = span.appendChild(html`<div class="format-options"></div>`);
+    for (const fmt of valid_formats) {
+      const opt = opts_div.appendChild(
+        html`<span class="format-option \${fmt}">\${fmt}</span>`
+      );
+      opt.onclick = (e) => {
+        span.value = opt.textContent;
+      };
+    }
+    parse = (x) => {
+      return valid_formats.includes(x) ? x : localValue;
+    };
+    update = (x) => {
+      for (const opt of opts_div.children) {
+        opt.classList.toggle("selected", opt.textContent === x);
+      }
+    };
+  } else {
+    // We only have filename here
+  }
+  let localValue;
+  Object.defineProperty(span, "value", {
+    get: () => {return localValue},
+    set: (val) => {
+      if (val !== "") {
+        localValue = parse(val);
+      }
+      update(localValue);
+      checkConfigSync(container)
+    },
+  });
+  // We also assign a listener so that the editable is blurred when enter is pressed
+  span.onkeydown = (e) => {
+    if (e.keyCode === 13) {
+      e.preventDefault();
+      span.blur();
+    }
+  };
+  span.value = value;
+}
+
+
+function initializeConfigValueSpan(span, key) {
+  // Here we mostly want to define the setter and getter
+  const container = span.closest('.clipboard-span')
+  Object.defineProperty(span, "value", {
+    get: () => {
+      return plot_obj.config.toImageButtonOptions[key]
+    },
+    set: (val) => {
+      // if undefined is passed, we remove the entry from the options
+      if (val === undefined) {
+        delete plot_obj.config.toImageButtonOptions[key]
+      } else {
+        plot_obj.config.toImageButtonOptions[key] = val
+      }
+      checkConfigSync(container)
+    }
+  })
+}
+
+const config_spans = {};
+for (const [key, value] of Object.entries(getImageOptions())) {
+  const container = CLIPBOARD_HEADER.querySelector(`.clipboard-span.\${key}`);
+  const label = container.querySelector('.label')
+  const ui_value_span = container.querySelector(".clipboard-value");
+  const config_value_span =
+    container.querySelector(".config-value") ??
+    label.insertAdjacentElement(
+      "afterbegin",
+      html`<span class="config-value"></span>`
+    );
+  // Assing the two spans as properties of the containing span
+  container.ui_span = ui_value_span
+  container.config_span = config_value_span
+  container.key = key
+  config_spans[key] = container;
+  if (firstRun) {
+    plot_obj.config.toImageButtonOptions = plot_obj.config.toImageButtonOptions ?? {}
+    // We do the initialization of the value span
+    initializeUIValueSpan(ui_value_span, key, value);
+    // Then we initialize the config value
+    initializeConfigValueSpan(config_value_span, key);
+    // We put some convenience getters/setters
+    // ui_value forward
+    Object.defineProperty(container, "ui_value", {
+      get: () => ui_value_span.value,
+      set: (val) => {ui_value_span.value = val}
+    })
+    // config_value forward
+    Object.defineProperty(container, "config_value", {
+      get: () => config_value_span.value,
+      set: (val) => {config_value_span.value = val}
+    })
+  }
+}
+
+// These objects will contain the default value
 
 // This code updates the image options in the PLOT config with the provided ones
 function setImageOptions(o) {
-  // Get the current options
-  const _o = getImageOptions()
-  // Extract the object saved in the PLOT, for eventual modification
-  const p = plot_obj.config.toImageButtonOptions ?? {}
-  for (const key of Object.keys(_o)) {
-    const val = o[key]
-    if (val == undefined) {
-      continue
+  for (const [key, container] of Object.entries(config_spans)) {
+    container.config_value = o[key];
+  }
+}
+function unsetImageOptions() {
+  setImageOptions({})
+}
+
+const set_button = CLIPBOARD_HEADER.querySelector(".clipboard-span.set");
+const unset_button = CLIPBOARD_HEADER.querySelector(".clipboard-span.unset");
+if (firstRun) {
+  set_button.onclick = (e) => {
+    for (const container of Object.values(config_spans)) {
+      container.config_value = container.ui_value
     }
-    p[key] = val
   }
-  syncImageOptions()
+  unset_button.onclick = unsetImageOptions
 }
-
-// This function syncs the imageOptions in the clipboard_header to the ones in the PLOT config
-function syncImageOptions() {
-  const o = getImageOptions()
-  for (const key of Object.keys(o)) {
-    value_spans[key].value = o[key]
-  }
-}
-
-const copy_button = CLIPBOARD_HEADER.querySelector(".clipboard-span.copy");
-
-
 
 // We add a function to check if the clipboard is popped out
 CONTAINER.isPoppedOut = () => {
@@ -130,9 +206,9 @@ CONTAINER.isPoppedOut = () => {
 };
 
 CLIPBOARD_HEADER.onmousedown = function (event) {
-  if (event.target.matches('span.clipboard-value')) {
-    console.log("We don't move!")
-    return
+  if (event.target.matches("span.clipboard-value")) {
+    console.log("We don't move!");
+    return;
   }
   const start = {
     left: parseFloat(CONTAINER.style.left),
@@ -281,7 +357,6 @@ function buttonClick(func) {
   };
 }
 
-if (firstRun) {
 // We remove the default download image button
 plot_obj.config.modeBarButtonsToRemove = _.union(
   plot_obj.config.modeBarButtonsToRemove,
@@ -303,5 +378,4 @@ plot_obj.config.modeBarButtonsToAdd = _.union(
     },
   ]
 );
-}
 """)

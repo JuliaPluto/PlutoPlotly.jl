@@ -41,9 +41,9 @@ const _default_script_contents = htl_js.([
 			border-top-right-radius: 0px;
 		}
 		.plutoplotly-clipboard-header {
-			background: var(--main-bg-color);
 			display: flex;
 			flex-flow: row wrap;
+			background: var(--main-bg-color);
 			border: 3px solid var(--kbd-border-color);
 			border-top-left-radius: 12px;
 			border-top-right-radius: 12px;
@@ -88,6 +88,9 @@ const _default_script_contents = htl_js.([
 		}
 		.clipboard-value.format {
 			position: relative;
+			flex: 1 0 auto;
+			min-width: 30px;
+			margin-right: 10px;
 		}
 		div.format-options {
 			display: inline-flex;
@@ -96,6 +99,7 @@ const _default_script_contents = htl_js.([
 			background: var(--main-bg-color);
 			border-radius: 12px;
 			padding-left: 3px;
+			z-index: 2000;
 		}
 		div.format-options:hover {
 			cursor: pointer;
@@ -118,6 +122,28 @@ const _default_script_contents = htl_js.([
 		}
 		.format-option:hover {
 			background-color: var(--kbd-border-color);
+		}
+		span.config-value {
+			color: var(--pluto-output-color);
+			display: none;
+			position: absolute;
+			background: var(--main-bg-color);
+			border: 3px solid var(--kbd-border-color);
+			border-radius: 12px;
+			transform: translate(0px, -120%);
+			padding: 5px;
+		}
+		.label:hover span.config-value {
+			display: inline-block;
+			min-width: 150px;
+		}
+		.clipboard-span.matching-config .label {
+			color: var(--cm-macro-color);
+			font-weight: bold;
+		}
+		.clipboard-span.different-config .label {
+			color: var(--cm-tag-color);
+			font-weight: bold;
 		}
 	</style>
 	`)
