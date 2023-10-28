@@ -4,35 +4,84 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function getImageOptions() {
+  const o = plot_obj.config.toImageButtonOptions ?? {}
+  return {
+    format: o.format ?? "png",
+    width: o.width ?? original_width,
+    height: o.height ?? original_height,
+    scale: o.scale ?? 1,
+    filename: 'newplot'
+  }
+}
+
 const CLIPBOARD_HEADER =
   CONTAINER.querySelector(".plutoplotly-clipboard-header") ??
   CONTAINER.insertAdjacentElement(
     "afterbegin",
     html`<div class="plutoplotly-clipboard-header hidden">
+      <span class="clipboard-span format"
+        ><span class="label">Format:</span><span class="clipboard-value format"></span></span
+      >
       <span class="clipboard-span width"
-        >Width: <span class="clipboard-value width"></span>px</span
+        ><span class="label">Width:</span><span class="clipboard-value width"></span>px</span
       >
       <span class="clipboard-span height"
-        >Height: <span class="clipboard-value height"></span>px</span
+        ><span class="label">Height:</span><span class="clipboard-value height"></span>px</span
       >
       <span class="clipboard-span scale"
-        >Scale: <span class="clipboard-value scale"></span
+        ><span class="label">Scale:</span><span class="clipboard-value scale"></span
       ></span>
       <button class="clipboard-span copy">Set</button>
+      <span class="clipboard-span filename"
+        ><span class="label">Filename:</span><span class="clipboard-value filename"></span
+      ></span>
     </div>`
   );
+
+const valid_formats = ["png", "svg", "webp", "jpeg", "full-json"];
 const value_spans = {};
-for (const key of ["width", "height", "scale"]) {
+for (const [key, value] of Object.entries(getImageOptions())) {
   const span = CLIPBOARD_HEADER.querySelector(`.clipboard-value.\${key}`);
   value_spans[key] = span;
-  span.contentEditable = "true";
   if (firstRun) {
+    span.contentEditable = "true";
+    let parse = (x) => x
+    let update = (x) => span.textContent = x
+    if (key === "width" || key === "height") {
+      parse = (x) => Math.round(parseFloat(x))
+    } else if (key === "scale") {
+      parse = parseFloat
+    } else if (key === "format") {
+      // We remove contentEditable
+      span.contentEditable = 'false'
+      // Here we first add the subspans for each option
+      const opts_div = span.appendChild(html`<div class="format-options"></div>`);
+      for (const fmt of valid_formats) {
+        const opt = opts_div.appendChild(html`<span class='format-option \${fmt}'>\${fmt}</span>`);
+        opt.onclick = (e) => {
+          span.value = opt.textContent
+        }
+      }
+      parse = (x) => {
+        return valid_formats.includes(x) ? x : localValue
+      }
+      update = (x) => {
+        for (const opt of opts_div.children) {
+          opt.classList.toggle("selected", opt.textContent === x);
+        }
+      }
+    } else {
+      // We only have filename here
+    }
     let localValue;
     Object.defineProperty(span, "value", {
       get: () => localValue,
       set: (val) => {
-        localValue = Math.round(val);
-        span.textContent = localValue;
+        if (val !== '') {
+          localValue = parse(val);
+        } 
+        update(localValue);
       },
     });
     // We also assign a listener so that the editable is blurred when enter is pressed
@@ -43,8 +92,37 @@ for (const key of ["width", "height", "scale"]) {
       }
     };
   }
+  span.value = value
 }
+
+
+// This code updates the image options in the PLOT config with the provided ones
+function setImageOptions(o) {
+  // Get the current options
+  const _o = getImageOptions()
+  // Extract the object saved in the PLOT, for eventual modification
+  const p = plot_obj.config.toImageButtonOptions ?? {}
+  for (const key of Object.keys(_o)) {
+    const val = o[key]
+    if (val == undefined) {
+      continue
+    }
+    p[key] = val
+  }
+  syncImageOptions()
+}
+
+// This function syncs the imageOptions in the clipboard_header to the ones in the PLOT config
+function syncImageOptions() {
+  const o = getImageOptions()
+  for (const key of Object.keys(o)) {
+    value_spans[key].value = o[key]
+  }
+}
+
 const copy_button = CLIPBOARD_HEADER.querySelector(".clipboard-span.copy");
+
+
 
 // We add a function to check if the clipboard is popped out
 CONTAINER.isPoppedOut = () => {
@@ -203,6 +281,7 @@ function buttonClick(func) {
   };
 }
 
+if (firstRun) {
 // We remove the default download image button
 plot_obj.config.modeBarButtonsToRemove = _.union(
   plot_obj.config.modeBarButtonsToRemove,
@@ -213,7 +292,7 @@ plot_obj.config.modeBarButtonsToAdd = _.union(
   plot_obj.config.modeBarButtonsToAdd,
   [
     {
-      name: "Copy PNG to Clipboard",
+      name: "Copy to Clipboard",
       icon: {
         height: 520,
         width: 520,
@@ -224,4 +303,5 @@ plot_obj.config.modeBarButtonsToAdd = _.union(
     },
   ]
 );
+}
 """)

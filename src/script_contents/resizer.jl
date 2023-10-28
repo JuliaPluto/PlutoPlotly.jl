@@ -60,9 +60,9 @@ function updateFromHeader() {
 }
 // We assign this function to the onblur event of width and height
 if (firstRun) {
-  for (const span of [value_spans.height, value_spans.width]) {
+  for (const span of Object.values(value_spans)) {
     span.onblur = (e) => {
-      span.value = parseFloat(span.textContent);
+      span.value = span.textContent;
       updateFromHeader();
     };
   }

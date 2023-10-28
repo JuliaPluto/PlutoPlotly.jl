@@ -43,6 +43,7 @@ const _default_script_contents = htl_js.([
 		.plutoplotly-clipboard-header {
 			background: var(--main-bg-color);
 			display: flex;
+			flex-flow: row wrap;
 			border: 3px solid var(--kbd-border-color);
 			border-top-left-radius: 12px;
 			border-top-right-radius: 12px;
@@ -52,17 +53,71 @@ const _default_script_contents = htl_js.([
 			transform: translate(0px, -100%);
 			padding: 5px;
 		}
-		.plutoplotly-clipboard-header > span {
+		.plutoplotly-clipboard-header span {
 			display: inline-block;
 			flex: 1
 		}
 		.plutoplotly-clipboard-header.hidden {
 			display: none;
 		}
-		.clipboard-span .clipboard-value {
+		.clipboard-span {
+			position: relative;
+		}
+		.clipboard-value {
 			padding-right: 5px;
 			padding-left: 2px;
 			cursor: text;
+		}
+		.clipboard-span.filename {
+			flex: 0 0 100%;
+			text-align: center;
+			border-top: 3px solid var(--kbd-border-color);
+			margin-top: 5px;
+			display: none;
+		}
+		.clipboard-value.filename {
+			margin-left: 3px;
+			text-align: left;
+			min-width: min(60%, min-content);
+		}
+		.clipboard-span.format {
+			display: inline-flex;
+		}
+		.clipboard-span.format .label {
+			flex: 0 0 0;
+		}
+		.clipboard-value.format {
+			position: relative;
+		}
+		div.format-options {
+			display: inline-flex;
+			flex-flow: column;
+			position: absolute;
+			background: var(--main-bg-color);
+			border-radius: 12px;
+			padding-left: 3px;
+		}
+		div.format-options:hover {
+			cursor: pointer;
+			border: 3px solid var(--kbd-border-color);
+			padding: 3px;
+			transform: translate(-3px, -6px);
+		}
+		div.format-options .format-option {
+			display: none;
+		}
+		div.format-options:hover .format-option {
+			display: inline-block;
+		}
+		.format-option:not(.selected) {
+			margin-top: 3px;
+		}
+		div.format-options .format-option.selected {
+			order: -1;
+			display: inline-block;
+		}
+		.format-option:hover {
+			background-color: var(--kbd-border-color);
 		}
 	</style>
 	`)
