@@ -2,17 +2,7 @@ const _default_script_contents = htl_js.([
 	"""
 	// Flag to check if this cell was  manually ran or reactively ran
 	const firstRun = this ? false : true
-	firstRun && console.log('firstRun')
-	const CONTAINER = this ?? html`
-	<div class='plutoplotly-container'>
-	<div class='plutoplotly-clipboard-header hidden'>
-		<span class='plot-height'>Height: <span></span>px</span>
-		<span class='plot-width'>Width: <span></span>px</span>
-		<span class='plot-scale'>Scale: <span contenteditable=true style='padding: 0 5px'>1</span></span>
-		<button class='plot-copy'>Copy</button>
-	</div>
-	</div>
-	`
+	const CONTAINER = this ?? html`<div class='plutoplotly-container'>`
 	const PLOT = CONTAINER.querySelector('.js-plotly-plot') ?? CONTAINER.appendChild(html`<div>`)
 	const parent = CONTAINER.parentElement
 	// We use a controller to remove event listeners upon invalidation
@@ -27,6 +17,7 @@ const _default_script_contents = htl_js.([
 	}, { signal: controller.signal })
 	""",
 	"""
+		// This create the style subdiv on first run
 		firstRun && CONTAINER.appendChild(html`
 		<style>
 		.plutoplotly-container {
@@ -129,11 +120,8 @@ const _default_script_contents = htl_js.([
 		}
 		CLIPBOARD_HEADER.style.width = rect.width + 'px'
 		CLIPBOARD_HEADER.style.left = rect.left + 'px'
-		console.log({
-			rect, sz, container_pad, plot_pad,
-		})
-		height_span.innerText = sz.height
-		width_span.innerText = sz.width
+		value_spans.height.innerText = sz.height
+		value_spans.width.innerText = sz.width
 		return sz
 	}
 
