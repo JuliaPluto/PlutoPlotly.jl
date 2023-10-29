@@ -4,6 +4,10 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// We import interact for dragging/resizing
+const { default: interact } = await import('https://esm.sh/interactjs@1.10.19')
+
+
 function getImageOptions() {
   const o = plot_obj.config.toImageButtonOptions ?? {};
   return {
@@ -328,7 +332,13 @@ function copyImageToClipboard() {
   Plotly.toImage(PLOT, config).then(function (dataUrl) {
     fetch(dataUrl)
       .then((res) => res.blob())
-      .then((blob) => sendToClipboard(blob));
+      .then((blob) => {
+        const paste_receiver = document.querySelector('paste-receiver.plutoplotly')
+        if (paste_receiver) {
+          paste_receiver.attachImage(dataUrl, CONTAINER)
+        }
+        sendToClipboard(blob)
+      });
   });
 }
 

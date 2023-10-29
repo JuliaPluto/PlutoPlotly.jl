@@ -16,7 +16,7 @@ using Downloads: download
 export PlutoPlot, get_plotly_version, change_plotly_version,
 check_plotly_version, force_pluto_mathjax_local, htl_js, add_plotly_listener!,
 add_class!, remove_class!, add_js_listener!, default_plotly_template,
-get_image_options, change_image_options!
+get_image_options, change_image_options!, plutoplotly_paste_receiver
 export plot, push_script!, prepend_cell_selector
 export make_subplots
 
@@ -26,6 +26,7 @@ include("basics.jl")
 include("script_contents/clipboard.jl")
 include("script_contents/resizer.jl")
 include("main_struct.jl")
+include("paste_receiver.jl")
 include("mathjax.jl")
 include("preprocess.jl")
 include("js_helpers.jl")
