@@ -1,5 +1,5 @@
 const PLOTLY_VERSION = Ref("2.26.2")
-const DEFAULT_TEMPLATE = Ref("plotly")
+const DEFAULT_TEMPLATE = Ref(PlotlyBase.templates[PlotlyBase.templates.default])
 const JS = HypertextLiteral.JavaScript
 
 """
@@ -145,23 +145,48 @@ function plotly_script_id(io::IO)
 	return "plot_$counter"
 end
 
-"""
-	default_plotly_template()::String
-	default_plotly_template(name::Union{String, Symbol})::String
-Return the name of the currently selected plotly template (following the synthax
-to set Templates from PlotlyBase) as a string.
+function find_matching_template(t::Template)
+	for name in templates.available
+		t == templates[name] && return name
+	end
+	return missing
+end
 
-If called with a `Symbol` or `String`, change the default template to the
-provided `name` and return the name as a String.
 """
-function default_plotly_template()
+	default_plotly_template(;find_matching = false)::Template
+Returns the current default plotly template (following the synthax
+to set Templates from PlotlyBase).
+
+If `find_matching` is set to true, the function will also send a message (using
+`@info`) to specify whether the default template is one of the templates
+available by default in PlotlyBase (and which one it is) or not.
+"""
+function default_plotly_template(; find_matching = false)
 	template = DEFAULT_TEMPLATE[] 
-	@info "The default plotly template is $template"
+	if find_matching
+		matching = find_matching_template(template)
+		if matching isa Missing
+			@info "The default template is not one of the predefined ones"
+		else
+			@info "The default plotly template is $matching"
+		end
+	end
 	template
 end
+
+"""
+	default_plotly_template(template::Template)::Template
+	default_plotly_template(name::Union{Symbol, String})::Template
+Set `template` as the current default plotly template (**globally**) to be used by all plots
+from PlutoPlotly (unless specifically overridden with Layout).
+
+If called with a `Symbol` or `String`, uses `name` to extract the corresponding
+template the default ones available in PlotlyBase and sets it as default.
+"""
+default_plotly_template(t::Template) = DEFAULT_TEMPLATE[] = t
 default_plotly_template(s::String) = default_plotly_template(Symbol(s))
 function default_plotly_template(s::Symbol)
-	s in PlotlyBase.templates.available || s === :none || error("The provided template $s is not available")
-	DEFAULT_TEMPLATE[] = string(s)
-	default_plotly_template()
+	s in templates.available || s === :none || error("The provided template $s is not available")
+	template = s === :none ? Template() : templates[s]
+	DEFAULT_TEMPLATE[] = template
 end

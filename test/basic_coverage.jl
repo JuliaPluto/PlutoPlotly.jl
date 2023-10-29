@@ -1,7 +1,7 @@
 using Test
 using PlutoPlotly
 using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32
-using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler
+using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler, templates
 
 @test SKIP_FLOAT32[] == false
 @test skip_float32() do
@@ -22,8 +22,11 @@ force_pluto_mathjax_local(true)
 @test _preprocess(1) === 1.0f0
 @test _preprocess(L"3+2") === raw"$3+2$"
 
-@test default_plotly_template() === "plotly"
-@test default_plotly_template("none") === "none"
+# Check that plotly is the default
+@test default_plotly_template() == templates[templates.default]
+@test default_plotly_template(:none) == Template()
+@test default_plotly_template("seaborn") == templates[:seaborn]
+@test_logs (:info, "The default plotly template is seaborn") default_plotly_template(;find_matching = true)
 
 let p = plot(rand(4))
     @test get_image_options(p) == Dict{Symbol,Any}()
