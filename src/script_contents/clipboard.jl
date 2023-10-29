@@ -64,6 +64,9 @@ function checkConfigSync(container) {
       setClass('different-config')
       config_span.innerHTML = `The key <b><em>\${key}</em></b> has a different value (<em>\${config_value}</em>) in the config.`
   }
+  // Add info about setting and unsetting
+  config_span.insertAdjacentHTML("beforeend", `<br>Click on the label <em><b>once</b></em> to set the current UI value in the config.`)
+  config_span.insertAdjacentHTML("beforeend", `<br>Click <em><b>twice</b></em> to remove this key from the config.`)
 }
 
 const valid_formats = ["png", "svg", "webp", "jpeg", "full-json"];

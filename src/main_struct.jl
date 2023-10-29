@@ -137,7 +137,7 @@ const _default_script_contents = htl_js.([
 			background: var(--main-bg-color);
 			border: 3px solid var(--kbd-border-color);
 			border-radius: 12px;
-			transform: translate(0px, -120%);
+			transform: translate(0px, calc(-100% - 10px));
 			padding: 5px;
 		}
 		.label {
