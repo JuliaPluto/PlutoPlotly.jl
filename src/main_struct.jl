@@ -269,3 +269,61 @@ function plot(args...;kwargs...)
 	@nospecialize
 	PlutoPlot(Plot(args...;kwargs...))
 end
+
+# This function extracts the toImageButtonOptions as a Dict
+"""
+	get_image_options(p::Union{Plot, PlutoPlot})::Dict{Symbol, Any}
+Extract the dictionary of image options that are stored in the
+`toImageButtonOptions` of the `PlotConfig` object embedded in the `Plot`.
+
+If not explicitly set, the image options are empty by default when creating a Plot object.
+
+See also: [`change_image_options!`](@ref)
+"""
+function get_image_options(p::Union{Plot, PlutoPlot}) 
+    dict = something(p.config.toImageButtonOptions, Dict())
+    return Dict{Symbol, Any}((Symbol(k) => v) for (k, v) in dict)
+end
+
+"""
+	change_image_options!(p::Union{Plot, PlutoPlot}; kwargs...)
+
+Returns the input plot `p` after having modified the `toImageButtonOptions` of the
+`PlotConfig` object embedded in the plot. These options are passed to
+the plotly.js library and are used to provide defaults when downloading the plot
+as an image (See the relevant
+[docs](https://plotly.com/julia/configuration-options/#customizing-modebar-download-plot-button)
+for more details.)
+
+If explicitly set, each option will also be used as the default value when
+popping out plot container for customizing size/scale/name before copying to
+clipboard or downloading the image. See [PR
+#22](https://github.com/JuliaPluto/PlutoPlotly.jl/pull/32) of PlutoPlotly for
+more details.
+
+## Keyword Arguments
+- `format`: The format of the exported plot to download. Can be one of "png", "jpeg", "webp", "svg" or "full-json",
+- `width`: An integer specifying the width (in pixels) of the exported plot.
+- `height`: An integer specifying the height (in pixels) of the exported plot.
+- `scale`: Set the scaling for the generated image, keeping the aspect ratio intact (increases the resolution).
+- `filename`: Sets the name of the exported file, the extension will be added automatically based on the chosen `format`.
+"""
+function change_image_options!(p::Union{Plot, PlutoPlot}; kwargs...)
+    # valid_args = (:format, :width, :height, :scale, :setBackground, :imageDataOnly, :filename)
+	# At the moment setBackground and imageDataOnly are not supported.
+    valid_args = (:format, :width, :height, :scale, :filename)
+    invalid_kwargs = setdiff(keys(kwargs), valid_args) |> Tuple
+    isempty(invalid_kwargs) || error("You provided the some invalid keyword arguments.
+Invalid kwargs: $invalid_kwargs
+Possible kwargs: $valid_args")
+    existing_dict = get_image_options(p)
+    new_dict = Dict{Symbol, Any}()
+    for k in valid_args
+        val = get(kwargs, k, get(existing_dict, k, missing))
+        val isa Missing && continue
+        new_dict[k] = val
+    end
+    isempty(new_dict) && return
+    p.config.toImageButtonOptions = new_dict
+    p
+end

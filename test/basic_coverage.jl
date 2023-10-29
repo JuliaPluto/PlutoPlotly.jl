@@ -24,3 +24,10 @@ force_pluto_mathjax_local(true)
 
 @test default_plotly_template() === "plotly"
 @test default_plotly_template("none") === "none"
+
+let p = plot(rand(4))
+    @test get_image_options(p) == Dict{Symbol,Any}()
+    change_image_options!(p; height = 400)
+    @test get_image_options(p) == Dict{Symbol,Any}(:height => 400)
+    @test_throws "invalid keyword arguments" change_image_options!(p; heights = 400)
+end

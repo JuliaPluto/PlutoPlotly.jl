@@ -148,9 +148,11 @@ end
 """
 	default_plotly_template()::String
 	default_plotly_template(name::Union{String, Symbol})::String
-Return the name of the currently selected plotly template (following the synthax to set Templates from PlotlyBase) as a string.
+Return the name of the currently selected plotly template (following the synthax
+to set Templates from PlotlyBase) as a string.
 
-If called with a `Symbol` or `String`, change the default template to the provided `name` and return the name as a String.
+If called with a `Symbol` or `String`, change the default template to the
+provided `name` and return the name as a String.
 """
 function default_plotly_template()
 	template = DEFAULT_TEMPLATE[] 
