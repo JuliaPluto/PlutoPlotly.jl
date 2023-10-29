@@ -116,7 +116,6 @@ function computePlotSize(data = getSizeData()) {
 
 // Create the resizeObserver to make the plot even more responsive! :magic:
 const resizeObserver = new ResizeObserver((entries) => {
-  debugger
   const sizeData = getSizeData();
   const {container_rect, container_pad} = sizeData;
   let plot_size = computePlotSize(sizeData);
@@ -138,7 +137,7 @@ const resizeObserver = new ResizeObserver((entries) => {
     plutoresize: true,
   };
   Plotly.relayout(PLOT, config).then(() => {
-    if (remove_container_size) {
+    if (remove_container_size && !CONTAINER.isPoppedOut()) {
       // This is needed to avoid the first resize upon plot creation to already be without a fixed height
       CONTAINER.style.height = "";
       CONTAINER.style.width = "";
