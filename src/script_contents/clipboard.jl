@@ -145,6 +145,14 @@ const config_spans = {};
 for (const [key, value] of Object.entries(getImageOptions())) {
   const container = CLIPBOARD_HEADER.querySelector(`.clipboard-span.\${key}`);
   const label = container.querySelector('.label')
+  // We give the label a function that on single click will set the current value and with double click will unset it
+  label.onclick = DualClick(() => {
+    container.config_value = container.ui_value
+  }, (e) => {
+    console.log('e', e)
+    e.preventDefault()
+    container.config_value = undefined
+  })
   const ui_value_span = container.querySelector(".clipboard-value");
   const config_value_span =
     container.querySelector(".config-value") ??
@@ -303,13 +311,11 @@ function copyImageToClipboard() {
 function saveImageToFile() {
   const config = {}
   for (const [key, container] of Object.entries(config_spans)) {
-    debugger
     let val = container.config_value ?? (CONTAINER.isPoppedOut() ? container.ui_value : undefined)
     // If we have undefined we don't create the key.
     if (val === undefined) {continue}
     config[key] = val
   }
-  debugger
   Plotly.downloadImage(PLOT, config)
 }
 
@@ -339,10 +345,33 @@ function popout_container(cl) {
   // We extract the current size of the container, save them and fix them
   const { width, height, top, left } = CONTAINER.getBoundingClientRect();
   container_rect = { width, height, top, left };
-  for (const [key, val] of Object.entries(container_rect)) {
-    CONTAINER.style[key] = val + "px";
-  }
+  const pad = {}
+  pad.unpopped = getSizeData().container_pad;
   CONTAINER.classList.toggle("popped-out", true);
+  pad.popped = getSizeData().container_pad;
+  // We do top and left based on the current rect
+  for (const key of ['top','left']) {
+    let offset = 0
+    for (const kind of ['padding','border']) {
+      offset += pad.popped[kind][key] - pad.unpopped[kind][key]
+    }
+    CONTAINER.style[key] = container_rect[key] - offset + "px";
+    if (key === 'left') {
+      CLIPBOARD_HEADER.style[key] = CONTAINER.style[key];
+    }
+  }
+  // We compute the width and height depending on eventual config data
+  const csz = computeContainerSize({
+    width: config_spans.width.config_value ?? PLOT._fullLayout.width,
+    height: config_spans.height.config_value ?? PLOT._fullLayout.height,
+  })
+  debugger
+  for (const key of ['width','height']) {
+    CONTAINER.style[key] = csz[key] + "px";
+    if (key === 'width') {
+      CLIPBOARD_HEADER.style[key] = CONTAINER.style[key];
+    }
+  }
   CLIPBOARD_HEADER.classList.toggle("hidden", false);
   const controller = new AbortController();
 
@@ -361,17 +390,17 @@ function popout_container(cl) {
 
 CONTAINER.popOut = popout_container;
 
-function buttonClick(func, cl) {
+function DualClick(single_func, dbl_func) {
   let nclicks = 0;
-  return function (gd, ev) {
+  return function (...args) {
     nclicks += 1;
     if (nclicks > 1) {
-      popout_container(cl);
+      dbl_func(...args);
       nclicks = 0;
     } else {
       delay(300).then(() => {
         if (nclicks == 1) {
-          func();
+          single_func(...args);
         }
         nclicks = 0;
       });
@@ -396,13 +425,13 @@ plot_obj.config.modeBarButtonsToAdd = _.union(
         path: "M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z",
       },
       direction: "up",
-      click: buttonClick(copyImageToClipboard),
+      click: DualClick(copyImageToClipboard, () => {popout_container()}),
     },
     {
       name: "Download Image",
       icon: Plotly.Icons.camera,
       direction: "up",
-      click: buttonClick(saveImageToFile, "filesave"),
+      click: DualClick(saveImageToFile, () => {popout_container("filesave")}),
     },
   ]
 );
