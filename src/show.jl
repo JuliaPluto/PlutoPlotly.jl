@@ -38,7 +38,7 @@ function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSI
 
 		$(pp.script_contents)
 
-		return PLOT
+		return CONTAINER
 	</script>
 """
 end

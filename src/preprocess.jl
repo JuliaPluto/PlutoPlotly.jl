@@ -22,9 +22,17 @@ function _preprocess(pp::PlutoPlot)
         :config => _preprocess(p.config)
     )
 
-    if templates.default !== "none" && PlotlyBase._isempty(get(out[:layout], :template, Dict()))
-        out[:layout][:template] = _preprocess(templates[templates.default])
-    end
+	templates = PlotlyBase.templates
+    layout_template = p.layout.template
+    template = if layout_template isa String
+        layout_template === "none" ? Template() : templates[layout_template]
+    elseif layout_template === templates[templates.default]
+		# If we enter here we did not specify any template in the layout, so se use our default
+        DEFAULT_TEMPLATE[]
+    else
+        layout_template
+	end
+    out[:layout][:template] = _preprocess(template)
     out
 end
 

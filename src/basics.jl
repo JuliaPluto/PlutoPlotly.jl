@@ -1,3 +1,32 @@
+const PLOTLY_VERSION = Ref("2.26.2")
+const DEFAULT_TEMPLATE = Ref(PlotlyBase.templates[PlotlyBase.templates.default])
+const JS = HypertextLiteral.JavaScript
+
+"""
+	ScriptContents
+Wrapper around a vector of `HypertextLiteral.JavaScript` elements. It has a custom print implementation of `HypertextLiteral.print_script` in order to allow serialization of its various elements inside a script tag.
+
+It is used inside the PlutoPlot to allow modularity and ease customization of the script contents that is used to generate the plotlyjs plot in Javascript.
+"""
+struct ScriptContents
+	vec::Vector{JS}
+end
+
+function HypertextLiteral.print_script(io::IO, value::ScriptContents)
+	for el ∈ value.vec
+		print(io, el.content, '\n')
+	end
+end
+
+"""
+	htl_js(x)
+Simple convenience constructor for `HypertextLiteral.JavaScript` objects, renamed and re-exported from HypertextLiteral for convenience in case HypertextLiteral is not explicitly loaded alongisde PlutoPlotly.
+
+See also: [`add_plotly_listeners!`](@ref)
+"""
+htl_js(x) = HypertextLiteral.JavaScript(x)
+htl_js(x::HypertextLiteral.JavaScript) = x
+
 maybe_publish_to_js(x) = if is_inside_pluto()
 	if isdefined(Main.PlutoRunner, :core_published_to_js)
 		Main.PlutoRunner.PublishedToJavascript(x)
@@ -114,4 +143,50 @@ end
 function plotly_script_id(io::IO)
 	counter = unique_io_counter(io, "plotly-plot")
 	return "plot_$counter"
+end
+
+function find_matching_template(t::Template)
+	for name in templates.available
+		t == templates[name] && return name
+	end
+	return missing
+end
+
+"""
+	default_plotly_template(;find_matching = false)::Template
+Returns the current default plotly template (following the synthax
+to set Templates from PlotlyBase).
+
+If `find_matching` is set to true, the function will also send a message (using
+`@info`) to specify whether the default template is one of the templates
+available by default in PlotlyBase (and which one it is) or not.
+"""
+function default_plotly_template(; find_matching = false)
+	template = DEFAULT_TEMPLATE[] 
+	if find_matching
+		matching = find_matching_template(template)
+		if matching isa Missing
+			@info "The default template is not one of the predefined ones"
+		else
+			@info "The default plotly template is $matching"
+		end
+	end
+	template
+end
+
+"""
+	default_plotly_template(template::Template)::Template
+	default_plotly_template(name::Union{Symbol, String})::Template
+Set `template` as the current default plotly template (**globally**) to be used by all plots
+from PlutoPlotly (unless specifically overridden with Layout).
+
+If called with a `Symbol` or `String`, uses `name` to extract the corresponding
+template the default ones available in PlotlyBase and sets it as default.
+"""
+default_plotly_template(t::Template) = DEFAULT_TEMPLATE[] = t
+default_plotly_template(s::String) = default_plotly_template(Symbol(s))
+function default_plotly_template(s::Symbol)
+	s in templates.available || s === :none || error("The provided template $s is not available")
+	template = s === :none ? Template() : templates[s]
+	DEFAULT_TEMPLATE[] = template
 end

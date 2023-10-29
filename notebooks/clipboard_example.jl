@@ -6,183 +6,108 @@
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ 5a2798a7-d2e4-42a5-9007-6262d7c3b411
+# ╔═╡ 9ce0ffe5-43da-4d2d-abde-37ff845fd019
 begin
 	using PlutoDevMacros
 	using PlutoUI
+	using BenchmarkTools
 	using PlutoExtras
 end
 
-# ╔═╡ dd8ddf0a-9085-4c9d-821d-8e7ed78d33c3
+# ╔═╡ fe091a2b-a7cc-45a8-811b-efda254d0932
 @fromparent begin
-	using ^
+	import ^: *
 	using >.HypertextLiteral
 end
 
-# ╔═╡ d1251ff9-5b35-406c-877f-28e559ac6b46
+# ╔═╡ e14f2689-36bc-48bb-818c-500805c18523
+default_plotly_template("none");
+
+# ╔═╡ afca425d-c420-4e52-85d1-848a8b0897c3
+md"""
+# Plot Resizer
+"""
+
+# ╔═╡ 913bb641-af82-4b62-9cee-bde13c70c592
+md"""
+Since version 0.4.2 of PlutoPlotly, there is now a new feature that allows to pop-out the plot into a floating window in order to customize its size/scale before taking a snapshot.
+
+In all PlutoPlotly plots, we now have two additional buttons in the modebar, one with the clipboard icon and one with the camera icon (The icon is the same as the usual snapshot button but the functionality is slightly different).
+
+- The clipboard button allows to copy the current plot onto the clipboard as a PNG, only works under certain conditions, see below.
+- The snapshot button will instead download the image as a file (similar to the standrd download button in plotly).
+
+The main functionality that was added though, is the possibility of easily customizing the options to give Plotly by detaching the plot object in a separate container that can be resized to find the right size for the image.
+
+To detach the plot object, double click either on the clipboard or on the snapshot button.
+"""
+
+# ╔═╡ 87d2b9ab-0868-4955-9f58-9a17ff5c3e70
+plot(1:5; config = PlotConfig(;displayModeBar = true))
+
+# ╔═╡ 987eeb12-85c5-43de-aaec-8684e1d397c8
+md"""
+## Clipboard Copy UI
+"""
+
+# ╔═╡ 541e19e4-0426-4ff8-82c0-98ea0137ba83
+md"""
+!!! note "Clipboard Working Conditons"
+	The functionality to paste to the Clipboard does not work in Firefox (as clipboard access from JS is very limited in firefox). \
+	It is also limited in Chrome (or Chromium/Edge) to either static html exports (so files), or connection to a Pluto running server either through **localhost** or **https**. \
+	This is a mild limitations as most of the use cases in chrome should fall within those conditions. See the [relevant docs](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/clipboard) for more details.\
+	\
+	The package also provides a convenience widget to grab the image from the clipboard icon even on browser that do not support directly writing to the clipboard. This widget can be created using the `plutoplotly_paste_receiver` function that is exported by this package. See the heading below for more informations.
+"""
+
+# ╔═╡ 24156eed-3d09-4206-8bf4-217720a4a458
+md"""
+When double clicking on the clipboard container, the container will popup with some border and a header on top of the plot, like in the image below:
+![image](https://github.com/JuliaPluto/PlutoPlotly.jl/assets/12846528/ff2a1a43-6bd3-42c4-8a37-8ab518084040)
+"""
+
+# ╔═╡ 4416aff1-19b4-4453-bd43-cccbbf6e2527
+md"""
+You can notice that the header parameters have all different colored labels. By default when you popout the container above the first time these will be all black, but the color give you some helpful information:
+-  **Black**: This label has no preset config option so when you press the clipboard icon to copy the image.$br When exporting the plot, **the current value** (680 for width in the example above) will be sent to plotly for generting the image
+-  $(html"<span style='color: var(--cm-tag-color); font-weight: bold;'>Red</span>"): There is a config value set as default for this parameter when exporting the plot, and its value is different from the currently visualized one. $br When exporting the plot, **the default value will be used instead of the visualized one**
+-  $(html"<span style='color: var(--cm-macro-color); font-weight: bold;'>Green</span>"): There is a config value set for this parameter and it matches the one visualized in the UI.
+
+The displayed values for width and height represent the acutal width and height **of the plot area** and will adapt to the container window, that can be resized by dragging from its lower right corner.
+
+Each of these paremeters can also be modified manually by clicking on the numbers in the header and modifying them. The plot will update depending on the input value as soon as Enter is pressed, or the span with the number being modified is moved out of focus.
+
+Lastly, the container can be moved around by dragging it from the header. As soon as one clicks outside of the container, the plot will be put back into its originating cell.
+"""
+
+# ╔═╡ 55b23a29-b02f-4b35-bb83-a494e8d6f32b
+md"""
+## Paste Receiver Widget
+"""
+
+# ╔═╡ 26c7ef45-644c-4d01-a57c-3c3774b9c24d
+
+
+# ╔═╡ 7b815ea5-9e3d-4379-9daf-bfac9bfac1c4
 md"""
 # Packages
 """
 
-# ╔═╡ 8a7f8c23-488d-4133-8da6-799343fe00de
+# ╔═╡ b6c96d31-4b8f-4280-bdf9-2c9cef929d76
 ExtendedTableOfContents()
-
-# ╔═╡ 724c19c9-b4a9-4b3b-99aa-9e803b6d412b
-default_plotly_template("none")
-
-# ╔═╡ b68cb4f2-fdbe-414f-9a6a-59786720b29f
-md"""
-# Tests
-"""
-
-# ╔═╡ 5e45b2bd-02a5-40c3-8665-ec453997193a
-md"""
-These are subplots tests taken from [https://github.com/JuliaPlots/PlotlyJS.jl/blob/master/examples/subplots.jl](https://github.com/JuliaPlots/PlotlyJS.jl/blob/master/examples/subplots.jl)
-"""
-
-# ╔═╡ 46144daf-e075-4440-8054-6293cff1f228
-md"""
-## with\_make_subplots1
-"""
-
-# ╔═╡ e90ed0c4-efb4-4f76-9093-abe381f6ef5c
-let
-    # The `shared_xaxes` argument to `make_subplots` can be used to link the x
-    # axes of subplots in the resulting figure. The `vertical_spacing` argument
-    # is used to control the vertical spacing between rows in the subplot grid.
-
-    # Here is an example that creates a figure with 3 vertically stacked
-    # subplots with linked x axes. A small vertical spacing value is used to
-    # reduce the spacing between subplot rows.
-
-	p = make_subplots(rows=3, cols=1, shared_xaxes=true, vertical_spacing=0.02)
-    add_trace!(p, scatter(x=0:2, y=10:12), row=3, col=1)
-    add_trace!(p, scatter(x=2:4, y=100:10:120), row=2, col=1)
-    add_trace!(p, scatter(x=3:5, y=1000:100:1200), row=1, col=1)
-    relayout!(p, title_text="Stacked Subplots with Shared X-Axes")
-    p
-end
-
-# ╔═╡ 96e17c39-3bfc-4372-9a3b-78dd1974f4ab
-md"""
-## with\_make_subplots2
-"""
-
-# ╔═╡ 429c68e6-b9ed-42a8-aeac-1e78ba91e768
-let
-    p = make_subplots(rows=2, cols=2, shared_yaxes=true)
-    add_trace!(p, scatter(x=0:2, y=10:12), row=1, col=1)
-    relayout!(p, title_text="Multiple Subplots with Shared Y-Axes")
-	p.layout.template
-end
-
-# ╔═╡ a975e09b-7ff1-4a3b-a667-62448770ab68
-let
-	# The `shared_yaxes` argument to `make_subplots` can be used to link the y
-    # axes of subplots in the resulting figure.
-
-    # Here is an example that creates a figure with a 2 x 2 subplot grid, where
-    # the y axes of each row are linked.
-
-    p = make_subplots(rows=2, cols=2, shared_yaxes=true)
-    add_trace!(p, scatter(x=0:2, y=10:12), row=1, col=1)
-    add_trace!(p, scatter(x=20:10:40, y=1:3), row=1, col=2)
-    add_trace!(p, scatter(x=3:5, y=600:100:800), row=2, col=1)
-    add_trace!(p, scatter(x=3:5, y=1000:100:1200), row=2, col=2)
-    relayout!(p, title_text="Multiple Subplots with Shared Y-Axes")
-    p
- end
-
-# ╔═╡ 55ebabe9-e864-4905-82e7-d4ccc2eab75d
-md"""
-## with\_make_subplots3
-"""
-
-# ╔═╡ b0e75a40-158e-488d-9aa3-2ffdcfed139e
-let
-	# The `specs` argument to `make_subplots` is used to configure per-subplot
-    # options.  `specs` must be a `Matrix` with dimensions that match those
-    # provided as the `rows` and `cols` arguments. The elements of `specs` may
-    # either be `missing`, indicating no subplot should be initialized starting
-    # with this grid cell, or an instance of `Spec` containing subplot options.
-    # The `colspan` subplot option specifies the number of grid columns that the
-    # subplot starting in the given cell should occupy.  If unspecified,
-    # `colspan` defaults to 1.
-
-    # Here is an example that creates a 2 by 2 subplot grid containing 3
-    # subplots. The subplot `specs` element for position (2, 1) has a `colspan`
-    # value of 2, causing it to span the full figure width. The subplot `specs`
-    # element f or position (2, 2) is `None` because no subplot begins at this
-    # location in the grid.
-    p = make_subplots(
-        rows=2, cols=2,
-        specs=[Spec() Spec(); Spec(colspan=2) missing],
-        subplot_titles=["First Subplot" "Second Subplot"; "Third Subplot" missing]
-    )
-
-    add_trace!(p, scatter(x=[1, 2], y=[1, 2]), row=1, col=1)
-    add_trace!(p, scatter(x=[1, 2], y=[1, 2]), row=1, col=2)
-    add_trace!(p, scatter(x=[1, 2, 3], y=[2, 1, 2]), row=2, col=1)
-
-    relayout!(p, showlegend=false, title_text="Specs with Subplot Title")
-    p
-end
-
-# ╔═╡ dff22380-9496-4615-8fad-516086dadf40
-md"""
-## with\_make_subplots4
-"""
-
-# ╔═╡ 8b1ebbce-c0a2-4ac8-8cf8-52afeda5cb72
-let
-	# Here is an example that uses the `rowspan` and `colspan` subplot options
-    # to create a custom subplot layout with subplots of mixed sizes.
-    p = make_subplots(
-        rows=5, cols=2,
-        specs=[Spec() Spec(rowspan=2)
-               Spec() missing
-               Spec(rowspan=2, colspan=2) missing
-               missing missing
-               Spec() Spec()]
-    )
-
-    add_trace!(p, scatter(x=[1, 2], y=[1, 2], name="(1,1)"), row=1, col=1)
-    add_trace!(p, scatter(x=[1, 2], y=[1, 2], name="(1,2)"), row=1, col=2)
-    add_trace!(p, scatter(x=[1, 2], y=[1, 2], name="(2,1)"), row=2, col=1)
-    add_trace!(p, scatter(x=[1, 2], y=[1, 2], name="(3,1)"), row=3, col=1)
-    add_trace!(p, scatter(x=[1, 2], y=[1, 2], name="(5,1)"), row=5, col=1)
-    add_trace!(p, scatter(x=[1, 2], y=[1, 2], name="(5,2)"), row=5, col=2)
-
-    relayout!(p, height=600, width=600, title_text="specs examples")
-    p
-end
-
-# ╔═╡ bdb3efbb-7a07-494b-bf8e-3ced7ffc49c5
-md"""
-## hcat
-"""
-
-# ╔═╡ 5f711a53-0e31-4e38-b640-5a1cb2a5c8d6
-hcat(plot(rand(4)), plot(rand(4)))
-
-# ╔═╡ 9cf8e6ef-d06d-4140-8730-1d2f9720f9dd
-md"""
-## vcat
-"""
-
-# ╔═╡ c0fa557c-4922-4729-8e45-75c2c4c6f065
-vcat(plot(rand(4)), plot(rand(4)))
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 PlutoDevMacros = "a0499f29-c39b-4c5c-807c-88074221b949"
 PlutoExtras = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
-PlutoDevMacros = "~0.5.8"
-PlutoExtras = "~0.7.10"
+BenchmarkTools = "~1.3.2"
+PlutoDevMacros = "~0.6.0"
+PlutoExtras = "~0.7.11"
 PlutoUI = "~0.7.52"
 """
 
@@ -192,7 +117,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.0-beta2"
 manifest_format = "2.0"
-project_hash = "f50c3104111b5d594359e3dd1628a076c5fe269d"
+project_hash = "e2569efc70dae60e333846de37b5f435c9bd4766"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -210,6 +135,12 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
+[[deps.BenchmarkTools]]
+deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
+git-tree-sha1 = "d9a9701b899b30332bbcb3e1679c41cce81fb0e8"
+uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+version = "1.3.2"
+
 [[deps.ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
 git-tree-sha1 = "eb7f0f8307f71fac7c606984ea5fb2817275d6e4"
@@ -224,6 +155,12 @@ version = "1.0.5+1"
 [[deps.Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
+
+[[deps.DocStringExtensions]]
+deps = ["LibGit2"]
+git-tree-sha1 = "2fb1e02f2b635d0845df5d7c167fec4dd739b00d"
+uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+version = "0.9.3"
 
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
@@ -344,16 +281,16 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 version = "1.10.0"
 
 [[deps.PlutoDevMacros]]
-deps = ["HypertextLiteral", "InteractiveUtils", "MacroTools", "Markdown", "Pkg", "Random", "TOML"]
-git-tree-sha1 = "6ce1d9f7c078b493812161349c48735dee275466"
+deps = ["AbstractPlutoDingetjes", "DocStringExtensions", "HypertextLiteral", "InteractiveUtils", "MacroTools", "Markdown", "Pkg", "Random", "TOML"]
+git-tree-sha1 = "06fa4aa7a8f2239eec99cf54eeddd34f3d4359be"
 uuid = "a0499f29-c39b-4c5c-807c-88074221b949"
-version = "0.5.8"
+version = "0.6.0"
 
 [[deps.PlutoExtras]]
-deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "PlutoDevMacros", "PlutoUI", "REPL", "Reexport"]
-git-tree-sha1 = "beedecb30d8ed0874773d5641f5ce5ee2bfeeded"
+deps = ["AbstractPlutoDingetjes", "HypertextLiteral", "InteractiveUtils", "Markdown", "PlutoDevMacros", "PlutoUI", "REPL"]
+git-tree-sha1 = "382b530c2ebe31f4a44cb055642bbd71197fbd20"
 uuid = "ed5d0301-4775-4676-b788-cf71e66ff8ed"
-version = "0.7.10"
+version = "0.7.11"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
@@ -376,6 +313,10 @@ version = "1.4.1"
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[deps.Profile]]
+deps = ["Printf"]
+uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
@@ -430,14 +371,14 @@ deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.Tricks]]
-git-tree-sha1 = "aadb748be58b492045b4f56166b5188aa63ce549"
+git-tree-sha1 = "eae1bb484cd63b36999ee58be2de6c178105112f"
 uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
-version = "0.1.7"
+version = "0.1.8"
 
 [[deps.URIs]]
-git-tree-sha1 = "b7a5e99f24892b6824a954199a45e9ffcc1c70f0"
+git-tree-sha1 = "67db6cc7b3821e19ebe75791a9dd19c9b1188f2b"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
-version = "1.5.0"
+version = "1.5.1"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
@@ -468,25 +409,19 @@ version = "17.4.0+2"
 """
 
 # ╔═╡ Cell order:
-# ╟─d1251ff9-5b35-406c-877f-28e559ac6b46
-# ╠═5a2798a7-d2e4-42a5-9007-6262d7c3b411
-# ╠═dd8ddf0a-9085-4c9d-821d-8e7ed78d33c3
-# ╠═8a7f8c23-488d-4133-8da6-799343fe00de
-# ╠═724c19c9-b4a9-4b3b-99aa-9e803b6d412b
-# ╟─b68cb4f2-fdbe-414f-9a6a-59786720b29f
-# ╟─5e45b2bd-02a5-40c3-8665-ec453997193a
-# ╟─46144daf-e075-4440-8054-6293cff1f228
-# ╠═e90ed0c4-efb4-4f76-9093-abe381f6ef5c
-# ╟─96e17c39-3bfc-4372-9a3b-78dd1974f4ab
-# ╠═429c68e6-b9ed-42a8-aeac-1e78ba91e768
-# ╠═a975e09b-7ff1-4a3b-a667-62448770ab68
-# ╟─55ebabe9-e864-4905-82e7-d4ccc2eab75d
-# ╠═b0e75a40-158e-488d-9aa3-2ffdcfed139e
-# ╟─dff22380-9496-4615-8fad-516086dadf40
-# ╠═8b1ebbce-c0a2-4ac8-8cf8-52afeda5cb72
-# ╟─bdb3efbb-7a07-494b-bf8e-3ced7ffc49c5
-# ╠═5f711a53-0e31-4e38-b640-5a1cb2a5c8d6
-# ╟─9cf8e6ef-d06d-4140-8730-1d2f9720f9dd
-# ╠═c0fa557c-4922-4729-8e45-75c2c4c6f065
+# ╠═e14f2689-36bc-48bb-818c-500805c18523
+# ╟─afca425d-c420-4e52-85d1-848a8b0897c3
+# ╟─913bb641-af82-4b62-9cee-bde13c70c592
+# ╠═87d2b9ab-0868-4955-9f58-9a17ff5c3e70
+# ╟─987eeb12-85c5-43de-aaec-8684e1d397c8
+# ╟─541e19e4-0426-4ff8-82c0-98ea0137ba83
+# ╟─24156eed-3d09-4206-8bf4-217720a4a458
+# ╟─4416aff1-19b4-4453-bd43-cccbbf6e2527
+# ╟─55b23a29-b02f-4b35-bb83-a494e8d6f32b
+# ╠═26c7ef45-644c-4d01-a57c-3c3774b9c24d
+# ╟─7b815ea5-9e3d-4379-9daf-bfac9bfac1c4
+# ╠═9ce0ffe5-43da-4d2d-abde-37ff845fd019
+# ╠═fe091a2b-a7cc-45a8-811b-efda254d0932
+# ╠═b6c96d31-4b8f-4280-bdf9-2c9cef929d76
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

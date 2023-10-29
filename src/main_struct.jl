@@ -1,79 +1,174 @@
-const PLOTLY_VERSION = Ref("2.26.2")
-const JS = HypertextLiteral.JavaScript
-
-"""
-	ScriptContents
-Wrapper around a vector of `HypertextLiteral.JavaScript` elements. It has a custom print implementation of `HypertextLiteral.print_script` in order to allow serialization of its various elements inside a script tag.
-
-It is used inside the PlutoPlot to allow modularity and ease customization of the script contents that is used to generate the plotlyjs plot in Javascript.
-"""
-struct ScriptContents
-	vec::Vector{JS}
-end
-
-function HypertextLiteral.print_script(io::IO, value::ScriptContents)
-	for el ∈ value.vec
-		print(io, el.content, '\n')
-	end
-end
-
-"""
-	htl_js(x)
-Simple convenience constructor for `HypertextLiteral.JavaScript` objects, renamed and re-exported from HypertextLiteral for convenience in case HypertextLiteral is not explicitly loaded alongisde PlutoPlotly.
-
-See also: [`add_plotly_listeners!`](@ref)
-"""
-htl_js(x) = HypertextLiteral.JavaScript(x)
-
 const _default_script_contents = htl_js.([
 	"""
 	// Flag to check if this cell was  manually ran or reactively ran
 	const firstRun = this ? false : true
-	const PLOT = this ?? document.createElement("div");
-	const parent = currentScript.parentElement
-	const isPlutoWrapper = parent.classList.contains('raw-html-wrapper')
-	""",
-	"""
-	if (firstRun) {
-		// It seem plot divs would not autosize themself inside flexbox containers without this
-		parent.appendChild(PLOT)
-	}
-	""",
-	"""
-	// If width is not specified, set it to 100%
-	PLOT.style.width = plot_obj.layout.width ? "" : "100%"
-	
-	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
-	PLOT.style.height = plot_obj.layout.height ? "" :
-		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
-	""",
-	"""
-
-
-	PLOT.classList.forEach(cn => {
-		if (cn !== 'js-plotly-plot' && !custom_classlist.includes(cn)) {
-			PLOT.classList.toggle(cn, false)
+	const CONTAINER = this ?? html`<div class='plutoplotly-container'>`
+	const PLOT = CONTAINER.querySelector('.js-plotly-plot') ?? CONTAINER.appendChild(html`<div>`)
+	const parent = CONTAINER.parentElement
+	// We use a controller to remove event listeners upon invalidation
+	const controller = new AbortController()
+	// We have to add this to keep supporting @bind with the old API using PLOT
+	PLOT.addEventListener('input', (e) => {
+		CONTAINER.value = PLOT.value
+		if (e.bubbles) {
+			return
 		}
-	})
-	for (const className of custom_classlist) {
-		PLOT.classList.toggle(className, true)
-	}
+		CONTAINER.dispatchEvent(new CustomEvent('input'))
+	}, { signal: controller.signal })
 	""",
 	"""
-
-	// Create the resizeObserver to make the plot even more responsive! :magic:
-	const resizeObserver = new ResizeObserver(entries => {
-		PLOT.style.height = plot_obj.layout.height ? "" :
-		(isPlutoWrapper || parent.clientHeight == 0) ? "400px" : "100%"
-		/* 
-		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 
-		See https://github.com/plotly/plotly.js/issues/6156 for details
-		*/
-		Plotly.relayout(PLOT, {..._.pick(PLOT.layout, ['width','height']), autosize: true, plutoresize: true})
-	})
-
-	resizeObserver.observe(PLOT)
+		// This create the style subdiv on first run
+		firstRun && CONTAINER.appendChild(html`
+		<style>
+		.plutoplotly-container {
+			width: 100%;
+			height: 100%;
+			min-height: 0;
+			min-width: 0;
+		}
+		.plutoplotly-container .js-plotly-plot .plotly div {
+			margin: 0 auto; // This centers the plot
+		}
+		.plutoplotly-container.popped-out {
+			overflow: auto;
+			z-index: 1000;
+			position: fixed;
+			resize: both;
+			background: var(--main-bg-color);
+			border: 3px solid var(--kbd-border-color);
+			border-radius: 12px;
+			border-top-left-radius: 0px;
+			border-top-right-radius: 0px;
+		}
+		.plutoplotly-clipboard-header {
+			display: flex;
+			flex-flow: row wrap;
+			background: var(--main-bg-color);
+			border: 3px solid var(--kbd-border-color);
+			border-top-left-radius: 12px;
+			border-top-right-radius: 12px;
+			position: fixed;
+			z-index: 1001;
+			cursor: move;
+			transform: translate(0px, -100%);
+			padding: 5px;
+		}
+		.plutoplotly-clipboard-header span {
+			display: inline-block;
+			flex: 1
+		}
+		.plutoplotly-clipboard-header.hidden {
+			display: none;
+		}
+		.clipboard-span {
+			position: relative;
+		}
+		.clipboard-value {
+			padding-right: 5px;
+			padding-left: 2px;
+			cursor: text;
+		}
+		.clipboard-span.format {
+			display: none;
+		}
+		.clipboard-span.filename {
+			flex: 0 0 100%;
+			text-align: center;
+			border-top: 3px solid var(--kbd-border-color);
+			margin-top: 5px;
+			display: none;
+		}
+		.plutoplotly-container.filesave .clipboard-span.filename {
+			display: inline-block;
+		}
+		.clipboard-value.filename {
+			margin-left: 3px;
+			text-align: left;
+			min-width: min(60%, min-content);
+		}
+		.plutoplotly-container.filesave .clipboard-span.format {
+			display: inline-flex;
+		}
+		.clipboard-span.format .label {
+			flex: 0 0 0;
+		}
+		.clipboard-value.format {
+			position: relative;
+			flex: 1 0 auto;
+			min-width: 30px;
+			margin-right: 10px;
+		}
+		div.format-options {
+			display: inline-flex;
+			flex-flow: column;
+			position: absolute;
+			background: var(--main-bg-color);
+			border-radius: 12px;
+			padding-left: 3px;
+			z-index: 2000;
+		}
+		div.format-options:hover {
+			cursor: pointer;
+			border: 3px solid var(--kbd-border-color);
+			padding: 3px;
+			transform: translate(-3px, -6px);
+		}
+		div.format-options .format-option {
+			display: none;
+		}
+		div.format-options:hover .format-option {
+			display: inline-block;
+		}
+		.format-option:not(.selected) {
+			margin-top: 3px;
+		}
+		div.format-options .format-option.selected {
+			order: -1;
+			display: inline-block;
+		}
+		.format-option:hover {
+			background-color: var(--kbd-border-color);
+		}
+		span.config-value {
+			font-weight: normal;
+			color: var(--pluto-output-color);
+			display: none;
+			position: absolute;
+			background: var(--main-bg-color);
+			border: 3px solid var(--kbd-border-color);
+			border-radius: 12px;
+			transform: translate(0px, calc(-100% - 10px));
+			padding: 5px;
+		}
+		.label {
+			user-select: none;
+		}
+		.label:hover span.config-value {
+			display: inline-block;
+			min-width: 150px;
+		}
+		.clipboard-span.matching-config .label {
+			color: var(--cm-macro-color);
+			font-weight: bold;
+		}
+		.clipboard-span.different-config .label {
+			color: var(--cm-tag-color);
+			font-weight: bold;
+		}
+	</style>
+	`)
 	""",
+	"""
+	let original_height = plot_obj.layout.height
+	let original_width = plot_obj.layout.width
+	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
+	// We define a variable to check whether we still have to remove the fixed height
+	let remove_container_size = firstRun
+	let container_height = original_height ?? PLOT.container_height ?? 400
+	CONTAINER.style.height = container_height + 'px'
+	""",
+	clipboard_script,
+	resizer_script,
 	"""
 
 	Plotly.react(PLOT, plot_obj).then(() => {
@@ -86,7 +181,9 @@ const _default_script_contents = htl_js.([
 		// Assign the JS event listeners
 		for (const [key, listener_vec] of Object.entries(js_listeners)) {
 			for (const listener of listener_vec) {
-				PLOT.addEventListener(key, listener)
+				PLOT.addEventListener(key, listener, {
+					signal: controller.signal
+				})
 			}
 		}
 	}
@@ -98,11 +195,7 @@ const _default_script_contents = htl_js.([
 		// Remove all plotly listeners
 		PLOT.removeAllListeners()
 		// Remove all JS listeners
-		for (const [key, listener_vec] of Object.entries(js_listeners)) {
-			for (const listener of listener_vec) {
-				PLOT.removeEventListener(key, listener)
-			}
-		}
+		controller.abort()
 		// Remove the resizeObserver
 		resizeObserver.disconnect()
 	})
@@ -175,4 +268,62 @@ end
 function plot(args...;kwargs...) 
 	@nospecialize
 	PlutoPlot(Plot(args...;kwargs...))
+end
+
+# This function extracts the toImageButtonOptions as a Dict
+"""
+	get_image_options(p::Union{Plot, PlutoPlot})::Dict{Symbol, Any}
+Extract the dictionary of image options that are stored in the
+`toImageButtonOptions` of the `PlotConfig` object embedded in the `Plot`.
+
+If not explicitly set, the image options are empty by default when creating a Plot object.
+
+See also: [`change_image_options!`](@ref)
+"""
+function get_image_options(p::Union{Plot, PlutoPlot}) 
+    dict = something(p.config.toImageButtonOptions, Dict())
+    return Dict{Symbol, Any}((Symbol(k) => v) for (k, v) in dict)
+end
+
+"""
+	change_image_options!(p::Union{Plot, PlutoPlot}; kwargs...)
+
+Returns the input plot `p` after having modified the `toImageButtonOptions` of the
+`PlotConfig` object embedded in the plot. These options are passed to
+the plotly.js library and are used to provide defaults when downloading the plot
+as an image (See the relevant
+[docs](https://plotly.com/julia/configuration-options/#customizing-modebar-download-plot-button)
+for more details.)
+
+If explicitly set, each option will also be used as the default value when
+popping out plot container for customizing size/scale/name before copying to
+clipboard or downloading the image. See [PR
+#22](https://github.com/JuliaPluto/PlutoPlotly.jl/pull/32) of PlutoPlotly for
+more details.
+
+## Keyword Arguments
+- `format`: The format of the exported plot to download. Can be one of "png", "jpeg", "webp", "svg" or "full-json",
+- `width`: An integer specifying the width (in pixels) of the exported plot.
+- `height`: An integer specifying the height (in pixels) of the exported plot.
+- `scale`: Set the scaling for the generated image, keeping the aspect ratio intact (increases the resolution).
+- `filename`: Sets the name of the exported file, the extension will be added automatically based on the chosen `format`.
+"""
+function change_image_options!(p::Union{Plot, PlutoPlot}; kwargs...)
+    # valid_args = (:format, :width, :height, :scale, :setBackground, :imageDataOnly, :filename)
+	# At the moment setBackground and imageDataOnly are not supported.
+    valid_args = (:format, :width, :height, :scale, :filename)
+    invalid_kwargs = setdiff(keys(kwargs), valid_args) |> Tuple
+    isempty(invalid_kwargs) || error("You provided the some invalid keyword arguments.
+Invalid kwargs: $invalid_kwargs
+Possible kwargs: $valid_args")
+    existing_dict = get_image_options(p)
+    new_dict = Dict{Symbol, Any}()
+    for k in valid_args
+        val = get(kwargs, k, get(existing_dict, k, missing))
+        val isa Missing && continue
+        new_dict[k] = val
+    end
+    isempty(new_dict) && return
+    p.config.toImageButtonOptions = new_dict
+    p
 end
