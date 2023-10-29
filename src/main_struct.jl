@@ -130,7 +130,7 @@ const _default_script_contents = htl_js.([
 			background-color: var(--kbd-border-color);
 		}
 		span.config-value {
-			font-weight: normal
+			font-weight: normal;
 			color: var(--pluto-output-color);
 			display: none;
 			position: absolute;
@@ -139,6 +139,9 @@ const _default_script_contents = htl_js.([
 			border-radius: 12px;
 			transform: translate(0px, -120%);
 			padding: 5px;
+		}
+		.label {
+			user-select: none;
 		}
 		.label:hover span.config-value {
 			display: inline-block;
