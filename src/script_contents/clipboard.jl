@@ -295,8 +295,8 @@ CLIPBOARD_HEADER.onmousedown = function (event) {
 
 function sendToClipboard(blob) {
   if (!navigator.clipboard) {
-    alert(
-      "The Clipboard API does not seem to be available, make sure the Pluto notebook is being used from either localhost or an https source."
+    console.warn(
+      "The Clipboard API does not seem to be available, Please use the paste receiver plugin to see the extracted image."
     );
   }
   navigator.clipboard
