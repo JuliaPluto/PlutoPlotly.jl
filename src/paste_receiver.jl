@@ -63,6 +63,22 @@ function plutoplotly_paste_receiver(;popped = true, top = 42, right = 150, left 
       el.style[key] = ""
     }
   }
+  function getPosition(el) {
+    const p = {}
+    for (const key of ["top", "left", "bottom", "right"]) {
+      const val = el.style[key]
+      if (val === "") {continue}
+      p[key] = parseFloat(val)
+    }
+    return p
+  }
+
+  function setPosition(el, p) {
+    for (const key of ["top", "left", "bottom", "right"]) {
+      if (p[key] === undefined) {continue}
+      el.style[key] = p[key]
+    }
+  }
 
   paste_receiver.classList.toggle('right-side', $(left isa Missing))
   paste_receiver.classList.toggle('left-side', $(left isa Real))
@@ -104,6 +120,7 @@ function plutoplotly_paste_receiver(;popped = true, top = 42, right = 150, left 
       const val = paste_receiver.style[key]
       if (val === '') { continue }
       ps[key] = parseFloat(paste_receiver.style[key])
+      paste_receiver.style[key] = ""
     }
     paste_receiver.popped_position = ps
     paste_receiver.classList.toggle("popped", false);
@@ -111,6 +128,24 @@ function plutoplotly_paste_receiver(;popped = true, top = 42, right = 150, left 
 
   paste_receiver.popToggle = function (force = !paste_receiver.classList.contains('popped')) {
     return force ? popOut() : popIn()
+  }
+
+  function updateSide(d) {
+    const c = d.centers_dist
+    paste_receiver.style.setProperty("--vertical-edge-distance", d.top + 'px')
+    // Update the centers distance
+    let dist
+    if (c.x > 0) {
+      // We are on the right side
+      paste_receiver.classList.toggle('left-side', false)
+      paste_receiver.classList.toggle('right-side', true)
+      dist = d.right
+    } else {
+      paste_receiver.classList.toggle('left-side', true)
+      paste_receiver.classList.toggle('right-side', false)
+      dist = d.left
+    }
+    paste_receiver.style.setProperty("--horizontal-edge-distance", dist + 'px')
   }
 
   function initialize_interact() {
@@ -128,55 +163,57 @@ function plutoplotly_paste_receiver(;popped = true, top = 42, right = 150, left 
             ViewPortDist.right -= event.dx
             ViewPortDist.centers_dist.x += event.dx
             ViewPortDist.centers_dist.y -= event.dy
-            const d = ViewPortDist
-            const c = d.centers_dist
-            paste_receiver.style.setProperty("--vertical-edge-distance", d.top + 'px')
-            // Update the centers distance
-            let dist
-            if (c.x > 0) {
-              // We are on the right side
-              paste_receiver.classList.toggle('left-side', false)
-              paste_receiver.classList.toggle('right-side', true)
-              dist = d.right
-            } else {
-              paste_receiver.classList.toggle('left-side', true)
-              paste_receiver.classList.toggle('right-side', false)
-              dist = d.left
-            }
-            paste_receiver.style.setProperty("--horizontal-edge-distance", dist + 'px')
+            updateSide(ViewPortDist)
           },
         },
+      }).on('doubletap', function (e) {
+        paste_receiver.classList.toggle('minimized')
       })
 
-    interact('i.keep-open').on('tap', function (e) {
-      // We skip on right click
-      if (e.originalEvent.button == 2) { return }
-      paste_receiver.classList.toggle('minimized');
-    })
 
     interact('paste-receiver.popped:not(.minimized)')
       .resizable({
-        edges: { top: true, left: false, bottom: true, right: true },
+        edges: {top: false, bottom: true, left: true, right: true},
         listeners: {
+          start: function(event) {
+            paste_receiver.resize_position = getPosition(paste_receiver)
+            const d = computeViewPortDistances(paste_receiver)
+            const e = event.edges
+            const fix = {}
+            const horz = e.right ? 'left' : 'right'
+            fix[horz] = d[horz] + 'px'
+            clearPosition(paste_receiver)
+            setPosition(paste_receiver, fix)
+          },
           move: function (event) {
-            console.log(event)
             Object.assign(paste_receiver.style, {
               width: `\${event.rect.width}px`,
               height: `\${event.rect.height}px`,
             });
           },
+          end: function(event) {
+            updateSide(computeViewPortDistances(paste_receiver))
+            clearPosition(paste_receiver)
+            setPosition(paste_receiver, paste_receiver.resize_position)
+            paste_receiver.resize_position = undefined
+          }
         },
       })
 
-    interact('i.popout').on('tap', function (e) {
+    interact('paste-receiver i.popout').on('tap', function (e) {
       // We skip on right click
       if (e.originalEvent.button == 2) { return }
       paste_receiver.popToggle()
     })
-    interact('i.close').on('tap', function (e) {
+    interact('paste-receiver i.close').on('tap', function (e) {
       // We skip on right click
       if (e.originalEvent.button == 2) { return }
       paste_receiver.popToggle()
+    })
+    interact('paste-receiver i.keep-open').on('tap', function (e) {
+      // We skip on right click
+      if (e.originalEvent.button == 2) { return }
+      paste_receiver.classList.toggle('minimized');
     })
   }
   initialize_interact()
@@ -320,8 +357,11 @@ function plutoplotly_paste_receiver(;popped = true, top = 42, right = 150, left 
   paste_receiver.classList.add(myStyle)
 
   invalidation.then(() => {
-    interact('paste-receiver').unset()
-    interact('i.close').unset()
+    interact('paste-receiver.popped > .header').unset()
+    interact('paste-receiver.popped:not(.minimized)').unset()
+    interact('paste-receiver i.popout').unset()
+    interact('paste-receiver i.close').unset()
+    interact('paste-receiver i.keep-open').unset()
   })
 </script>
 """)
