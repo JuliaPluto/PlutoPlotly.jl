@@ -1,21 +1,28 @@
 """
-  plutoplotly_paste_receiver(;popped = true)
+    plutoplotly_paste_receiver(;popped = true, top = 42, right = 150, left = missing)
 Create a widget that when shown inside a Pluto output generates a container
 specifically made for extracting images of exported plots obtained with the
 clipboard button on the plotly modebar.
 
-With `popped` equals to true (default), the widget will be collapsed and
-represented by a clipboard icon on the top-right of the screen. When clicked
-upon, the container div is expanded and it will contain the last image that has
-been sent to the clipboard from a PlutoPlotly plot.
+## Keyword Arguments
+- `popped`: Flag to decide whether the container will be popped out of the cell \
+output. If popped, the container is always floating on the screen, minimized and shown as a \
+clipboard icon that can be expanded by hovering over it.
+- `top`: Specify the default distance (in px) of the container from the top of \
+the window when popped.
+- `right`: Specify the default distance (in px) of the container from the right \
+of the window when popped.
+- `left`: Specify the default distance (in px) of the container from the left of \
+the window when popped. If this is provided, the `right` value will be ignored.
 """
-plutoplotly_paste_receiver(;popped = true) = @htl("""
+function plutoplotly_paste_receiver(;popped = true, top = 42, right = 150, left = missing) 
+@htl("""
 <script src="https://kit.fontawesome.com/087fc9ff41.js" crossorigin="anonymous"></script>
-<paste-receiver class="plutoplotly noimage minimized $(popped ? "popped" : "")">
+<paste-receiver class="plutoplotly noimage minimized $(popped ? " popped" : "" )">
   <div class="header">
     <i class="empty"></i>
-    <i class="clipboard fa-regular fa-clipboard"></i>
-    <i class="minimize fa-solid fa-down-left-and-up-right-to-center"></i>
+    <i class="clipboard    fa-regular fa-clipboard"></i>
+    <i class="keep-open fa-solid fa-thumbtack"></i>
     <i class="popout fa-solid fa-arrow-up-right-from-square"></i>
     <i class="close fa-solid fa-xmark"></i>
   </div>
@@ -36,126 +43,115 @@ plutoplotly_paste_receiver(;popped = true) = @htl("""
     paste_receiver.classList.toggle("noimage", false);
     paste_receiver.classList.toggle("hasimage", true);
     // We make the clipboard wobble for half a second
-    clipboard_icon.classList.toggle('animate', true)
-    setTimeout(() => clipboard_icon.classList.toggle('animate', false), 1000)
+    clipboard_icon.classList.toggle('fa-bounce', true)
+    setTimeout(() => {
+      clipboard_icon.classList.toggle('fa-bounce', false)
+    }, 2000)
   };
 
   const { default: interact } = await import(
     "https://esm.sh/interactjs@1.10.19"
   );
+  const { css } = await import(
+    "https://esm.sh/@emotion/css@11.11.2"
+  )
+  paste_receiver.interact = interact
+  paste_receiver.css = css
+
+  function clearPosition(el) {
+    for (const key of ["top", "left", "bottom", "right"]) {
+      el.style[key] = ""
+    }
+  }
+
+  paste_receiver.classList.toggle('right-side', $(left isa Missing))
+  paste_receiver.classList.toggle('left-side', $(left isa Real))
+
+  function computeViewPortDistances(el) {
+    const r = el.getBoundingClientRect()
+    const vw = document.body.clientWidth
+    const vh = document.body.clientHeight
+    const centers_dist = { // This is the distance of the center of el from the center of the viewport
+      x: r.left + r.width / 2 - vw / 2,
+      y: vh / 2 - (r.top + r.height / 2),
+    }
+    return {
+      top: r.top,
+      bottom: vh - r.bottom,
+      left: r.left,
+      right: vw - r.right,
+      centers_dist,
+    }
+  }
+
+  function popOut() {
+    if (paste_receiver.classList.contains('popped')) { return }
+    const ps = paste_receiver.popped_position
+    const cs = getComputedStyle(paste_receiver)
+    // Maybe add width/height
+    ps.width = ps.width ?? parseFloat(cs.width)
+    ps.height = ps.height ?? parseFloat(cs.height)
+    for (const [key, value] of Object.entries(ps)) {
+      paste_receiver.style[key] = value + "px"
+    }
+    paste_receiver.classList.toggle("popped", true);
+  }
+
+  function popIn() {
+    if (!paste_receiver.classList.contains('popped')) { return }
+    const ps = {}
+    for (const key of ["top", "left", "width", "height", "right", "bottom"]) {
+      const val = paste_receiver.style[key]
+      if (val === '') { continue }
+      ps[key] = parseFloat(paste_receiver.style[key])
+    }
+    paste_receiver.popped_position = ps
+    paste_receiver.classList.toggle("popped", false);
+  }
+
+  paste_receiver.popToggle = function (force = !paste_receiver.classList.contains('popped')) {
+    return force ? popOut() : popIn()
+  }
+
   function initialize_interact() {
-    paste_receiver.offset = paste_receiver.offset ?? { x: 0, y: 0 };
-    const startPosition = { x: 0, y: 0 };
+    let ViewPortDist;
     interact("paste-receiver.popped > .header")
       .draggable({
         listeners: {
           start(event) {
-            paste_receiver.offset.y = startPosition.y =
-              paste_receiver.offsetTop;
-            paste_receiver.offset.x = startPosition.x =
-              paste_receiver.offsetLeft;
+            ViewPortDist = computeViewPortDistances(paste_receiver)
           },
           move(event) {
-            paste_receiver.offset.x += event.dx;
-            paste_receiver.offset.y += event.dy;
-
-            paste_receiver.style.top = `min(95vh, \${paste_receiver.offset.y}px`;
-            paste_receiver.style.left = `min(95vw, \${paste_receiver.offset.x}px`;
+            ViewPortDist.top += event.dy
+            ViewPortDist.left += event.dx
+            ViewPortDist.bottom -= event.dy
+            ViewPortDist.right -= event.dx
+            ViewPortDist.centers_dist.x += event.dx
+            ViewPortDist.centers_dist.y -= event.dy
+            const d = ViewPortDist
+            const c = d.centers_dist
+            paste_receiver.style.setProperty("--vertical-edge-distance", d.top + 'px')
+            // Update the centers distance
+            let dist
+            if (c.x > 0) {
+              // We are on the right side
+              paste_receiver.classList.toggle('left-side', false)
+              paste_receiver.classList.toggle('right-side', true)
+              dist = d.right
+            } else {
+              paste_receiver.classList.toggle('left-side', true)
+              paste_receiver.classList.toggle('right-side', false)
+              dist = d.left
+            }
+            paste_receiver.style.setProperty("--horizontal-edge-distance", dist + 'px')
           },
         },
       })
-      .on("doubletap", (e) => {
-        minimize(e, true)
-      });
 
-    function modify_size_position(remove) {
-      const keys = ['top','left','width','height']
-      const ps = paste_receiver.position_size ?? _.pick(paste_receiver.getBoundingClientRect(), keys)
-      const cs = getComputedStyle(paste_receiver)
-      for (const key of keys) {
-        if (remove) {
-          ps[key] = parseFloat(cs[key])
-          paste_receiver.style[key] = ""
-        } else {
-          // We put the style from the saved one
-          paste_receiver.style[key] = ps[key] + "px"
-        }
-      }
-      paste_receiver.position_size = ps
-    }
-    function find_center(el) {
-        r = el.getBoundingClientRect()
-        return {
-            top: r.top + r.height/2,
-            left: r.left + r.width/2
-        }
-    }
-
-    // This function minimizes or expands the plot and handles the offset
-    function minimize(evt, force) {
-        const current = paste_receiver.classList.contains('minimized')
-        if (force == current) {
-            // Noting happens, we just return
-            return
-        }
-        const minimized_after = !current
-        const r_before = paste_receiver.getBoundingClientRect()
-        paste_receiver.classList.toggle('minimized',force)
-        const r_after = paste_receiver.getBoundingClientRect()
-        // Expanded (e) and Contracted (c) sizes
-        const e = minimized_after ? r_before : r_after
-        const c = minimized_after ? r_after : r_before
-        // We compute the viewport size
-        const vw = window.innerWidth
-        const vh = window.innerHeight
-        // This is the distance from the top of the top-left icon to the top-left of the container
-        const dist = {
-          top: 17.4,
-          left: 15.9,
-        }
-        const to_right = e.left + e.width/2 > vw/2
-        const minimize_icon = paste_receiver.querySelector('.minimize')
-        minimize_icon.style.order = to_right ? 1 : -1
-        let left
-        let top
-        if (minimized_after) {
-            /*
-            We are contracting
-            */
-           left = to_right ?
-           // We have to contracts towards the right, putting the left at the right corner
-           e.right - dist.left : 
-           e.left + dist.left
-           // Top for top we don't care about left and right targets, just top value
-           top = e.top + e.height/2 > vh/2 ?
-           e.bottom - dist.top : 
-           e.top + dist.top
-        } else {
-            /*
-            We are expanding
-            */
-           left = to_right ?
-           // We have to contracts towards the right, putting the left at the right corner
-           c.right + dist.left - e.width : 
-           c.left - dist.left
-           // Top for top we don't care about left and right targets, just top value
-           top = e.top + e.height/2 > vh/2 ?
-           c.bottom + dist.top - e.height :
-           c.top - dist.top
-        }
-        paste_receiver.style.left = left + 'px'
-        paste_receiver.style.top = top + 'px'
-    }
-
-    interact('i.minimize').on('tap', function(e) {
-        // We skip on right click
-        if (e.originalEvent.button == 2) {return}
-        minimize(e, true)
-    })
-    interact('paste-receiver.minimized i.clipboard').on('tap', function(e) {
-        // We skip on right click
-        if (e.originalEvent.button == 2) {return}
-        minimize(e, false)
+    interact('i.keep-open').on('tap', function (e) {
+      // We skip on right click
+      if (e.originalEvent.button == 2) { return }
+      paste_receiver.classList.toggle('minimized');
     })
 
     interact('paste-receiver.popped:not(.minimized)')
@@ -171,29 +167,29 @@ plutoplotly_paste_receiver(;popped = true) = @htl("""
           },
         },
       })
-      
-      interact('i.popout').on('tap', function(e) {
-        // We skip on right click
-        if (e.originalEvent.button == 2) {return}
-        paste_receiver.classList.toggle('popped', true)
-        modify_size_position(false)
-      })
-      interact('i.close').on('tap', function(e) {
-        // We skip on right click
-        if (e.originalEvent.button == 2) {return}
-        modify_size_position(true)
-        paste_receiver.classList.toggle('popped', false)
-      })
+
+    interact('i.popout').on('tap', function (e) {
+      // We skip on right click
+      if (e.originalEvent.button == 2) { return }
+      paste_receiver.popToggle()
+    })
+    interact('i.close').on('tap', function (e) {
+      // We skip on right click
+      if (e.originalEvent.button == 2) { return }
+      paste_receiver.popToggle()
+    })
   }
   initialize_interact()
 
-  invalidation.then(() => {
-    interact('paste-receiver').unset()
-    interact('i.close').unset()
-  })
-</script>
-<style>
-  paste-receiver > .header {
+  // Do the css with emotion
+
+  const myStyle = css`
+  & {
+    --vertical-edge-distance: $(top)px;
+    --horizontal-edge-distance: $(coalesce(left, right))px;
+  }
+
+  & > .header {
     height: 30px;
     position: absolute;
     left: 0px;
@@ -203,7 +199,14 @@ plutoplotly_paste_receiver(;popped = true) = @htl("""
     justify-content: space-between;
     align-items: center;
   }
-  paste-receiver.plutoplotly {
+
+  &.popped.minimized:not(:hover)>.header {
+    height: fit-content;
+    width: fit-content;
+    position: relative;
+  }
+
+  &.plutoplotly {
     display: flex;
     background: var(--main-bg-color);
     border: 3px solid var(--kbd-border-color);
@@ -216,82 +219,110 @@ plutoplotly_paste_receiver(;popped = true) = @htl("""
     position: relative;
     overflow: auto;
   }
-  paste-receiver.plutoplotly.popped {
+
+  &.plutoplotly.popped {
     z-index: 1000;
     position: fixed;
     width: 600px;
     height: 400px;
-    right: 165px;
-    top: 62px;
+    top: var(--vertical-edge-distance)
   }
-  paste-receiver.plutoplotly.popped.minimized {
+
+  &.plutoplotly.popped.right-side {
+    right: var(--horizontal-edge-distance);
+  }
+
+  &.plutoplotly.popped.left-side {
+    left: var(--horizontal-edge-distance);
+  }
+
+  &.plutoplotly.popped.minimized:not(:hover) {
     overflow: visible;
     min-height: 0px;
-    height: 0px !important;
-    width: 0px !important;
+    height: fit-content !important;
+    width: fit-content !important;
     border: none;
     background-color: transparent;
   }
-  paste-receiver.plutoplotly.popped.minimized .header {
-    height: 100%;
-  }
-  paste-receiver.plutoplotly.popped.minimized *:not(.header) {
+
+  &.plutoplotly.popped.minimized:not(:hover) *:not(.header) {
     display: none;
   }
-  paste-receiver.plutoplotly .header:not(:hover) i {
+
+  &.plutoplotly .header:not(:hover) i {
     visibility: hidden
   }
-  paste-receiver.plutoplotly.popped.minimized i.clipboard {
+
+  &.plutoplotly.popped.minimized:not(:hover) i.clipboard {
     display: block;
     scale: 1.5;
-    transform: translate(-50%, 0);
     visibility: visible !important;
+    --fa-animation-iteration-count: 2;
   }
-  i.clipboard.animate {
-    animation: tilt-shaking 0.2s 0s 6;
-  }
-  @keyframes tilt-shaking {
-    0% { transform: rotate(0deg) translate(-50%, 0); }
-    25% { transform: rotate(5deg) translate(-50%, 0); }
-    50% { transform: rotate(0eg) translate(-50%, 0); }
-    75% { transform: rotate(-5deg) translate(-50%, 0); }
-    100% { transform: rotate(0deg) translate(-50%, 0); }
-  }
-  paste-receiver.noimage > div.noimage,
-  paste-receiver.noimage > img {
+
+  &.noimage>div.noimage,
+  &.noimage>img {
     margin: 0 auto;
   }
-  paste-receiver.noimage > img {
+
+  &.noimage>img {
     display: none;
   }
-  paste-receiver.hasimage > .message {
+
+  &.hasimage>.message {
     display: none;
   }
-  paste-receiver.hasimage > img {
+
+  &.hasimage>img {
     display: block;
   }
-  paste-receiver i {
-    margin: 0 5px;
+
+  & i {
+    margin: 10px;
+    margin-left: 5px;
     cursor: pointer;
     color: var(--pluto-output-color);
   }
-  paste-receiver.popped i.empty,
-  paste-receiver.popped i.popout {
-      display: none;
-  }
-  paste-receiver.popped:not(.minimized) i.clipboard {
-      display: none;
-  }
-  paste-receiver.popped.minimized i.minimize {
-      display: none;
-  }
-  paste-receiver:not(.popped) i.clipboard,
-  paste-receiver:not(.popped) i.minimize,
-  paste-receiver:not(.popped) i.close {
+
+  & i.keep-open,
+  & i.close,
+  & i.clipboard {
     display: none;
   }
-  .header:hover > i.popout {
-    visibility: visible;
+
+  &.popped i.empty,
+  &.popped i.popout {
+    display: none;
   }
-</style>
+
+  &.popped i.keep-open,
+  &.popped i.close {
+    display: block;
+  }
+
+  &.popped.minimized:not(:hover) i.close paste-receiver.popped.minimized:not(:hover) i.keep-open {
+    display: none;
+  }
+
+  &.popped.minimized:not(:hover) i.clipboard {
+    display: block;
+  }
+
+  &.right-side i.keep-open {
+    order: 2;
+  }
+
+  &.minimized i.keep-open {
+    transform: rotate(45deg);
+  }
+  `
+
+  paste_receiver.classList.add(myStyle)
+
+  invalidation.then(() => {
+    interact('paste-receiver').unset()
+    interact('i.close').unset()
+  })
+</script>
 """)
+end
