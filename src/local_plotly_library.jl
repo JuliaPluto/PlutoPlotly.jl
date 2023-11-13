@@ -1,5 +1,5 @@
 const DATA_FOLDER = BaseDirs.User.data("plutoplotly/")
-isdir(DATA_FOLDER) || mkdir(DATA_FOLDER)
+isdir(DATA_FOLDER) || mkpath(DATA_FOLDER)
 const VERSIONS_PATH = joinpath(DATA_FOLDER, "plotly_versions")
 const VERSIONS_DICT = Ref(
     try
@@ -27,7 +27,7 @@ function maybe_put_plotly_in_pluto(v)
         isdir(dist_path) || (subdir === "frontend" ? error("Something went wrong") : continue)
         file_path = joinpath(dist_path, "plotlyjs", "$name.min.js")
         if !isfile(file_path)
-            isdir(joinpath(dist_path, "plotlyjs")) || mkdir(joinpath(dist_path, "plotlyjs"))
+            isdir(joinpath(dist_path, "plotlyjs")) || mkpath(joinpath(dist_path, "plotlyjs"))
             cp(get_local_path(v), file_path)
         end
     end
