@@ -14,7 +14,10 @@ function pluto_server_folder()
     ml = methods(Main.PlutoRunner.embed_display)
     m = first(ml)
     plutorunner_path = string(m.file)
-    pluto_path = normpath(plutorunner_path, "../../..")
+    parts = splitpath(plutorunner_path)
+	idx = findfirst(x -> x === "Pluto", parts)
+    idx !== nothing || error("Could not automatically extract the Pluto root.")
+    pluto_root = joinpath(parts[1:idx+1])
 end
 function maybe_put_plotly_in_pluto(v)
     name = get_local_name(v)
@@ -24,7 +27,8 @@ function maybe_put_plotly_in_pluto(v)
     # We check whether the plotly library has been already loaded in this Pluto location, and we copy it otherwise
     for subdir in ("frontend-dist", "frontend")
         dist_path = joinpath(pluto_path, subdir)
-        isdir(dist_path) || (subdir === "frontend" ? error("Something went wrong") : continue)
+        isdir(dist_path) || (subdir === "frontend" ? error("Could not find the `frontend` folder inside pluto root:
+$pluto_path") : continue)
         file_path = joinpath(dist_path, "plotlyjs", "$name.min.js")
         if !isfile(file_path)
             isdir(joinpath(dist_path, "plotlyjs")) || mkpath(joinpath(dist_path, "plotlyjs"))
@@ -56,7 +60,11 @@ end
 
 get_plotly_cdn_url(v) = "https://cdn.plot.ly/plotly-$(VersionNumber(v)).min.js"
 get_local_pluto_src(v) = let
-    maybe_put_plotly_in_pluto(v) || error("Something wrong")
+    try 
+        maybe_put_plotly_in_pluto(v)
+    catch e
+        @warn("Encountered the following error while trying to copy the plotly library to the Pluto server's frontend:", e)
+    end
     "./plotlyjs/$(get_local_name(v)).min.js"
 end
 
