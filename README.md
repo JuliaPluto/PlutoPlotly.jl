@@ -40,4 +40,4 @@ https://user-images.githubusercontent.com/12846528/161222881-4e9aeed6-bcb2-495b-
 
 https://user-images.githubusercontent.com/12846528/161222655-c07e4ea2-5965-4aac-beb3-4ff42cdcffe4.mp4
 
-View the notebooks inside [the notebook](./notebooks/) subfolde for more details and examples. Note that the notebooks have to be opened from the package folder as they directly load the latest version of the package (and do so from the path they are called from)
+View the notebooks inside [the notebook](./notebooks/) subfolder for more details and examples. Note that the notebooks have to be opened from the package folder as they directly load the latest version of the package (and do so from the path they are called from)
