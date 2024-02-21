@@ -39,9 +39,9 @@ $pluto_path") : continue)
 end
 
 function update_versions_file()
-    open(VERSIONS_PATH, "w") do io
+    write(VERSIONS_PATH, sprint() do io
         TOML.print(io, VERSIONS_DICT[])
-    end
+    end)
 end
 function get_esm_url(v)
     v = string(v)
