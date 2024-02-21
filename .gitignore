@@ -1,3 +1,4 @@
 Manifest.toml
 test*.jl
 .vscode/
+.DS_Store
