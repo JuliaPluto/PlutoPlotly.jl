@@ -9,16 +9,6 @@ const VERSIONS_DICT = Ref(
     end
     )
 
-function pluto_server_folder()
-    is_inside_pluto() || return nothing
-    ml = methods(Main.PlutoRunner.embed_display)
-    m = first(ml)
-    plutorunner_path = string(m.file)
-    parts = splitpath(plutorunner_path)
-	idx = findfirst(x -> x === "Pluto", parts)
-    idx !== nothing || error("Could not automatically extract the Pluto root.")
-    pluto_root = joinpath(parts[1:idx+1])
-end
 function maybe_put_plotly_in_pluto(v)
     name = get_local_name(v)
     pluto_path = pluto_server_folder()
@@ -59,13 +49,18 @@ function get_esm_url(v)
 end
 
 get_plotly_cdn_url(v) = "https://cdn.plot.ly/plotly-$(VersionNumber(v)).min.js"
-get_local_pluto_src(v) = let
-    try 
-        maybe_put_plotly_in_pluto(v)
-    catch e
-        @warn("Encountered the following error while trying to copy the plotly library to the Pluto server's frontend:", e)
+
+"""
+mapping a path like "/home/user/.julia/blabla/plotly-1.2.3.min.js" to its contents, read as String
+"""
+const plotly_dep_contents = Dict{String, String}()
+
+function get_local_plotly_contents(v)
+    maybe_add_plotly_local(v)
+    path = get_local_path(v)
+    get!(plotly_dep_contents, path) do
+        read(path, String)
     end
-    "./plotlyjs/$(get_local_name(v)).min.js"
 end
 
 get_local_path(v) = joinpath(DATA_FOLDER, "$(get_local_name(v)).min.js")
@@ -85,13 +80,87 @@ function maybe_add_plotly_local(v)
     nothing
 end
 
-function get_plotly_src(v, force = "local")
-    if lowercase(string(force)) === "esm"
-        get_esm_url(v)
-    elseif lowercase(string(force)) === "cdn"
-        get_plotly_cdn_url(v)
-    elseif lowercase(string(force)) === "local"
-        get_local_pluto_src(v)
+
+function src_type(input)
+    type = lowercase(string(input))
+    @assert type in ["esm", "cdn", "local"]
+    type
+end
+
+function get_plotly_import(v, force = "local")
+    force = src_type(force)
+    if force == "esm"
+        _ImportedRemoteJS(get_esm_url(v))
+    elseif force == "cdn"
+        _ImportedRemoteJS(get_plotly_cdn_url(v))
+    elseif force == "local"
+        import_local_js(get_local_plotly_contents(v))
     end
 end
-    
+
+
+struct _ImportedRemoteJS
+    src::String
+end
+
+function Base.show(io, m::MIME"text/javascript", i::_ImportedRemoteJS)
+    write(io, 
+        "await import($(repr(i.src)))"
+    )
+end
+
+
+struct _ImportedLocalJS
+    published
+end
+
+function Base.show(io, m::MIME"text/javascript", i::_ImportedLocalJS)
+    write(io, 
+        """
+        await (() => {
+        window.created_imports = window.created_imports ?? new Map();
+        let code = """
+    )
+    Base.show(io, m, i.published)
+
+    write(io,
+        """;
+        if(created_imports.has(code)){
+            return created_imports.get(code);
+        } else {
+            let blob_promise = new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    try {
+                        resolve(await import(reader.result));
+                    } catch(e) {
+                        reject();
+                    }
+                }
+                reader.onerror = () => reject();
+                reader.onabort = () => reject();
+                reader.readAsDataURL(
+                    new Blob([code], {type : "text/javascript"}))
+                });
+                created_imports.set(code, blob_promise);
+                return blob_promise;
+            }
+        })()
+        """
+    )
+end
+
+function import_local_js(code::AbstractString)
+
+    code_js = 
+        try
+        AbstractPlutoDingetjes.Display.published_to_js(code)
+    catch e
+        @warn "published_to_js did not work" exception=(e,catch_backtrace()) maxlog=1
+        repr(code)
+    end
+
+    _ImportedLocalJS(code_js)
+end
+
+
