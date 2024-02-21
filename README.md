@@ -4,19 +4,23 @@ This package provides a wrapper type `PlutoPlot` around the `Plot` type from [Pl
 
 The wrapper mostly defines a custom `show` method specifically optimized for displaying inside of [Pluto.jl](https://github.com/fonsp/Pluto.jl/) and adds the options of providing custom javascript functions to attach to the [plolty JS events](https://plotly.com/javascript/plotlyjs-events/) 
 
-Basic use of this package is to load this inside Pluto instead of PlotlyBase or PlotlyJS, and then simply wrap the intended `Plot` objects from PlotlyBase inside a PlutoPlot as
+You can load the PlutoPlotly package *instead of* PlotlyBase or PlotlyJS, and replace `Plot` with `plot` from PlutoPlotly. For example:
+
 ```julia
-p = Plot(args...)
-PlutoPlot(p)
+plot([5,6,7,2]; line_color="red")
 ```
 
-One could also used the convenience exported function `plot`:
-```julia	
-function plot(args...;kwargs...) 
-	@nospecialize
-	PlutoPlot(Plot(args...;kwargs...))
+You can also create a PlotlyBase `Plot`, and then wrap it inside a `PlutoPlot` object:
+```julia
+let
+    # create a PlotlyBase function
+    p = Plot(args...)
+    # wrap it
+    PlutoPlot(p)
 end
 ```
+
+(The function `plot(args...)` from PlutoPlotly is the same as `PlutoPlot(Plot(args...))`.)
 
 # Features
 
