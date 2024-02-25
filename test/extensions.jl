@@ -3,14 +3,17 @@ using Test
 
 ## PlotlyKaleido Extension ##
 using PlotlyKaleido
+if Sys.iswindows()
+    # We skip extensions in windows as PlotlyKaleido fails
+else
+    PlotlyKaleido.start()
 
-PlotlyKaleido.start()
-
-mktempdir() do dir
-    cd() do 
-        p = plot(rand(10,4))
-        @test_nowarn savefig(p, "test_savefig.png")
-        @test isfile("test_savefig.png")
+    mktempdir() do dir
+        cd() do 
+            p = plot(rand(10,4))
+            @test_nowarn savefig(p, "test_savefig.png")
+            @test isfile("test_savefig.png")
+        end
     end
 end
 
