@@ -1,7 +1,7 @@
 name = "PlutoPlotly"
 uuid = "8e989ff0-3d88-8e9f-f020-2b208a939ff0"
 authors = ["Alberto Mengali <disberd@gmail.com>"]
-version = "0.4.4"
+version = "0.4.5"
 
 [deps]
 AbstractPlutoDingetjes = "6e696c72-6542-2067-7265-42206c756150"
