@@ -15,7 +15,7 @@ function getImageOptions() {
     width: o.width ?? original_width,
     height: o.height ?? original_height,
     scale: o.scale ?? 1,
-    filename: "newplot",
+    filename: o.filename ?? "newplot",
   };
 }
 
