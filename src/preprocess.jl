@@ -47,7 +47,7 @@ _preprocess(x::Real) = SKIP_FLOAT32[] ? x : Float32(x)
 _preprocess(x::Union{Bool,String,Nothing,Missing}) = x
 _preprocess(x::Symbol) = string(x)
 _preprocess(x::Union{Tuple,AbstractArray}) = _preprocess.(x)
-_preprocess(A::AbstractArray{<:Number, N}) where N = if N == 1
+_preprocess(A::AbstractArray{<:Union{Number, AbstractVector{<:Number}}, N}) where N = if N == 1
     collect(_preprocess.(A))
 else
     [_preprocess(collect(s)) for s ∈ eachslice(A; dims = ndims(A))]
