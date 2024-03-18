@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.29
+# v0.19.38
 
 #> custom_attrs = ["hide-enabled"]
 
@@ -34,12 +34,6 @@ end
 # ╔═╡ 7bd46437-8af0-4a15-87e9-1508869e1600
 ExtendedTableOfContents()
 
-# ╔═╡ 0820a893-26a3-49e9-bbc9-13db0a6fccee
-PlutoPlotly._fromparent_dict_
-
-# ╔═╡ 2511667d-c3e7-4864-8336-f83ecfa28931
-
-
 # ╔═╡ acba5003-a456-4c1a-a53f-71a3bec30251
 md"""
 # Tests
@@ -71,13 +65,25 @@ This is testing the expected behavior of image traces as per [Issue #16](https:/
 """
 
 # ╔═╡ 7ba8b496-f7c4-4fbc-a168-dc3d7af92d0c
-image_issue = image(;z = rand(3,5,3)*255)
+image_issue = image(;z = rand(3,6,4)*255)
 
 # ╔═╡ f6ed3a0a-e548-4b99-9cf7-085991a5c99e
 plot(image_issue)
 
 # ╔═╡ 0f9f50f8-95c8-4cb5-96f2-e4ce177ca2dd
 Plot(image_issue)
+
+# ╔═╡ 1939f0c9-3780-4fc4-898a-5b0a66333274
+md"""
+We also want to support matrix of vectors for this (see [Issue #47](https://github.com/JuliaPluto/PlutoPlotly.jl/issues/47))
+"""
+
+# ╔═╡ e74be489-35b7-469c-adbf-d1d484738a67
+let
+	rand_c = rand(RGB, 6, 4)
+	z = map(c -> [c.r, c.g, c.b] .* 255, rand_c)
+	plot(image(;z))
+end
 
 # ╔═╡ 359d22e8-b13d-420b-b409-b18136c3ff3b
 md"""
@@ -517,7 +523,7 @@ PlutoUI = "~0.7.52"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.0-beta2"
+julia_version = "1.10.2"
 manifest_format = "2.0"
 project_hash = "becb366eb1628f34a109423203d027d4a184385e"
 
@@ -552,7 +558,7 @@ version = "0.12.10"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.0.5+1"
+version = "1.1.0+0"
 
 [[deps.Dates]]
 deps = ["Printf"]
@@ -608,11 +614,16 @@ version = "0.6.4"
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "8.0.1+1"
+version = "8.4.0+0"
 
 [[deps.LibGit2]]
-deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
+deps = ["Base64", "LibGit2_jll", "NetworkOptions", "Printf", "SHA"]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
+
+[[deps.LibGit2_jll]]
+deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll"]
+uuid = "e37daf67-58a4-590a-8e99-b0245dd2ffc5"
+version = "1.6.4+0"
 
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
@@ -663,7 +674,7 @@ version = "1.2.0"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
-version = "0.3.23+2"
+version = "0.3.23+4"
 
 [[deps.Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
@@ -741,12 +752,12 @@ version = "1.10.0"
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
 uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
-version = "1.9.0"
+version = "1.10.0"
 
 [[deps.SuiteSparse_jll]]
-deps = ["Artifacts", "Libdl", "Pkg", "libblastrampoline_jll"]
+deps = ["Artifacts", "Libdl", "libblastrampoline_jll"]
 uuid = "bea87d4a-7f5b-5778-9afe-8cc45184846c"
-version = "7.2.0+1"
+version = "7.2.1+1"
 
 [[deps.TOML]]
 deps = ["Dates"]
@@ -804,8 +815,6 @@ version = "17.4.0+2"
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
 # ╠═72c073fd-5f1b-4af0-901b-aaa901f0f273
 # ╠═70dc8fa0-cc32-4ebe-af0d-62b5bb3a82ed
-# ╠═0820a893-26a3-49e9-bbc9-13db0a6fccee
-# ╠═2511667d-c3e7-4864-8336-f83ecfa28931
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251
 # ╟─c4e4400e-e063-4236-96e5-ca3a60313e37
 # ╟─e047e1b8-1a41-402b-8ed0-90cccbf0c166
@@ -815,6 +824,8 @@ version = "17.4.0+2"
 # ╠═7ba8b496-f7c4-4fbc-a168-dc3d7af92d0c
 # ╠═f6ed3a0a-e548-4b99-9cf7-085991a5c99e
 # ╠═0f9f50f8-95c8-4cb5-96f2-e4ce177ca2dd
+# ╟─1939f0c9-3780-4fc4-898a-5b0a66333274
+# ╠═e74be489-35b7-469c-adbf-d1d484738a67
 # ╟─359d22e8-b13d-420b-b409-b18136c3ff3b
 # ╠═e54cc4c4-2a93-4d44-90ed-5944edbf4b0f
 # ╟─3e5b09a9-6d18-4d2f-a37b-ac260ea36646
