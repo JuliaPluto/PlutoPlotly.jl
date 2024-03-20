@@ -21,15 +21,7 @@ function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSI
 
 
 		// Load the plotly library
-		let Plotly = undefined
-		try {
-			let _mod = $(get_plotly_import("$ver", "local"))
-			Plotly = _mod.default
-		} catch (e) {
-			console.log("Local load failed, trying with the web esm.sh version")
-			let _mod = $(get_plotly_import("$ver", "esm"))
-			Plotly = _mod.default
-		}
+		const Plotly = $(get_plotly_import(ver, "hybrid"))
 
 		// Check if we have to force local mathjax font cache
 		if ($(force_pluto_mathjax_local()) && window?.MathJax?.config?.svg?.fontCache === 'global') {

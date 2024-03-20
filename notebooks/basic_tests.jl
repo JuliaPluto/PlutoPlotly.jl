@@ -39,6 +39,9 @@ md"""
 # Tests
 """
 
+# ╔═╡ 51a36d49-1dad-4340-8671-a6a63eb367a2
+enable_plutoplotly_offline()
+
 # ╔═╡ c4e4400e-e063-4236-96e5-ca3a60313e37
 md"""
 ## Layout Range
@@ -822,6 +825,7 @@ version = "17.4.0+2"
 # ╠═72c073fd-5f1b-4af0-901b-aaa901f0f273
 # ╠═70dc8fa0-cc32-4ebe-af0d-62b5bb3a82ed
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251
+# ╠═51a36d49-1dad-4340-8671-a6a63eb367a2
 # ╟─c4e4400e-e063-4236-96e5-ca3a60313e37
 # ╟─e047e1b8-1a41-402b-8ed0-90cccbf0c166
 # ╠═7c50f0f4-bc18-4f12-a8b6-5eaba151c923

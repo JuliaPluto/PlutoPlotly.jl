@@ -19,6 +19,7 @@ add_class!, remove_class!, add_js_listener!, default_plotly_template,
 get_image_options, change_image_options!, plutoplotly_paste_receiver
 export plot, push_script!, prepend_cell_selector
 export make_subplots
+export enable_plutoplotly_offline
 
 include("local_plotly_library.jl")
 

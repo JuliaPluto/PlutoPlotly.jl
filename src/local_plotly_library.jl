@@ -82,13 +82,15 @@ end
 
 function src_type(input)
     type = lowercase(string(input))
-    @assert type in ["esm", "cdn", "local"]
+    @assert type in ("hybrid", "esm", "cdn", "local")
     type
 end
 
-function get_plotly_import(v, force = "local")
+function get_plotly_import(v, force = "hybrid")
     force = src_type(force)
-    if force == "esm"
+    if force == "hybrid"
+        _ImportedHybridJS(v)
+    elseif force == "esm"
         _ImportedRemoteJS(get_esm_url(v))
     elseif force == "cdn"
         _ImportedRemoteJS(get_plotly_cdn_url(v))
@@ -178,4 +180,17 @@ function enable_plutoplotly_offline(;version = get_plotly_version())
     """)
 end
 
+struct _ImportedHybridJS
+    object::String
+    key::String
+    url::String
+    extract_default::Bool
+end
+function _ImportedHybridJS(v)
+    object = "plutoplotly_imports"
+    key = string(VersionNumber(v))
+    url = get_esm_url(v)
+    return _ImportedHybridJS(object, key, url, true)
+end
 
+Base.show(io::IO, m::MIME"text/javascript", i::_ImportedHybridJS) = write(io, "window.$(i.object)?.['$(i.key)'] ?? (await import('$(i.url)'))" * (i.extract_default ? ".default" : ""))
