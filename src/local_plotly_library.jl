@@ -45,9 +45,9 @@ function get_esm_url(v)
         update_versions_file()
         parsed_url
     end
-
 end
 
+get_github_esm_url(v) = "https://github.com/disberd/PlotlyArtifactsESM/releases/download/v$(VersionNumber(v))/plotly-esm-min.mjs"
 get_plotly_cdn_url(v) = "https://cdn.plot.ly/plotly-$(VersionNumber(v)).min.js"
 
 """
@@ -69,12 +69,11 @@ get_local_name(v) = "plotlyjs-$(VersionNumber(v))"
 function maybe_add_plotly_local(v)
     ver = VersionNumber(v)
     # Check if the artifact already exists
-    path = get_local_path(v)
+    path = get_local_path(ver)
     if !isfile(path)
         # We download bundle and save locally
         @info "Downloading a local version of plotly@$v"
-        base_url = get_esm_url(v)
-        bundle_url = replace(base_url, r".(\w+)$" => s".bundle.\1")
+        bundle_url = get_github_esm_url(ver)
         download(bundle_url, path)
     end
     nothing
@@ -161,6 +160,22 @@ function import_local_js(code::AbstractString)
     end
 
     _ImportedLocalJS(code_js)
+end
+
+
+"""
+    enable_plutoplotly_offline
+Creates a script that loads the plotly library on the current browser session so that it is available even when not connected to internet.
+"""
+function enable_plutoplotly_offline(;version = get_plotly_version())
+    @htl("""
+        <script>
+            const imports = {
+                $version: ($(import_local_js(get_local_plotly_contents(version)))).default
+            }
+            window.plutoplotly_imports = imports
+        </script>
+    """)
 end
 
 
