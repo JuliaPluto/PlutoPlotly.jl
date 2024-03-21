@@ -1,4 +1,5 @@
-const PLOTLY_VERSION = Ref("2.26.2")
+const ARTIFACT_VERSION = VersionNumber(read(joinpath(artifact"plotly-esm-min", "VERSION"), String))
+const PLOTLY_VERSION = Ref(ARTIFACT_VERSION)
 const DEFAULT_TEMPLATE = Ref(PlotlyBase.templates[PlotlyBase.templates.default])
 const JS = HypertextLiteral.JavaScript
 
@@ -53,30 +54,13 @@ end
 
 
 ## Plotly Version ##
-function change_plotly_version(ver::String)
+function change_plotly_version(v)
+	ver = VersionNumber(v)
 	maybe_add_plotly_local(ver)
 	PLOTLY_VERSION[] = ver
 end
 
 get_plotly_version() = PLOTLY_VERSION[]
-
-check_plotly_version() = @htl """
-<script>
-	let dv = document.createElement('div')
-	let ver = window.Plotly?.version
-	if (!ver) {
-		dv.innerHTML = "Plotly not loaded!"
-		return dv
-	}
-	if (ver === $(PLOTLY_VERSION[])) {
-		dv.innerHTML = ver
-	} else {
-		dv.innerHTML = "The loaded Plotly version (" + ver + ") is different from the one specified in the package ($(HypertextLiteral.JavaScript(PLOTLY_VERSION[]))), reload the browser page to use the version from PlutoPlotly"
-	}
-	return dv
-	
-</script>
-"""
 
 ## Prepend Cell Selector ##
 """

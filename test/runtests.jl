@@ -1,4 +1,7 @@
 using SafeTestsets
+using PlutoPlotly
+using Aqua
+Aqua.test_all(PlutoPlotly)
 
 @safetestset "Coverage Improvements" begin include("basic_coverage.jl") end
 @safetestset "Extensions" begin include("extensions.jl") end
