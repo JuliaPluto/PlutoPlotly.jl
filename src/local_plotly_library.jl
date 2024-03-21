@@ -1,64 +1,21 @@
 const DATA_FOLDER = BaseDirs.User.data("plutoplotly/")
 isdir(DATA_FOLDER) || mkpath(DATA_FOLDER)
-const VERSIONS_PATH = joinpath(DATA_FOLDER, "plotly_versions")
-const VERSIONS_DICT = Ref(
-    try
-        TOML.tryparsefile(VERSIONS_PATH)
-    catch
-        Dict{String, Any}()
-    end
-    )
 
-function maybe_put_plotly_in_pluto(v)
-    name = get_local_name(v)
-    pluto_path = pluto_server_folder()
-    pluto_path !== nothing || return false
-    maybe_add_plotly_local(v)
-    # We check whether the plotly library has been already loaded in this Pluto location, and we copy it otherwise
-    for subdir in ("frontend-dist", "frontend")
-        dist_path = joinpath(pluto_path, subdir)
-        isdir(dist_path) || (subdir === "frontend" ? error("Could not find the `frontend` folder inside pluto root:
-$pluto_path") : continue)
-        file_path = joinpath(dist_path, "plotlyjs", "$name.min.js")
-        if !isfile(file_path)
-            isdir(joinpath(dist_path, "plotlyjs")) || mkpath(joinpath(dist_path, "plotlyjs"))
-            cp(get_local_path(v), file_path)
-        end
-    end
-    return true
-end
-
-function update_versions_file()
-    write(VERSIONS_PATH, sprint() do io
-        TOML.print(io, VERSIONS_DICT[])
-    end)
-end
-function get_esm_url(v)
-    v = string(v)
-    d = VERSIONS_DICT[]
-    url = if haskey(d, v)
-        d[v]
-    else
-        line = last(eachline(download("https://esm.sh/plotly.js-dist-min@$(v)")))
-        parsed_url = "https://esm.sh$(match(r"\".*\"", line).match[2:end-1])"
-        d[v] = parsed_url
-        update_versions_file()
-        parsed_url
-    end
-end
-
-get_github_esm_url(v) = "https://github.com/disberd/PlotlyArtifactsESM/releases/download/v$(VersionNumber(v))/plotly-esm-min.mjs"
+get_plotly_esm_url(v) = "https://esm.sh/plotly.js-dist-min@$(VersionNumber(v))"
 get_plotly_cdn_url(v) = "https://cdn.plot.ly/plotly-$(VersionNumber(v)).min.js"
+
+# We use our custom bundler to download an esm version of the plotly library
+get_plotly_download_url(v) = "https://github.com/disberd/PlotlyArtifactsESM/releases/download/v$(VersionNumber(v))/plotly-esm-min.mjs"
 
 """
 mapping a path like "/home/user/.julia/blabla/plotly-1.2.3.min.js" to its contents, read as String
 """
-const plotly_dep_contents = Dict{String, String}()
+const PLOTLY_DEP_CONTENTS = Dict{String, String}()
 
 function get_local_plotly_contents(v)
     maybe_add_plotly_local(v)
     path = get_local_path(v)
-    get!(plotly_dep_contents, path) do
+    get!(PLOTLY_DEP_CONTENTS, path) do
         read(path, String)
     end
 end
@@ -77,16 +34,15 @@ function maybe_add_plotly_local(v)
     if !isfile(path)
         # We download bundle and save locally
         @info "Downloading a local version of plotly@$v"
-        bundle_url = get_github_esm_url(ver)
+        bundle_url = get_plotly_download_url(ver)
         download(bundle_url, path)
     end
     nothing
 end
 
 
-function src_type(input)
-    type = lowercase(string(input))
-    @assert type in ("hybrid", "esm", "cdn", "local")
+function src_type(type)
+    @assert type in ("hybrid", "esm", "local")
     type
 end
 
@@ -95,34 +51,46 @@ function get_plotly_import(v, force = "hybrid")
     if force == "hybrid"
         _ImportedHybridJS(v)
     elseif force == "esm"
-        _ImportedRemoteJS(get_esm_url(v))
-    elseif force == "cdn"
-        _ImportedRemoteJS(get_plotly_cdn_url(v))
+        _ImportedRemoteJS(get_plotly_esm_url(v))
     elseif force == "local"
         import_local_js(get_local_plotly_contents(v))
     end
 end
 
 
+# Identify a remote JS ESM module to be imported when shown in a script. The `extract` argument, if non-empty, will be the name of the property of the remote module to extract
 struct _ImportedRemoteJS
     src::String
+    extract::String
 end
+_ImportedRemoteJS(src) = _ImportedRemoteJS(src, "")
 
 function Base.show(io, m::MIME"text/javascript", i::_ImportedRemoteJS)
     write(io, 
-        "await import($(repr(i.src)))"
+        "(await import($(repr(i.src))))"
     )
+    if !isempty(i.extract)
+        # Extract specific field from the module
+        write(io, ".$(i.extract)")
+    end
 end
 
 
+# Identify a local (on filesystem) JS ESM module to be imported when shown in a script. The `extract` argument, if non-empty, will be the name of the property of the local module to extract
 struct _ImportedLocalJS
     published
+    extract::String
+    function _ImportedLocalJS(published, extract::AbstractString = "")
+        @nospecialize
+        new(published, extract)
+    end
 end
+
 
 function Base.show(io, m::MIME"text/javascript", i::_ImportedLocalJS)
     write(io, 
         """
-        await (() => {
+        (await (() => {
         window.created_imports = window.created_imports ?? new Map();
         let code = """
     )
@@ -150,12 +118,17 @@ function Base.show(io, m::MIME"text/javascript", i::_ImportedLocalJS)
                 created_imports.set(code, blob_promise);
                 return blob_promise;
             }
-        })()
+        })())
         """
     )
+    if !isempty(i.extract)
+        # Extract specific field from the module
+        write(io, ".$(i.extract)")
+    end
+    return nothing
 end
 
-function import_local_js(code::AbstractString)
+function import_local_js(code::AbstractString, extract::AbstractString = "")
 
     code_js = 
         try
@@ -165,7 +138,7 @@ function import_local_js(code::AbstractString)
         repr(code)
     end
 
-    _ImportedLocalJS(code_js)
+    _ImportedLocalJS(code_js, extract)
 end
 
 
@@ -174,10 +147,12 @@ end
 Creates a script that loads the plotly library on the current browser session so that it is available even when not connected to internet.
 """
 function enable_plutoplotly_offline(;version = get_plotly_version())
+    _import = import_local_js(get_local_plotly_contents(version), "default")
+    v_str = string(VersionNumber(version))
     @htl("""
         <script>
             const imports = {
-                $version: ($(import_local_js(get_local_plotly_contents(version)))).default
+                $(v_str): $(_import)
             }
             window.plutoplotly_imports = imports
         </script>
@@ -187,14 +162,31 @@ end
 struct _ImportedHybridJS
     object::String
     key::String
-    url::String
-    extract_default::Bool
+    fallback::_ImportedRemoteJS
 end
 function _ImportedHybridJS(v)
     object = "plutoplotly_imports"
     key = string(VersionNumber(v))
-    url = get_esm_url(v)
-    return _ImportedHybridJS(object, key, url, true)
+    fallback = _ImportedRemoteJS(get_plotly_esm_url(v), "default")
+    return _ImportedHybridJS(object, key, fallback)
 end
 
-Base.show(io::IO, m::MIME"text/javascript", i::_ImportedHybridJS) = write(io, "window.$(i.object)?.['$(i.key)'] ?? (await import('$(i.url)'))" * (i.extract_default ? ".default" : ""))
+
+function Base.show(io::IO, m::MIME"text/javascript", i::_ImportedHybridJS)
+    write(io, "window.$(i.object)?.['$(i.key)'] ??")
+    show(io, m, i.fallback)
+end
+# function Base.show(io::IO, m::MIME"text/javascript", i::_ImportedHybridJS)
+#     write(io, """await (async function() {
+#     let Plotly = window.$(i.object)?.['$(i.key)']
+#     if (Plotly == undefined) {
+#         console.log("Could not find loaded library among offline imports, trying to load from esm.sh")
+#         Plotly = """)
+#     show(io, m, i.fallback)
+#     write(io, """
+#     } else {
+#         console.log("Loaded plotly from window.plutoplotly_imports")
+#     }
+#     return Plotly
+# })()""")
+# end
