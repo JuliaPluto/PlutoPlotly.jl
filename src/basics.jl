@@ -61,24 +61,6 @@ end
 
 get_plotly_version() = PLOTLY_VERSION[]
 
-check_plotly_version() = @htl """
-<script>
-	let dv = document.createElement('div')
-	let ver = window.Plotly?.version
-	if (!ver) {
-		dv.innerHTML = "Plotly not loaded!"
-		return dv
-	}
-	if (ver === $(PLOTLY_VERSION[])) {
-		dv.innerHTML = ver
-	} else {
-		dv.innerHTML = "The loaded Plotly version (" + ver + ") is different from the one specified in the package ($(HypertextLiteral.JavaScript(PLOTLY_VERSION[]))), reload the browser page to use the version from PlutoPlotly"
-	}
-	return dv
-	
-</script>
-"""
-
 ## Prepend Cell Selector ##
 """
 	prepend_cell_selector(selector="")
