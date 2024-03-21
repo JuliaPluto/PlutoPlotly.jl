@@ -63,8 +63,12 @@ function get_local_plotly_contents(v)
     end
 end
 
-get_local_path(v) = joinpath(DATA_FOLDER, "$(get_local_name(v)).min.js")
-get_local_name(v) = "plotlyjs-$(VersionNumber(v))"
+get_local_path(v) = if VersionNumber(v) === ARTIFACT_VERSION
+    joinpath(artifact"plotly-esm-min", "plotly-esm-min.mjs")
+else
+    joinpath(DATA_FOLDER, "$(get_local_name(v)).mjs")
+end
+get_local_name(v) = "plotly-esm-min-$(VersionNumber(v))"
 
 function maybe_add_plotly_local(v)
     ver = VersionNumber(v)

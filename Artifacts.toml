@@ -1,0 +1,6 @@
+[plotly-esm-min]
+git-tree-sha1 = "68f1084b42e64a8787e28f1c373476c106ecb448"
+
+    [[plotly-esm-min.download]]
+    sha256 = "807e538be455da123e15999673df98ddcfefd4d610aa4416ba3fa28806f24929"
+    url = "https://github.com/disberd/PlotlyArtifactsESM/releases/download/v2.30.1/plotly-esm-min.tar.gz"

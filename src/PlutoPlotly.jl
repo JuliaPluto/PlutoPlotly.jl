@@ -12,6 +12,7 @@ using Colors
 using LaTeXStrings
 using Markdown
 using Downloads: download
+using Artifacts
 
 export PlutoPlot, get_plotly_version, change_plotly_version,
 check_plotly_version, force_pluto_mathjax_local, htl_js, add_plotly_listener!,

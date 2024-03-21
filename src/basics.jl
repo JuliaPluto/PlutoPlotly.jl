@@ -1,4 +1,5 @@
-const PLOTLY_VERSION = Ref("2.26.2")
+const ARTIFACT_VERSION = VersionNumber(read(joinpath(artifact"plotly-esm-min", "VERSION"), String))
+const PLOTLY_VERSION = Ref(ARTIFACT_VERSION)
 const DEFAULT_TEMPLATE = Ref(PlotlyBase.templates[PlotlyBase.templates.default])
 const JS = HypertextLiteral.JavaScript
 
