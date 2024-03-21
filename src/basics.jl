@@ -54,7 +54,8 @@ end
 
 
 ## Plotly Version ##
-function change_plotly_version(ver::String)
+function change_plotly_version(v)
+	ver = VersionNumber(v)
 	maybe_add_plotly_local(ver)
 	PLOTLY_VERSION[] = ver
 end

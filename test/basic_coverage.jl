@@ -1,6 +1,6 @@
 using Test
 using PlutoPlotly
-using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32
+using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32, ARTIFACT_VERSION
 using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler, templates
 
 @test SKIP_FLOAT32[] == false
@@ -36,3 +36,7 @@ let p = plot(rand(4))
 end
 
 @test plutoplotly_paste_receiver() isa PlutoPlotly.HypertextLiteral.Result
+
+@test get_plotly_version() === ARTIFACT_VERSION
+@test change_plotly_version("2.30") === VersionNumber("2.30.0")
+@test get_plotly_version() === VersionNumber("2.30.0")
