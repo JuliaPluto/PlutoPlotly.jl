@@ -60,3 +60,7 @@ export function createPlot(plot_obj) {
 	let container_height = original_height ?? PLOT.container_height ?? 400
 	CONTAINER.style.height = container_height + 'px'
 }
+
+export function lol() {
+  console.log("LOL")
+}
