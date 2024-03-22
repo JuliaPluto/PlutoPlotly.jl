@@ -43,6 +43,7 @@ export function makeContainer(caller_this) {
     },
     { signal: CONTAINER.controller.signal }
   );
+  return CONTAINER
 }
 
 export function createPlot(plot_obj) {
