@@ -1,5 +1,8 @@
 {
   "tasks": {
     "bundle": "deno run --allow-read --allow-write --allow-env --allow-net --allow-run bundle.js"
+  },
+  "imports": {
+    "lodash": "https://esm.sh/lodash@4.17.21"
   }
 }
