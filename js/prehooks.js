@@ -1,6 +1,6 @@
 // This file contains utilities to be executed before calling the plot function.
-import { default as _ } from "lodash";
-import { html } from "observable-html";
+import { default as _ } from "https://esm.sh/lodash@4.17.21";
+import { html } from "https://esm.sh/gh/observablehq/stdlib@v5.8.6/src/html.js";
 import { addContainerStyle } from "./styles.js";
 
 // We start by putting all the variable interpolation here at the beginning

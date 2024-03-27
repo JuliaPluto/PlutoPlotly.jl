@@ -1,9 +1,5 @@
 {
   "tasks": {
     "bundle": "deno run --allow-read --allow-write --allow-env --allow-net --allow-run bundle.js"
-  },
-  "imports": {
-    "lodash": "https://esm.sh/lodash@4.17.21",
-    "observable-html": "https://esm.sh/gh/observablehq/stdlib@v5.8.6/src/html.js"
   }
 }
