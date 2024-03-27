@@ -61,6 +61,6 @@ export function createPlot(plot_obj) {
 	CONTAINER.style.height = container_height + 'px'
 }
 
-export function lol() {
-  console.log("LOL")
+export function lol(a = globalThis.asd) {
+  console.log("LOL: ", a)
 }
