@@ -1,6 +1,6 @@
 # PlutoPlotly.jl
-[![Build Status](https://github.com/disberd/PlutoPlotly.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/disberd/PlutoPlotly.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/disberd/PlutoPlotly.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/disberd/PlutoPlotly.jl)
+[![Build Status](https://github.com/JuliaPluto/PlutoPlotly.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaPluto/PlutoPlotly.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Coverage](https://codecov.io/gh/JuliaPluto/PlutoPlotly.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaPluto/PlutoPlotly.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 This package provides a wrapper type `PlutoPlot` around the `Plot` type from [PlotlyBase.jl](https://github.com/sglyon/PlotlyBase.jl) that exposes the [plotly library](https://plotly.com/julia/).
