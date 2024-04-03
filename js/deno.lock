@@ -160,5 +160,10 @@
       }
     }
   },
+  "redirects": {
+    "https://esm.sh/@types/plotly.js": "https://esm.sh/v135/@types/plotly.js@2.29.2/index.d.ts",
+    "https://esm.sh/v135/@types/lodash-es@~4.17/index.d.ts": "https://esm.sh/v135/@types/lodash-es@4.17.12/index.d.ts",
+    "https://esm.sh/v135/@types/lodash@4.14.202/index": "https://esm.sh/v135/@types/lodash@4.14.202/index~.d.ts"
+  },
   "remote": {}
 }

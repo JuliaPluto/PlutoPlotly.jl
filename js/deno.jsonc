@@ -1,4 +1,11 @@
 {
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "checkJs": true
+  },
   "tasks": {
     "bundle": "deno run --allow-read --allow-write --allow-env --allow-net --allow-run bundle.js"
   }

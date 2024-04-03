@@ -7,8 +7,8 @@ import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.10.3";
 
 const result = await esbuild.build({
   plugins: [...denoPlugins()],
-  entryPoints: ["prehooks.js"],
-  outfile: "prehook.esm.js",
+  entryPoints: ["./src/prehooks.js"],
+  outfile: "./dist/library.esm.min.js",
   bundle: true,
   format: "esm",
   minify: true,

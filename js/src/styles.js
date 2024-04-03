@@ -1,7 +1,6 @@
-import { css } from "https://esm.sh/@emotion/css@11.11.2";
+import { css } from "./url_imports.js";
 
-export function addContainerStyle(CONTAINER) {
-  CONTAINER.classList.add(css`
+const CONTAINER_STYLE = css`
     .plutoplotly-container {
       width: 100%;
       height: 100%;
@@ -137,5 +136,7 @@ export function addContainerStyle(CONTAINER) {
       color: var(--cm-tag-color);
       font-weight: bold;
     }
-  `);
+  `
+export function addContainerStyle(CONTAINER) {
+  CONTAINER.classList.add(CONTAINER_STYLE);
 }
