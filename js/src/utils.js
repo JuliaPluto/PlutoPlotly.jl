@@ -14,11 +14,11 @@ export function processPlotObj(plot_obj) {
 }
 
 export function getImageOptions(plot_obj) {
-  const o = plot_obj.config.toImageButtonOptions ?? {};
+  const o = plot_obj?.config?.toImageButtonOptions ?? {};
   return {
     format: o.format ?? "png",
-    width: o.width ?? original_width,
-    height: o.height ?? original_height,
+    width: o.width ?? undefined,
+    height: o.height ?? undefined,
     scale: o.scale ?? 1,
     filename: o.filename ?? "newplot",
   };

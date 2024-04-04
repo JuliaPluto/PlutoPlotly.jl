@@ -1,6 +1,41 @@
-import { interact, html } from "./url_imports.js"
-import { delay, getImageOptions } from "./utils.js"
+import { interact, html } from "./url_imports.js";
+import { delay, getImageOptions } from "./utils.js";
 
+/**
+ * Function to add a configuration span element.
+ *
+ * @param {HTMLElement} CLIPBOARD_HEADER - Clipboard Header element
+ * @param {string} name - lowercase name of the config span
+ */
+function addConfigSpan(CLIPBOARD_HEADER, name) {
+  const container = html` <span class="clipboard-span ${name}"
+    ><span class="label">${name.toUpperCase()}:</span
+    ><span class="clipboard-value ${name}"></span
+  ></span>`;
+  container.label = container.querySelector(".label");
+  container.ui_span = container.label.querySelector(".clipboard-value");
+  container.config_span = html`<span class="config-value"></span>`
+  container.label.insertAdjacentElement('afterbegin', container.config_span);
+  container.key = name;
+  CLIPBOARD_HEADER.config_spans[name] = container
+  CLIPBOARD_HEADER.insertAdjacentElement('beforeend', container)
+    // We put some convenience getters/setters
+    // ui_value forward
+    Object.defineProperty(container, "ui_value", {
+      get: () => container.ui_span.value,
+      set: (val) => {
+        container.ui_span.value = val;
+      },
+    });
+    // config_value forward
+    Object.defineProperty(container, "config_value", {
+      get: () => container.config_span.value,
+      set: (val) => {
+        container.config_span.value = val;
+      },
+    });
+  return
+}
 
 /**
  * Adds a clipboard header to the given container.
@@ -10,34 +45,35 @@ import { delay, getImageOptions } from "./utils.js"
  */
 export function addClipboardHeader(CONTAINER) {
   // Return if the CLIPBOARD HEADER has been assigned already
-  if (CONTAINER.CLIPBOARD_HEADER !== undefined) return
-const CLIPBOARD_HEADER = html`<div class="plutoplotly-clipboard-header hidden">
-      <span class="clipboard-span format"
-        ><span class="label">Format:</span
-        ><span class="clipboard-value format"></span
-      ></span>
-      <span class="clipboard-span width"
-        ><span class="label">Width:</span
-        ><span class="clipboard-value width"></span>px</span
-      >
-      <span class="clipboard-span height"
-        ><span class="label">Height:</span
-        ><span class="clipboard-value height"></span>px</span
-      >
-      <span class="clipboard-span scale"
-        ><span class="label">Scale:</span
-        ><span class="clipboard-value scale"></span
-      ></span>
-      <button class="clipboard-span set">Set</button>
-      <button class="clipboard-span unset">Unset</button>
-      <span class="clipboard-span filename"
-        ><span class="label">Filename:</span
-        ><span class="clipboard-value filename"></span
-      ></span>
-    </div>`
-  CLIPBOARD_HEADER.config_spans = {}
+  if (CONTAINER.CLIPBOARD_HEADER !== undefined) return;
+  const CLIPBOARD_HEADER = html`<div
+    class="plutoplotly-clipboard-header hidden"
+  >
+    <span class="clipboard-span format"
+      ><span class="label">Format:</span
+      ><span class="clipboard-value format"></span
+    ></span>
+    <span class="clipboard-span width"
+      ><span class="label">Width:</span
+      ><span class="clipboard-value width"></span>px</span
+    >
+    <span class="clipboard-span height"
+      ><span class="label">Height:</span
+      ><span class="clipboard-value height"></span>px</span
+    >
+    <span class="clipboard-span scale"
+      ><span class="label">Scale:</span
+      ><span class="clipboard-value scale"></span
+    ></span>
+    <button class="clipboard-span set">Set</button>
+    <button class="clipboard-span unset">Unset</button>
+    <span class="clipboard-span filename"
+      ><span class="label">Filename:</span
+      ><span class="clipboard-value filename"></span
+    ></span>
+  </div>`;
+  CLIPBOARD_HEADER.config_spans = {};
 }
-
 
 function checkConfigSync(container) {
   const valid_classes = [
@@ -121,8 +157,8 @@ function initializeUIValueSpan(span, key, value) {
     },
   });
   // We also assign a listener so that the editable is blurred when enter is pressed
-  span.onkeydown = (/** @type {KeyboardEvent} */e) => {
-    if (e.key === 'Enter') {
+  span.onkeydown = (/** @type {KeyboardEvent} */ e) => {
+    if (e.key === "Enter") {
       e.preventDefault();
       span.blur();
     }
@@ -323,11 +359,13 @@ function copyImageToClipboard() {
     fetch(dataUrl)
       .then((res) => res.blob())
       .then((blob) => {
-        const paste_receiver = document.querySelector('paste-receiver.plutoplotly')
+        const paste_receiver = document.querySelector(
+          "paste-receiver.plutoplotly"
+        );
         if (paste_receiver) {
-          paste_receiver.attachImage(dataUrl, CONTAINER)
+          paste_receiver.attachImage(dataUrl, CONTAINER);
         }
-        sendToClipboard(blob)
+        sendToClipboard(blob);
       });
   });
 }

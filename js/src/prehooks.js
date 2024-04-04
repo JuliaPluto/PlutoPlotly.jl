@@ -1,12 +1,13 @@
 // This file contains utilities to be executed before calling the plot function.
 import { html, lodash as _ } from "./url_imports.js"
 import { makeContainer } from "./container.js";
+import { processPlotObj } from "./utils.js";
 
 // We start by putting all the variable interpolation here at the beginning
 // We have to convert all typedarrays in the layout to normal arrays. See Issue #25
 
 export function createPlot(plot_obj, Plotly = globalThis.Plotly) {
-  const CONTAINER = makeContainer();
+  const CONTAINER = makeContainer(Plotly);
   const { PLOT } = CONTAINER;
   // Record or update the layout width/height if provided explicitly
 	PLOT.layout_size = {

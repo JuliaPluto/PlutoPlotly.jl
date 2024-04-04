@@ -1,16 +1,16 @@
 import { css } from "./url_imports.js";
 
 const CONTAINER_STYLE = css`
-    .plutoplotly-container {
+    & {
       width: 100%;
       height: 100%;
       min-height: 0;
       min-width: 0;
     }
-    .plutoplotly-container .js-plotly-plot .plotly div {
+    & .js-plotly-plot .plotly div {
       margin: 0 auto; // This centers the plot
     }
-    .plutoplotly-container.popped-out {
+    &.popped-out {
       overflow: auto;
       z-index: 1000;
       position: fixed;
@@ -59,7 +59,7 @@ const CONTAINER_STYLE = css`
       margin-top: 5px;
       display: none;
     }
-    .plutoplotly-container.filesave .clipboard-span.filename {
+    &.filesave .clipboard-span.filename {
       display: inline-block;
     }
     .clipboard-value.filename {
@@ -67,7 +67,7 @@ const CONTAINER_STYLE = css`
       text-align: left;
       min-width: min(60%, min-content);
     }
-    .plutoplotly-container.filesave .clipboard-span.format {
+    &.filesave .clipboard-span.format {
       display: inline-flex;
     }
     .clipboard-span.format .label {
