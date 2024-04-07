@@ -19,9 +19,12 @@ const result = await esbuild.build({
   bundle: true,
   format: "esm",
   minify: true,
+  metafile: true,
   treeShaking: true,
 });
 
-console.log(result.outputFiles);
+Deno.writeTextFile("./dist/meta.json", JSON.stringify(result.metafile))
+
+// console.log(result.metafile);
 
 esbuild.stop();
