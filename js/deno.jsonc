@@ -2,7 +2,8 @@
   "compilerOptions": {
     "lib": [
       "esnext",
-      "dom"
+      "dom",
+      "deno.ns"
     ],
     "checkJs": true
   },
@@ -17,5 +18,7 @@
     browser also works fine so it seems to be just a bundling problem probably
     tied to how deno-esbuild-loader works? */
     "https://esm.sh/@emotion/css@11.11.2": "npm:@emotion/css@11.11.2",
+    "https://esm.sh/lodash-es@4.17.21": "npm:lodash-es@4.17.21",
+    "https://esm.sh/interactjs@1.10.27": "npm:interactjs@1.10.27",
   }
 }
