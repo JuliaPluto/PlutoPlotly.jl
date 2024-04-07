@@ -1,6 +1,6 @@
 //@ts-check
-import { html } from "./url_imports.js";
-// import { addClipboardHeader } from "./clipboard.js";
+import { html } from "https://esm.sh/gh/observablehq/stdlib@v5.8.6/src/html.js";
+import { addClipboardHeader } from "./clipboard.js";
 import { addContainerStyle } from "./styles.js";
 /**
  * Creates the Container element used by PlutoPlotly to wrap the plotly.js plot and adds additional functionality like resizing and enhanced clipboard.
@@ -14,7 +14,7 @@ export function makeContainer(Plotly = globalThis.Plotly) {
   // Add the style to it
   addContainerStyle(CONTAINER);
   // Add the clipboard header
-  // addClipboardHeader(CONTAINER);
+  addClipboardHeader(CONTAINER);
   // Create the child div that will contain the actual plot
   const PLOT = CONTAINER.PLOT = CONTAINER.appendChild(
     html`<div class="plutoplotly-plot"></div>`
@@ -36,5 +36,9 @@ export function makeContainer(Plotly = globalThis.Plotly) {
     },
     { signal: CONTAINER.controller.signal }
   );
+  // We add a function to check if the clipboard is popped out
+  CONTAINER.isPoppedOut = function() {
+    return this.classList.contains("popped-out");
+  };
   return CONTAINER
 }

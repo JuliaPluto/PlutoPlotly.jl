@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Simple HTML Document</title>
+    <script type="module">
+        const asd = await import('./src/prehooks.js');
+        const deps = await import('./src/url_deps.js');
+        const { makeContainer, setGlobalDeps } = asd
+        setGlobalDeps(deps)
+        console.log(asd)
+        const dv = document.getElementById('asd');
+        const container = dv.insertAdjacentElement('afterend', makeContainer());
+        window.container = container
+        window.config_spans = container.CLIPBOARD_HEADER.config_spans
+        container.CLIPBOARD_HEADER.classList.toggle('hidden')
+        window.width = config_spans['width']
+    </script>
+</head>
+<body>
+    <h1>Hello, World!</h1>
+    <p>This is a simple HTML document.</p>
+    <div id="asd" style="margin-top: 400px;">ASD</div>
+</body>
+</html>

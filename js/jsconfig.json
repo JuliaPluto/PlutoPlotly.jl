@@ -1,7 +1,0 @@
-{
-  "compilerOptions": {
-    "checkJs": true,
-    "baseUrl": "./",
-    "lib": ["esnext", "dom"],
-  },
-}
