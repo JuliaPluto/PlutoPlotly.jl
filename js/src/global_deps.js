@@ -2,7 +2,7 @@
 
 /** @type {import("./typedef.js").JSDeps} */
 // @ts-ignore: Will be populated at runtime
-export const libs = {};
+export const GlobalDeps = {};
 
 /**
  * Sets global dependencies for emotion, lodash, interact and html.
@@ -11,10 +11,10 @@ export const libs = {};
  * @return {void}
  */
 export function setGlobalDeps({ emotion, lodash, interact, html }) {
-  libs.emotion = emotion;
-  libs.lodash = lodash;
-  libs.interact = interact;
-  libs.html = html;
+  GlobalDeps.emotion = emotion;
+  GlobalDeps.lodash = lodash;
+  GlobalDeps.interact = interact;
+  GlobalDeps.html = html;
 }
 
 /**
@@ -24,9 +24,9 @@ export function setGlobalDeps({ emotion, lodash, interact, html }) {
  */
 export function validGlobalDeps() {
   return (
-    libs.emotion != undefined &&
-    libs.lodash != undefined &&
-    libs.interact != undefined &&
-    libs.html != undefined
+    GlobalDeps.emotion != undefined &&
+    GlobalDeps.lodash != undefined &&
+    GlobalDeps.interact != undefined &&
+    GlobalDeps.html != undefined
   );
 }

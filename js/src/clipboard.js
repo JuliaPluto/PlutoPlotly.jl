@@ -1,28 +1,28 @@
 import { addFormatConfigStyle, addClipboardHeaderStyle } from "./styles.js";
 import { delay, getImageOptions, image_options_defaults } from "./utils.js";
-import { libs } from "./global_deps.js";
+import { GlobalDeps } from "./global_deps.js";
 
 // Download formats 
 const valid_download_formats = ["png", "svg", "webp", "jpeg", "full-json"];
 // toImageOption keys
-const toImageOptionKeys = ["format", "width", "height", "scale", "filename"];
+/** @type {(keyof import("./typedef.js").toImageOptions)[]} */
+export const toImageOptionKeys = ["format", "width", "height", "scale", "filename"];
 
 /**
  * Function to add a configuration span element.
  *
  * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER - Clipboard Header element
- * @param {keyof import("./typedef.js").ConfigSpansObject} name - lowercase name of the config span
+ * @param {keyof import("./typedef.js").OptionSpansObject} name - lowercase name of the config span
+ * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html and lodash
  */
-export function addSingleConfigSpan(CLIPBOARD_HEADER, name) {
-  // Extract the dependencies
-  const { html, lodash } = libs
+export function addSingleConfigSpan(CLIPBOARD_HEADER, name, { html, lodash } = GlobalDeps) {
 
   const config_span = html`<span class="config-value"></span>`;
   const label = html`<span class="label"
     >${config_span}${lodash.capitalize(name)}:</span
   >`;
   const ui_span = html`<span class="clipboard-value ${name}"></span>`;
-  /** @type {import("./typedef.js").ConfigSpan} */
+  /** @type {import("./typedef.js").ImageOptionSpan} */
   const container = html` <span class="clipboard-span ${name}">
     ${label} ${ui_span}
   </span>`;
@@ -39,7 +39,7 @@ export function addSingleConfigSpan(CLIPBOARD_HEADER, name) {
   // Initialize the config_span
   initializeConfigValueSpan(config_span, name);
   container.key = name;
-  CLIPBOARD_HEADER.config_spans[name] = container;
+  CLIPBOARD_HEADER.option_spans[name] = container;
   // Insert the container as a child of the CLIPBOARD_HEADER
   CLIPBOARD_HEADER.appendChild(container);
   // We put some convenience getters/setters
@@ -59,13 +59,21 @@ export function addSingleConfigSpan(CLIPBOARD_HEADER, name) {
   });
   // Add the onclick for setting/unsetting the config
   label.onclick = DualClick(
-    container.setConfigFromUI,
     (/** @type {Event} */ e) => {
-      console.log("e", e);
       e.preventDefault();
-      container.unsetConfig();
+      container.config_value = container.ui_value
+    },
+    (/** @type {Event} */ e) => {
+      e.preventDefault();
+      container.config_value = undefined;
     }
   );
+  // Add the listener for imageOptions change
+  const listener = (/** @type {CustomEvent} */ e) => {
+    checkConfigSync(container)
+  };
+  // @ts-ignore: addEventListener does not support function with CustomEvent as arguments
+  container.addEventListener("clipboard-header-change", listener);
   return;
 }
 
@@ -74,14 +82,13 @@ export function addSingleConfigSpan(CLIPBOARD_HEADER, name) {
  * Add config spans to the given CLIPBOARD_HEADER.
  *
  * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER - the clipboard header to add config spans to
+ * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html
  * @return {void} 
  */
-function addConfigSpans(CLIPBOARD_HEADER) {
-  // Extract the dependencies
-  const { html } = libs
+function addOptionSpans(CLIPBOARD_HEADER, { html } = GlobalDeps) {
   
   // @ts-ignore: Will be populated
-  CLIPBOARD_HEADER.config_spans = {};
+  CLIPBOARD_HEADER.option_spans = {};
   addSingleConfigSpan(CLIPBOARD_HEADER, "format");
   addSingleConfigSpan(CLIPBOARD_HEADER, "width");
   addSingleConfigSpan(CLIPBOARD_HEADER, "height");
@@ -100,11 +107,10 @@ function addConfigSpans(CLIPBOARD_HEADER) {
  * Adds a clipboard header to the given container.
  *
  * @param {import("./typedef.js").Container} CONTAINER - The container to which the clipboard header will be added.
+ * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html
  * @return {undefined} span function does not return a value.
  */
-export function addClipboardHeader(CONTAINER) {
-  // Extract the dependencies
-  const { html } = libs
+export function addClipboardHeader(CONTAINER, {html} = GlobalDeps) {
 
   // Return if the CLIPBOARD HEADER has been assigned already
   if (CONTAINER.CLIPBOARD_HEADER !== undefined) return;
@@ -113,46 +119,19 @@ export function addClipboardHeader(CONTAINER) {
     class="plutoplotly-clipboard-header hidden"
   ></div>`;
   addClipboardHeaderStyle(CLIPBOARD_HEADER);
-  CLIPBOARD_HEADER.config_values = toImageOptionsObj({
-    target: CLIPBOARD_HEADER,
-    name: "clipboard-header-change",
-    type: "config"
-  });
-  CLIPBOARD_HEADER.ui_values = toImageOptionsObj({
-    target: CLIPBOARD_HEADER,
-    name: "clipboard-header-change",
-    type: "ui"
-  });
   // Add the various spans for the UI
-  addConfigSpans(CLIPBOARD_HEADER)
+  addOptionSpans(CLIPBOARD_HEADER)
+  // Add the objects collecting ui and config options values
+  addImageOptionsObj(CLIPBOARD_HEADER, "ui");
+  addImageOptionsObj(CLIPBOARD_HEADER, "config");
   CONTAINER.appendChild(CLIPBOARD_HEADER);
   CONTAINER.CLIPBOARD_HEADER = CLIPBOARD_HEADER;
-  // Add the function that updates config sync
-  /** @span {import("./typedef.js").ClipboardHeader} */
-  CLIPBOARD_HEADER.updateConfigSync = function() {
-    // @ts-ignore
-    for (const span of span.config_spans) {
-      checkConfigSync(span)
-    }
-  }
-  // Add the listener for imageOptions change
-  /** @param {CustomEvent} e */
-  const listener = (e) => {
-    e.stopPropagation()
-    console.log(e.detail)
-    /** @type {keyof import("./typedef.js").ConfigSpansObject} */
-    const key = e.detail.key
-    const span = CLIPBOARD_HEADER.config_spans[key]
-    checkConfigSync(span)
-  };
-  // @ts-ignore: addEventListener does not support function with CustomEvent as arguments
-  CLIPBOARD_HEADER.addEventListener("clipboard-header-change", listener);
   return;
 }
 
 /**
  * Check if the ui and config value for a given span are in sync and update the label color (indirectly through css) and hover text accordingly.
- * @param {import("./typedef.js").ConfigSpan} span
+ * @param {import("./typedef.js").ImageOptionSpan} span
  */
 function checkConfigSync(span) {
   // We use the custom getters we'll set up in the container
@@ -232,12 +211,10 @@ function updateFunction(key) {
 /**
  *
  * @param {import("./typedef.js").UIValueSpan} span
- * @param {keyof import("./typedef.js").ConfigSpansObject} key
+ * @param {keyof import("./typedef.js").OptionSpansObject} key
+ * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html
  */
-function initializeUIValueSpan(span, key) {
-  // Extract the dependencies
-  const { html } = libs
-
+function initializeUIValueSpan(span, key, { html } = GlobalDeps) {
   span.contentEditable = `${key !== "format"}`;
   span.updateFromValue = updateFunction(key);
   span.parseValue = parseFunction(key);
@@ -299,11 +276,9 @@ function initializeUIValueSpan(span, key) {
  *
  * @param {import("./typedef.js").ConfigValueSpan} span - The span element to define the setter and getter on
  * @param {keyof import("./typedef.js").toImageOptions} key - The key to access the config value
+ * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html
  */
-function initializeConfigValueSpan(span, key) {
-  // Extract the dependencies
-  const { html } = libs
-
+function initializeConfigValueSpan(span, key, { html } = GlobalDeps) {
   // We add the span that will contain the variable text
   const variableText = html`<p></p>`;
   span.appendChild(variableText);
@@ -344,37 +319,31 @@ function initializeConfigValueSpan(span, key) {
 
 /**
  * 
- * @param {{
- *  target: import("./typedef.js").ClipboardHeader,
- *  name: string
- *  type: string
- * }} event_details 
- * @return {import("./typedef.js").toImageOptions}
+ * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER
+ * @param {string} type
+ * @param {import("./typedef.js").Container} type
  */
-function toImageOptionsObj({target, name, type}) {
-  const out = {_options: {}}
+function addImageOptionsObj(CLIPBOARD_HEADER, type) {
+  /** @type {import('./typedef.js').toImageOptions} */
+  // @ts-ignore: We populate the keys below
+  const out = {}
+  const header_key = type === "ui" ? "ui_values" : "config_values"
+  const value_key = type === "ui" ? "ui_span" : "config_span"
   for (const key of toImageOptionKeys) {
+    const span = CLIPBOARD_HEADER.option_spans[key][value_key]
     Object.defineProperty(out, key, {
-      get() {return this._options[key]},
-      set(val) {
-        this._options[key] = val
-        target.dispatchEvent(
-          new CustomEvent(name, {
-            detail: {key, type}
-          })
-        )
-      },
+      get: () => span.value,
+      set: (val) => span.value = val,
       enumerable: true,
     })
   }
-
-  // @ts-ignore: We did set up the properties as accessors
-  return out
+  // @ts-ignore: We did put the keys above
+  CLIPBOARD_HEADER[header_key] = out
 }
 
 // // span code updates the image options in the PLOT config with the provided ones
 // function setImageOptions(o) {
-//   for (const [key, container] of Object.entries(config_spans)) {
+//   for (const [key, container] of Object.entries(option_spans)) {
 //     container.config_value = o[key];
 //   }
 // }
@@ -386,7 +355,7 @@ function toImageOptionsObj({target, name, type}) {
 // const unset_button = CLIPBOARD_HEADER.querySelector(".clipboard-span.unset");
 // if (firstRun) {
 //   set_button.onclick = (e) => {
-//     for (const container of Object.values(config_spans)) {
+//     for (const container of Object.values(option_spans)) {
 //       container.config_value = container.ui_value;
 //     }
 //   };
@@ -485,7 +454,7 @@ function sendToClipboard(blob) {
 //   // We extract the image options from the provided parameters (if they exist)
 //   const { Plotly, PLOT } = span
 //   const config = {};
-//   for (const [key, container] of Object.entries(config_spans)) {
+//   for (const [key, container] of Object.entries(option_spans)) {
 //     let val =
 //       container.config_value ??
 //       (span.isPoppedOut() ? container.ui_value : undefined);
@@ -512,7 +481,7 @@ function sendToClipboard(blob) {
 
 // function saveImageToFile() {
 //   const config = {};
-//   for (const [key, container] of Object.entries(config_spans)) {
+//   for (const [key, container] of Object.entries(option_spans)) {
 //     let val =
 //       container.config_value ??
 //       (CONTAINER.isPoppedOut() ? container.ui_value : undefined);
@@ -580,11 +549,11 @@ function sendToClipboard(blob) {
 //   const csz = computeContainerSize({
 //     width:
 //       target_plot_size.width ??
-//       config_spans.width.config_value ??
+//       option_spans.width.config_value ??
 //       current_plot_size.width,
 //     height:
 //       target_plot_size.height ??
-//       config_spans.height.config_value ??
+//       option_spans.height.config_value ??
 //       current_plot_size.height,
 //   });
 //   for (const key of ["width", "height"]) {

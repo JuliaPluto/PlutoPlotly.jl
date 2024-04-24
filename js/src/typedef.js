@@ -79,28 +79,26 @@
  */
 
 /**
- * @typedef {Object} ConfigSpanProps
+ * @typedef {Object} ImageOptionSpanProps
  * @property {HTMLWithValue} label - The label element
  * @property {UIValueSpan} ui_span - The span element for the UI value
  * @property {ConfigValueSpan} config_span - The span element for the config value
- * @property {keyof ConfigSpansObject} key - The key of this configspan
+ * @property {keyof OptionSpansObject} key - The key of this ImageOptionSpan
  * @property {number | string} ui_value
  * @property {number | string} [config_value]
- * @property {Function} setConfigFromUI
- * @property {Function} unsetConfig
  */
 
 /**
- * @typedef {HTMLElement & ConfigSpanProps} ConfigSpan
+ * @typedef {HTMLElement & ImageOptionSpanProps} ImageOptionSpan
  */
 
 /**
- * @typedef {Object} ConfigSpansObject
- * @property {ConfigSpan} filename
- * @property {ConfigSpan} format
- * @property {ConfigSpan} width
- * @property {ConfigSpan} height
- * @property {ConfigSpan} scale
+ * @typedef {Object} OptionSpansObject
+ * @property {ImageOptionSpan} filename
+ * @property {ImageOptionSpan} format
+ * @property {ImageOptionSpan} width
+ * @property {ImageOptionSpan} height
+ * @property {ImageOptionSpan} scale
  */
 
 /**
@@ -114,7 +112,7 @@
 
 /**
  * @typedef {Object} ClipboardHeaderProps
- * @property {ConfigSpansObject} config_spans
+ * @property {OptionSpansObject} option_spans
  * @property {toImageOptions} config_values
  * @property {toImageOptions} ui_values
  * @property {Function} updateConfigSync
@@ -142,7 +140,7 @@
  * @property {AbortController} controller - The AbortController used to stop all listeners and observers tied to the CONTAINER
  * @property {Plotly} Plotly - The Plotly library used in this Container
  * @property {HTMLElement & PlotProps} PLOT - The child div containint the plotly.js plot
- * @property {Element | null} CLIPBOARD_HEADER - The header containing all the clipboard related config spans
+ * @property {ClipboardHeader} CLIPBOARD_HEADER - The header containing all the clipboard related config spans
  * @property {Function} toImageOptions
  * @property {*} [value] - The eventual value of the CONTAINER to be used for `@bind` inside Pluto
  */

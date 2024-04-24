@@ -1,6 +1,6 @@
 //@ts-check
-import { html } from "https://esm.sh/gh/observablehq/stdlib@v5.8.6/src/html.js";
-import { addClipboardHeader } from "./clipboard.js";
+import { GlobalDeps } from "./global_deps.js";
+import { addClipboardHeader, toImageOptionKeys } from "./clipboard.js";
 import { addContainerStyle } from "./styles.js";
 /**
  * Creates the Container element used by PlutoPlotly to wrap the plotly.js plot and adds additional functionality like resizing and enhanced clipboard.
@@ -8,7 +8,7 @@ import { addContainerStyle } from "./styles.js";
  * @param {import("./typedef.js").Plotly} Plotly - The Plotly object. Defaults to globalThis.Plotly.
  * @return {import("./typedef.js").Container} The container element for the Plotly plot.
  */
-export function makeContainer(Plotly = globalThis.Plotly) {
+export function makeContainer(Plotly = globalThis.Plotly, { html } = GlobalDeps) {
   const /** @type {import("./typedef.js").Container} */ CONTAINER = html`<div class="plutoplotly-container"></div>`;
   CONTAINER.Plotly = Plotly
   // Add the style to it
@@ -40,5 +40,27 @@ export function makeContainer(Plotly = globalThis.Plotly) {
   CONTAINER.isPoppedOut = function() {
     return this.classList.contains("popped-out");
   };
+  // We add the function to extract the image options for saving/copying
+  CONTAINER.toImageOptions = toImageOptions
   return CONTAINER
+}
+
+/**
+ * Extracts the image options from the clipboard header
+ * @this {import("./typedef.js").Container}
+ */
+function toImageOptions() {
+    const { CLIPBOARD_HEADER } = this
+    /** @type {Partial<import("./typedef.js").toImageOptions>} */
+    const options = {}
+    for (const key of toImageOptionKeys) {
+      const config_value = CLIPBOARD_HEADER.config_values[key]
+      const ui_value = CLIPBOARD_HEADER.ui_values[key]
+      const isPopped = this.isPoppedOut()
+      const value = config_value ?? (isPopped ? ui_value : undefined)
+      if (value !== undefined) {
+        options[key] = value
+      }
+    }
+    return options
 }
