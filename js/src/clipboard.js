@@ -1,6 +1,6 @@
 import { addFormatConfigStyle, addClipboardHeaderStyle } from "./styles.js";
 import { delay, getImageOptions, image_options_defaults } from "./utils.js";
-import { GlobalDeps } from "./global_deps.js";
+import { mergeDeps } from "./global_deps.js";
 
 // Download formats 
 const valid_download_formats = ["png", "svg", "webp", "jpeg", "full-json"];
@@ -13,10 +13,10 @@ export const toImageOptionKeys = ["format", "width", "height", "scale", "filenam
  *
  * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER - Clipboard Header element
  * @param {keyof import("./typedef.js").OptionSpansObject} name - lowercase name of the config span
- * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html and lodash
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html and lodash
  */
-export function addSingleConfigSpan(CLIPBOARD_HEADER, name, { html, lodash } = GlobalDeps) {
-
+export function addSingleConfigSpan(CLIPBOARD_HEADER, name, deps = {}) {
+  const { html, lodash } = mergeDeps(deps)
   const config_span = html`<span class="config-value"></span>`;
   const label = html`<span class="label"
     >${config_span}${lodash.capitalize(name)}:</span
@@ -82,11 +82,11 @@ export function addSingleConfigSpan(CLIPBOARD_HEADER, name, { html, lodash } = G
  * Add config spans to the given CLIPBOARD_HEADER.
  *
  * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER - the clipboard header to add config spans to
- * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
  * @return {void} 
  */
-function addOptionSpans(CLIPBOARD_HEADER, { html } = GlobalDeps) {
-  
+function addOptionSpans(CLIPBOARD_HEADER, deps = {}) {
+  const { html } = mergeDeps(deps)
   // @ts-ignore: Will be populated
   CLIPBOARD_HEADER.option_spans = {};
   addSingleConfigSpan(CLIPBOARD_HEADER, "format");
@@ -107,11 +107,11 @@ function addOptionSpans(CLIPBOARD_HEADER, { html } = GlobalDeps) {
  * Adds a clipboard header to the given container.
  *
  * @param {import("./typedef.js").Container} CONTAINER - The container to which the clipboard header will be added.
- * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
  * @return {undefined} span function does not return a value.
  */
-export function addClipboardHeader(CONTAINER, {html} = GlobalDeps) {
-
+export function addClipboardHeader(CONTAINER, deps = {}) {
+  const { html } = mergeDeps(deps)
   // Return if the CLIPBOARD HEADER has been assigned already
   if (CONTAINER.CLIPBOARD_HEADER !== undefined) return;
   /** @type {import("./typedef.js").ClipboardHeader} */
@@ -212,9 +212,10 @@ function updateFunction(key) {
  *
  * @param {import("./typedef.js").UIValueSpan} span
  * @param {keyof import("./typedef.js").OptionSpansObject} key
- * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
  */
-function initializeUIValueSpan(span, key, { html } = GlobalDeps) {
+function initializeUIValueSpan(span, key, deps = {}) {
+  const { html } = mergeDeps(deps);
   span.contentEditable = `${key !== "format"}`;
   span.updateFromValue = updateFunction(key);
   span.parseValue = parseFunction(key);
@@ -276,9 +277,10 @@ function initializeUIValueSpan(span, key, { html } = GlobalDeps) {
  *
  * @param {import("./typedef.js").ConfigValueSpan} span - The span element to define the setter and getter on
  * @param {keyof import("./typedef.js").toImageOptions} key - The key to access the config value
- * @param {import("./typedef.js").JSDeps} [GlobalDeps] - Global dependencies containing at least html
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
  */
-function initializeConfigValueSpan(span, key, { html } = GlobalDeps) {
+function initializeConfigValueSpan(span, key, deps = {}) {
+  const { html } = mergeDeps(deps);
   // We add the span that will contain the variable text
   const variableText = html`<p></p>`;
   span.appendChild(variableText);

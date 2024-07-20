@@ -1,14 +1,16 @@
-import { GlobalDeps } from "./global_deps.js";
+import { mergeDeps } from "./global_deps.js";
 
 /**
  * Adds a container style to the specified container element.
  *
  * @param {import("./typedef.js").Container} CONTAINER - The container element to which the style will be added
- * @param {import("./typedef.js").JSDeps} GlobalDeps - The object containing the emotion library as property
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - The object containing the emotion library as property
  */
-export function addContainerStyle(CONTAINER, { emotion: {css} } = GlobalDeps) {
+export function addContainerStyle(CONTAINER, deps = {}) {
+  const { emotion: {css} } = mergeDeps(deps)
   const cl = css`
     & {
+      position: relative;
       width: 100%;
       height: 100%;
       min-height: 0;
@@ -18,7 +20,7 @@ export function addContainerStyle(CONTAINER, { emotion: {css} } = GlobalDeps) {
       margin: 0 auto; // This centers the plot
     }
     &.popped-out {
-      overflow: auto;
+      overflow: show;
       z-index: 1000;
       position: fixed;
       resize: both;
@@ -51,9 +53,10 @@ export function addContainerStyle(CONTAINER, { emotion: {css} } = GlobalDeps) {
  * Adds the clipboard header style to the given element.
  *
  * @param {HTMLElement} element - the element to which the clipboard header style will be added
- * @param {import("./typedef.js").JSDeps} GlobalDeps - The object containing the emotion library as property
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - The object containing the emotion library as property
  */
-export function addClipboardHeaderStyle(element, { emotion: {css} } = GlobalDeps) {
+export function addClipboardHeaderStyle(element, deps = {}) {
+  const { emotion: {css} } = mergeDeps(deps)
   const cl = css`
     & {
       display: flex;
@@ -62,11 +65,12 @@ export function addClipboardHeaderStyle(element, { emotion: {css} } = GlobalDeps
       border: 3px solid var(--kbd-border-color, var(--border-color));
       border-top-left-radius: 12px;
       border-top-right-radius: 12px;
-      position: fixed;
+      position: absolute;
       z-index: 1001;
       cursor: move;
       transform: translate(0px, -100%);
       padding: 5px;
+      width: 100%;
     }
     & span {
       display: inline-block;
@@ -136,9 +140,10 @@ export function addClipboardHeaderStyle(element, { emotion: {css} } = GlobalDeps
 
 /**
  * @param {HTMLElement} element - the element to which the clipboard header style will be added
- * @param {import("./typedef.js").JSDeps} GlobalDeps - The object containing the emotion library as property
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - The object containing the emotion library as property
  */
-export function addFormatConfigStyle(element, { emotion: {css} } = GlobalDeps) {
+export function addFormatConfigStyle(element, deps = {}) {
+  const { emotion: {css} } = mergeDeps(deps)
   const format_config_style = css`
     & > .label {
       flex: 0 0 0;
@@ -185,4 +190,26 @@ export function addFormatConfigStyle(element, { emotion: {css} } = GlobalDeps) {
     }
   `;
   element.classList.add(format_config_style);
+}
+
+/**
+ * Adds a plot_pane style to the specified element.
+ *
+ * @param {HTMLElement} PLOT_PANE - The PLOT PANE, which will contain the actual plotlyjs plot
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - The object containing the emotion library as property
+ */
+export function addPlotPaneStyle(PLOT_PANE, deps = {}) {
+  const { emotion: {css} } = mergeDeps(deps)
+  const cl = css`
+    & {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      min-width: 0;
+    }
+    & .js-plotly-plot .plotly div {
+      margin: 0 auto; // This centers the plot
+    }
+  `;
+  PLOT_PANE.classList.add(cl);
 }

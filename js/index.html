@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
     <title>My Simple HTML Document</title>
@@ -9,19 +10,48 @@
         const { makeContainer, setGlobalDeps, GlobalDeps } = asd
         setGlobalDeps(deps)
         console.log(asd)
-        const { emotion: {css}} = GlobalDeps
+        const { emotion: { css } } = GlobalDeps
         console.log(css)
         const dv = document.getElementById('asd');
         const container = dv.insertAdjacentElement('afterend', makeContainer());
         window.container = container
         window.option_spans = container.CLIPBOARD_HEADER.option_spans
+        // container.classList.toggle('popped-out', true)
         container.CLIPBOARD_HEADER.classList.toggle('hidden')
         window.width = option_spans['width']
+
+        // Do the plot
+        // Sample data
+        const trace = {
+            x: [1, 2, 3, 4, 5],
+            y: [10, 15, 13, 17, 20],
+            mode: 'markers',
+            type: 'scatter',
+            marker: { size: 12 }
+        };
+
+        const layout = {
+            title: 'Sample Scatter Plot',
+            xaxis: {
+                title: 'X Axis'
+            },
+            yaxis: {
+                title: 'Y Axis'
+            }
+        };
+
+        const data = [trace];
+        const plot_obj = { data, layout }
+
+        // Render the plot
+        Plotly.react(container.PLOT, plot_obj);
     </script>
 </head>
+
 <body>
     <h1>Hello, World!</h1>
     <p>This is a simple HTML document.</p>
-    <div id="asd" style="margin-top: 400px;">ASD</div>
+    <div id="asd" style="margin-top: 00px;">ASD</div>
 </body>
+
 </html>

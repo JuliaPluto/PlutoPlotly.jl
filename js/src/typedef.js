@@ -141,6 +141,7 @@
  * @property {Plotly} Plotly - The Plotly library used in this Container
  * @property {HTMLElement & PlotProps} PLOT - The child div containint the plotly.js plot
  * @property {ClipboardHeader} CLIPBOARD_HEADER - The header containing all the clipboard related config spans
+ * @property {HTMLElement} PLOT_PANE - The container of the actual plot object, only use to control the size of the plot
  * @property {Function} toImageOptions
  * @property {*} [value] - The eventual value of the CONTAINER to be used for `@bind` inside Pluto
  */

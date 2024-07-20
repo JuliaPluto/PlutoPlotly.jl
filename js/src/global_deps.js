@@ -30,3 +30,13 @@ export function validGlobalDeps() {
     GlobalDeps.html != undefined
   );
 }
+
+/**
+ * Merges the given dependencies with the existing global dependencies.
+ *
+ * @param {Partial<import("./typedef.js").JSDeps>} deps - An object containing the JS dependencies to override.
+ * @return {import("./typedef.js").JSDeps} - A new object that contains the defaul global deps with the provided ones overwritten.
+ */
+export function mergeDeps(deps) {
+  return {...GlobalDeps, ...deps}
+}
