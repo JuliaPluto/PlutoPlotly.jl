@@ -9,26 +9,17 @@ import { mergeDeps } from "./global_deps.js";
 export function addContainerStyle(CONTAINER, deps = {}) {
   const { emotion: {css} } = mergeDeps(deps)
   const cl = css`
-    & {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      min-height: 0;
-      min-width: 0;
-    }
-    & .js-plotly-plot .plotly div {
-      margin: 0 auto; // This centers the plot
-    }
     &.popped-out {
-      overflow: show;
+      overflow: hidden;
       z-index: 1000;
       position: fixed;
       resize: both;
       background: var(--main-bg-color, var(--bg-color));
       border: 3px solid var(--kbd-border-color, var(--border-color));
       border-radius: 12px;
-      border-top-left-radius: 0px;
-      border-top-right-radius: 0px;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      box-sizing: border-box;
     }
     // We add defaults color variables for outside Pluto
     @media (prefers-color-scheme: light) {
@@ -59,18 +50,16 @@ export function addClipboardHeaderStyle(element, deps = {}) {
   const { emotion: {css} } = mergeDeps(deps)
   const cl = css`
     & {
-      display: flex;
+      display: none;
       flex-flow: row wrap;
       background: var(--main-bg-color, var(--bg-color));
-      border: 3px solid var(--kbd-border-color, var(--border-color));
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-      position: absolute;
-      z-index: 1001;
       cursor: move;
-      transform: translate(0px, -100%);
       padding: 5px;
       width: 100%;
+    }
+    .popped-out & {
+      border-bottom: 3px solid var(--kbd-border-color, var(--border-color));
+      display: flex;
     }
     & span {
       display: inline-block;
@@ -206,6 +195,8 @@ export function addPlotPaneStyle(PLOT_PANE, deps = {}) {
       height: 100%;
       min-height: 0;
       min-width: 0;
+      margin: 0;
+      padding: 0;
     }
     & .js-plotly-plot .plotly div {
       margin: 0 auto; // This centers the plot

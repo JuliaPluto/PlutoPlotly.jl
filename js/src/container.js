@@ -50,6 +50,45 @@ export function makeContainer(Plotly = globalThis.Plotly, deps = {}) {
 }
 
 /**
+ * Add the plot data to the already created CONTAINER and update the plot
+ *
+ * @param {import("./typedef.js").Container} CONTAINER - The plutoplotly Container.
+ * @param {import("./typedef.js").PlotObj} plot_data - An optional object containing the JS dependencies to use, which are 'html', 'emotion', 'lodash' and 'interact'.
+ * @return {undefined} This function does not return anything.
+ */
+export function updatePlotData(CONTAINER, plot_data) {
+  // Extract the plotly library
+  const { Plotly, PLOT } = CONTAINER
+  CONTAINER.plot_data = plot_data
+  Plotly.react(PLOT, plot_data)
+}
+
+/**
+ * Compute the `position` field of the provided `CONTAINER` using getBoundingClientRect.
+ *
+ * @param {import("./typedef.js").Container} CONTAINER - The CONTAINER object to update.
+ * @return {DOMRect} the function does not return a value.
+ */
+function computeContainerPosition(CONTAINER) {
+  CONTAINER.position = CONTAINER.getBoundingClientRect();
+  return CONTAINER.position
+}
+
+/**
+ * Updates the position of the CONTAINER based on the provided left and top values.
+ *
+ * @param {import("./typedef.js").Container} CONTAINER - The container element to update.
+ * @param {DOMRect} [position] }
+ * @return {undefined} the function does not return a value.
+ */
+export function updateContainerPosition(CONTAINER, position) {
+  CONTAINER.position = position ?? computeContainerPosition(CONTAINER)
+  const { left, top } = CONTAINER.position
+  CONTAINER.style.setProperty('--element-top', top + 'px')
+  CONTAINER.style.setProperty('--element-left', left + 'px')
+}
+
+/**
  * Adds a clipboard header to the given container.
  *
  * @param {import("./typedef.js").Container} CONTAINER - The container to which the clipboard header will be added.

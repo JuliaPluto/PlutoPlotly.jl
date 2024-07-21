@@ -1,6 +1,7 @@
 import { addFormatConfigStyle, addClipboardHeaderStyle } from "./styles.js";
 import { delay, getImageOptions, image_options_defaults } from "./utils.js";
 import { mergeDeps } from "./global_deps.js";
+import { updateContainerPosition } from "./container.js";
 
 // Download formats 
 const valid_download_formats = ["png", "svg", "webp", "jpeg", "full-json"];
@@ -495,6 +496,30 @@ function sendToClipboard(blob) {
 //   }
 //   Plotly.downloadImage(PLOT, config);
 // }
+
+
+
+/**
+ * Function to pop out the container from the current position to a fixed one.
+ *
+ * @param {import("./typedef.js").Container} CONTAINER - Main container of the plutoplotly plot
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html and lodash
+ */
+export function popContainer(CONTAINER, deps = {}) {
+  // We update the container position with the current one, also updating the css variables
+  updateContainerPosition(CONTAINER)
+  CONTAINER.classList.toggle("popped-out", true);
+}
+
+/**
+ * Function to unpop the container from the fixed position.
+ *
+ * @param {import("./typedef.js").Container} CONTAINER - Main container of the plutoplotly plot
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html and lodash
+ */
+export function unpopContainer(CONTAINER, deps = {}) {
+  CONTAINER.classList.toggle("popped-out", false);
+}
 
 // let container_rect = { width: 0, height: 0, top: 0, left: 0 };
 // function unpop_container(cl) {

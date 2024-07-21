@@ -1,9 +1,9 @@
 // This file contains utilities to be executed before calling the plot function.
 // import { interact, html, lodash as _ } from "./url_imports.js"
-import { makeContainer } from "./container.js";
+import { makeContainer, updatePlotData } from "./container.js";
 import { processPlotObj } from "./utils.js";
 import { setGlobalDeps, validGlobalDeps, GlobalDeps} from "./global_deps.js";
-export { setGlobalDeps, validGlobalDeps, makeContainer, GlobalDeps }
+export { setGlobalDeps, validGlobalDeps, makeContainer, GlobalDeps, updatePlotData }
 
 // We start by putting all the variable interpolation here at the beginning
 // We have to convert all typedarrays in the layout to normal arrays. See Issue #25

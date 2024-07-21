@@ -7,7 +7,7 @@
     <script type="module">
         const asd = await import('./src/prehooks.js');
         const deps = await import('./src/url_deps.js');
-        const { makeContainer, setGlobalDeps, GlobalDeps } = asd
+        const { makeContainer, setGlobalDeps, GlobalDeps, updatePlotData } = asd
         setGlobalDeps(deps)
         console.log(asd)
         const { emotion: { css } } = GlobalDeps
@@ -44,14 +44,14 @@
         const plot_obj = { data, layout }
 
         // Render the plot
-        Plotly.react(container.PLOT, plot_obj);
+        updatePlotData(container, plot_obj)
     </script>
 </head>
 
 <body>
     <h1>Hello, World!</h1>
     <p>This is a simple HTML document.</p>
-    <div id="asd" style="margin-top: 00px;">ASD</div>
+    <div id="asd" style="margin: 10px 100px;">ASD</div>
 </body>
 
 </html>
