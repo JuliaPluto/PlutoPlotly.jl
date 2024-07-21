@@ -241,6 +241,10 @@ export function addPlotPaneStyle(PLOT_PANE, deps = {}) {
       margin: 0;
       padding: 0;
     }
+    .popped-out & {
+      width: var(--plot-width);
+      height: var(--plot-height);
+    }
     & .js-plotly-plot .plotly div {
       margin: 0 auto; // This centers the plot
     }

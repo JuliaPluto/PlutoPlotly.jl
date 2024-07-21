@@ -106,6 +106,8 @@ export function updateContainerPosition(CONTAINER, target_plot_rect) {
   const left_offset = tpr.left - pr.left;
   const top = cr.top + top_offset;
   const left = cr.left + left_offset;
+  const { PLOT_PANE } = CONTAINER;
+  const PLOT_PANE_CONTAINER = PLOT_PANE.parentElement
 
   CONTAINER.style.setProperty("--element-top", top + "px");
   CONTAINER.style.setProperty("--element-left", left + "px");
@@ -118,6 +120,14 @@ export function updateContainerPosition(CONTAINER, target_plot_rect) {
     "--max-height-offset",
     tpr.top + border.top + border.bottom + 3 + "px"
   );
+  // @ts-ignore we are sure the container is not null
+  PLOT_PANE_CONTAINER.style.setProperty(
+    "--max-height-offset",
+    tpr.top - (cr.height - pr.height) + border.bottom + 3 + "px"
+  );
+
+  PLOT_PANE.style.setProperty("--plot-width", tpr.width + "px");
+  PLOT_PANE.style.setProperty("--plot-height", tpr.height + "px");
 }
 
 /**
