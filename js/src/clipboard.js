@@ -155,6 +155,18 @@ export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
   addImageOptionsObj(CLIPBOARD_HEADER, "config");
   CONTAINER.insertAdjacentElement("afterbegin", CLIPBOARD_HEADER);
   CONTAINER.CLIPBOARD_HEADER = CLIPBOARD_HEADER;
+  // Insert the listener for the change in width/height
+  function size_listener(/** @type {CustomEvent} */ e) {
+    console.log("Inside size_listener", e);
+    const { key, type, value } = e.detail;
+    if (type !== "ui") return;
+    if (!(key === "width" || key === "height")) return;
+    const varname = `--plot-${key}`;
+    CONTAINER.PLOT_PANE.style.setProperty(varname, value + "px");
+  }
+  CLIPBOARD_HEADER.addEventListener("clipboard-header-change", size_listener, {
+    signal: CONTAINER.controller.signal
+  });
   return;
 }
 
@@ -163,6 +175,7 @@ export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
  * @param {import("./typedef.js").ImageOptionSpan} span
  */
 function checkConfigSync(span) {
+  console.log("inside checkConfigSync", span);
   // We use the custom getters we'll set up in the container
   const { ui_value, config_value, config_span, key } = span;
   if (config_value === undefined) {
@@ -282,7 +295,7 @@ function initializeUIValueSpan(span, key, deps = {}) {
         this.dispatchEvent(
           new CustomEvent("clipboard-header-change", {
             bubbles: true,
-            detail: { key: key, type: "ui" },
+            detail: { key: key, type: "ui", value: parsedVal },
           })
         );
       }
@@ -341,7 +354,7 @@ function initializeConfigValueSpan(span, key, deps = {}) {
       this.dispatchEvent(
         new CustomEvent("clipboard-header-change", {
           bubbles: true,
-          detail: { key: key, type: "config" },
+          detail: { key: key, type: "config", value: val },
         })
       );
     },

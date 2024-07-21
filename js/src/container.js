@@ -93,6 +93,8 @@ export function updateContainerPosition(CONTAINER, target_plot_rect) {
   const tpr = target_plot_rect;
   const pr = CONTAINER.PLOT_PANE.getBoundingClientRect();
 
+  const header_height = cr.height - pr.height
+
   const computedStyle = getComputedStyle(CONTAINER);
   const border = {
     top: parseFloat(computedStyle.getPropertyValue("border-top-width")),
@@ -118,12 +120,12 @@ export function updateContainerPosition(CONTAINER, target_plot_rect) {
   );
   CONTAINER.style.setProperty(
     "--max-height-offset",
-    tpr.top + border.top + border.bottom + 3 + "px"
+    tpr.top - header_height + border.bottom + 3 + "px"
   );
   // @ts-ignore we are sure the container is not null
   PLOT_PANE_CONTAINER.style.setProperty(
     "--max-height-offset",
-    tpr.top - (cr.height - pr.height) + border.bottom + 3 + "px"
+    tpr.top + border.bottom + 3 + "px"
   );
 
   PLOT_PANE.style.setProperty("--plot-width", tpr.width + "px");
