@@ -10,28 +10,32 @@ import { addContainerStyle, addPlotPaneStyle } from "./styles.js";
  * @return {import("./typedef.js").Container} The container element for the Plotly plot.
  */
 export function makeContainer(Plotly = globalThis.Plotly, deps = {}) {
-  const js_deps = mergeDeps(deps)
-  const { html } = js_deps
-  const /** @type {import("./typedef.js").Container} */ CONTAINER = html`<div class="plutoplotly-container"></div>`;
-  CONTAINER.Plotly = Plotly
-  CONTAINER.js_deps = js_deps
+  const js_deps = mergeDeps(deps);
+  const { html } = js_deps;
+  const /** @type {import("./typedef.js").Container} */ CONTAINER = html`<div
+      class="plutoplotly-container"
+    ></div>`;
+  CONTAINER.Plotly = Plotly;
+  CONTAINER.js_deps = js_deps;
   // Add the style to it
   addContainerStyle(CONTAINER);
   // Add the Plot Pane
   addPlotPane(CONTAINER);
   // Create the child div that will contain the actual plot
-  const PLOT = CONTAINER.PLOT = CONTAINER.PLOT_PANE.appendChild(
+  const PLOT = (CONTAINER.PLOT = CONTAINER.PLOT_PANE.appendChild(
     html`<div class="plutoplotly-plot"></div>`
-  );
-  const resizeObserver = CONTAINER.resizeObserver = new ResizeObserver((entries) => {
-    if (!PLOT.hasChildNodes()) return // We skip if no plot has been added yet
-    const lastEntry = entries[entries.length - 1];
-    const { width, height } = lastEntry.contentRect;
-    Plotly.relayout(PLOT, {width, height})
-  })
-  resizeObserver.observe(CONTAINER.PLOT_PANE)
+  ));
+  const resizeObserver = (CONTAINER.resizeObserver = new ResizeObserver(
+    (entries) => {
+      if (!PLOT.hasChildNodes()) return; // We skip if no plot has been added yet
+      const lastEntry = entries[entries.length - 1];
+      const { width, height } = lastEntry.contentRect;
+      Plotly.relayout(PLOT, { width, height });
+    }
+  ));
+  resizeObserver.observe(CONTAINER.PLOT_PANE);
   // We set the flag of remove
-  CONTAINER.remove_container_size = true
+  CONTAINER.remove_container_size = true;
   // We use a controller to remove event listeners upon invalidation
   CONTAINER.controller = new AbortController();
   // We have to add this to keep supporting @bind with the old API using PLOT
@@ -48,12 +52,12 @@ export function makeContainer(Plotly = globalThis.Plotly, deps = {}) {
     { signal: CONTAINER.controller.signal }
   );
   // We add a function to check if the clipboard is popped out
-  CONTAINER.isPoppedOut = function() {
+  CONTAINER.isPoppedOut = function () {
     return this.classList.contains("popped-out");
   };
   // We add the function to extract the image options for saving/copying
-  CONTAINER.toImageOptions = toImageOptions
-  return CONTAINER
+  CONTAINER.toImageOptions = toImageOptions;
+  return CONTAINER;
 }
 
 /**
@@ -65,36 +69,55 @@ export function makeContainer(Plotly = globalThis.Plotly, deps = {}) {
  */
 export function updatePlotData(CONTAINER, plot_obj) {
   // Extract the plotly library
-  const { Plotly, PLOT, js_deps } = CONTAINER
-  const { lodash } = js_deps
+  const { Plotly, PLOT, js_deps } = CONTAINER;
+  const { lodash } = js_deps;
   // We make the plot responsive if the plot_data does not contain a specific value for it
   if (!lodash.has(plot_obj, "config.responsive")) {
     lodash.set(plot_obj, "config.responsive", true);
   }
-  CONTAINER.plot_obj = plot_obj
+  CONTAINER.plot_obj = plot_obj;
   // Add the clipboard header
   addClipboardFunctionality(CONTAINER);
-  Plotly.react(PLOT, plot_obj)
+  Plotly.react(PLOT, plot_obj);
 }
 
 /**
  * Updates the position of the CONTAINER based on the provided left and top values.
  *
  * @param {import("./typedef.js").Container} CONTAINER - The container element to update.
- * @param {DOMRect} position }
+ * @param {DOMRect} target_plot_rect }
  * @return {undefined} the function does not return a value.
  */
-export function updateContainerPosition(CONTAINER, position) {
-  CONTAINER.position = position
-  const { left, bottom } = CONTAINER.position
-  const viewport_bottom = globalThis.innerHeight - bottom
+export function updateContainerPosition(CONTAINER, target_plot_rect) {
+  const cr = CONTAINER.getBoundingClientRect();
+  const tpr = target_plot_rect;
+  const pr = CONTAINER.PLOT_PANE.getBoundingClientRect();
 
   const computedStyle = getComputedStyle(CONTAINER);
+  const border = {
+    top: parseFloat(computedStyle.getPropertyValue("border-top-width")),
+    right: parseFloat(computedStyle.getPropertyValue("border-right-width")),
+    bottom: parseFloat(computedStyle.getPropertyValue(
+    "border-bottom-width"
+  )),
+    left: parseFloat(computedStyle.getPropertyValue("border-left-width"))
+  }
+  const top_offset = tpr.top - pr.top;
+  const left_offset = tpr.left - pr.left;
+  const top = cr.top + top_offset;
+  const left = cr.left + left_offset;
 
-  const borderBottomWidth = parseFloat(computedStyle.borderBottomWidth);
-  const borderLeftWidth = parseFloat(computedStyle.borderLeftWidth);
-  CONTAINER.style.setProperty('--element-bottom', viewport_bottom - borderBottomWidth + 'px')
-  CONTAINER.style.setProperty('--element-left', left - borderLeftWidth + 'px')
+  CONTAINER.style.setProperty("--element-top", top + "px");
+  CONTAINER.style.setProperty("--element-left", left + "px");
+  // The 3 belows are to
+  CONTAINER.style.setProperty(
+    "--max-width-offset",
+    tpr.left + border.left + border.right + 3 + "px"
+  );
+  CONTAINER.style.setProperty(
+    "--max-height-offset",
+    tpr.top + (pr.top - cr.top) + border.bottom + 3 + "px"
+  );
 }
 
 /**
@@ -105,12 +128,17 @@ export function updateContainerPosition(CONTAINER, position) {
  * @return {undefined} span function does not return a value.
  */
 function addPlotPane(CONTAINER, deps = CONTAINER.js_deps) {
-  const { html } = mergeDeps(deps)
+  const { html } = mergeDeps(deps);
   // Return if the PLOT_PANE has been assigned already
   if (CONTAINER.PLOT_PANE !== undefined) return;
-  const PLOT_PANE = CONTAINER.PLOT_PANE = html`<div class='plutoplotly-plot-pane'></div>`;
+  const PLOT_PANE_CONTAINER = CONTAINER.appendChild(
+    html`<div class="plutoplotly plot-pane-container"></div>`
+  );
+  const PLOT_PANE = (CONTAINER.PLOT_PANE = html`<div
+    class="plutoplotly plot-pane"
+  ></div>`);
   addPlotPaneStyle(PLOT_PANE, deps);
-  CONTAINER.appendChild(PLOT_PANE);
+  PLOT_PANE_CONTAINER.appendChild(PLOT_PANE);
 }
 
 /**
@@ -118,17 +146,17 @@ function addPlotPane(CONTAINER, deps = CONTAINER.js_deps) {
  * @this {import("./typedef.js").Container}
  */
 function toImageOptions() {
-    const { CLIPBOARD_HEADER } = this
-    /** @type {Partial<import("./typedef.js").toImageOptions>} */
-    const options = {}
-    for (const key of toImageOptionKeys) {
-      const config_value = CLIPBOARD_HEADER.config_values[key]
-      const ui_value = CLIPBOARD_HEADER.ui_values[key]
-      const isPopped = this.isPoppedOut()
-      const value = config_value ?? (isPopped ? ui_value : undefined)
-      if (value !== undefined) {
-        options[key] = value
-      }
+  const { CLIPBOARD_HEADER } = this;
+  /** @type {Partial<import("./typedef.js").toImageOptions>} */
+  const options = {};
+  for (const key of toImageOptionKeys) {
+    const config_value = CLIPBOARD_HEADER.config_values[key];
+    const ui_value = CLIPBOARD_HEADER.ui_values[key];
+    const isPopped = this.isPoppedOut();
+    const value = config_value ?? (isPopped ? ui_value : undefined);
+    if (value !== undefined) {
+      options[key] = value;
     }
-    return options
+  }
+  return options;
 }

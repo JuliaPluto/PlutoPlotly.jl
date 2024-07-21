@@ -113,8 +113,8 @@
 /**
  * @typedef {Object} ClipboardHeaderProps
  * @property {OptionSpansObject} option_spans
- * @property {Plotly.ToImgopts} config_values
- * @property {Plotly.ToImgopts} ui_values
+ * @property {toImageOptions} config_values
+ * @property {toImageOptions} ui_values
  * @property {Function} updateConfigSync
  */
 

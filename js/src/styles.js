@@ -20,8 +20,16 @@ export function addContainerStyle(CONTAINER, deps = CONTAINER.js_deps) {
       border-radius: 12px;
       border-top-left-radius: 12px;
       border-top-right-radius: 12px;
-      bottom: var(--element-bottom, 'auto');
+      top: var(--element-top, 'auto');
       left: var(--element-left, 'auto');
+      box-sizing: content-box;
+      max-width: calc(100vw - var(--max-width-offset));
+      max-height: calc(100vh - var(--max-height-offset));
+    }
+    &.popped-out .plot-pane-container {
+      overflow: auto;
+      max-width: calc(100vw - var(--max-width-offset));
+      max-height: calc(100vh - var(--max-height-offset));
     }
     // We add defaults color variables for outside Pluto
     @media (prefers-color-scheme: light) {

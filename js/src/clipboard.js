@@ -506,6 +506,7 @@ function saveImageToFile(CONTAINER) {
   // We extract the image options from the provided parameters (if they exist)
   const { Plotly, PLOT, CLIPBOARD_HEADER } = CONTAINER
   const config = CLIPBOARD_HEADER.ui_values;
+  // @ts-ignore config would like downloadImageOpts but we just use our own type
   Plotly.downloadImage(PLOT, config);
 }
 
@@ -515,12 +516,11 @@ function saveImageToFile(CONTAINER) {
  * @param {import("./typedef.js").Container} CONTAINER - Main container of the plutoplotly plot
  */
 export function popContainer(CONTAINER) {
-  // We save the container position before popping it out (which adds border)
-  const position = (CONTAINER.position =
-    CONTAINER.position ?? CONTAINER.getBoundingClientRect());
+  // We save the plot pane position before popping it out (which adds border)
+  const plot_rect = CONTAINER.PLOT_PANE.getBoundingClientRect();
   CONTAINER.classList.toggle("popped-out", true);
   // We update the left/bottom position to make it fixed in the same position it had before popping
-  updateContainerPosition(CONTAINER, position);
+  updateContainerPosition(CONTAINER, plot_rect);
 }
 
 /**
