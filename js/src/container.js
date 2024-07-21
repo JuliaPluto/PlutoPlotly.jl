@@ -116,7 +116,7 @@ export function updateContainerPosition(CONTAINER, target_plot_rect) {
   );
   CONTAINER.style.setProperty(
     "--max-height-offset",
-    tpr.top + (pr.top - cr.top) + border.bottom + 3 + "px"
+    tpr.top + border.top + border.bottom + 3 + "px"
   );
 }
 
