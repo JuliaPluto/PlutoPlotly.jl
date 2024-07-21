@@ -3,29 +3,39 @@ import { delay, getImageOptions, image_options_defaults } from "./utils.js";
 import { mergeDeps } from "./global_deps.js";
 import { updateContainerPosition } from "./container.js";
 
-// Download formats 
+// Download formats
 const valid_download_formats = ["png", "svg", "webp", "jpeg", "full-json"];
 // toImageOption keys
 /** @type {(keyof import("./typedef.js").toImageOptions)[]} */
-export const toImageOptionKeys = ["format", "width", "height", "scale", "filename"];
+export const toImageOptionKeys = [
+  "format",
+  "width",
+  "height",
+  "scale",
+  "filename",
+];
 
 /**
  * Update the provided container to eventually add a clipboard header and modify the plot_obj.
  *
  * @param {import("./typedef.js").Container} CONTAINER - The container to which the clipboard header will be added.
- * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
  * @return {undefined} span function does not return a value.
  */
-export function addClipboardFunctionality(CONTAINER, deps = CONTAINER.js_deps) {
+export function addClipboardFunctionality(CONTAINER) {
   // Try adding the clipboard header if not present
   addClipboardHeader(CONTAINER);
-  CONTAINER.togglePopout = function() {
-    if (this.classList.contains('popped-out')) {
-      unpopContainer(this);
+  // Customize the togglePopout function
+  CONTAINER.togglePopout = function (filesave = false) {
+    if (CONTAINER.isPoppedOut()) {
+      unpopContainer(CONTAINER);
+      CONTAINER.classList.toggle('filesave', false)
     } else {
-      popContainer(this);
+      popContainer(CONTAINER);
+      CONTAINER.classList.toggle('filesave', filesave)
     }
-  }
+  };
+  // Modify the plot object to include the buttons
+  modifyModebarButtons(CONTAINER);
 }
 
 /**
@@ -36,7 +46,7 @@ export function addClipboardFunctionality(CONTAINER, deps = CONTAINER.js_deps) {
  * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html and lodash
  */
 export function addSingleConfigSpan(CLIPBOARD_HEADER, name, deps = {}) {
-  const { html, lodash } = mergeDeps(deps)
+  const { html, lodash } = mergeDeps(deps);
   const config_span = html`<span class="config-value"></span>`;
   const label = html`<span class="label"
     >${config_span}${lodash.capitalize(name)}:</span
@@ -81,7 +91,7 @@ export function addSingleConfigSpan(CLIPBOARD_HEADER, name, deps = {}) {
   label.onclick = DualClick(
     (/** @type {Event} */ e) => {
       e.preventDefault();
-      container.config_value = container.ui_value
+      container.config_value = container.ui_value;
     },
     (/** @type {Event} */ e) => {
       e.preventDefault();
@@ -90,23 +100,22 @@ export function addSingleConfigSpan(CLIPBOARD_HEADER, name, deps = {}) {
   );
   // Add the listener for imageOptions change
   const listener = (/** @type {CustomEvent} */ e) => {
-    checkConfigSync(container)
+    checkConfigSync(container);
   };
   // @ts-ignore: addEventListener does not support function with CustomEvent as arguments
   container.addEventListener("clipboard-header-change", listener);
   return;
 }
 
-
 /**
  * Add config spans to the given CLIPBOARD_HEADER.
  *
  * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER - the clipboard header to add config spans to
  * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
- * @return {void} 
+ * @return {void}
  */
 function addOptionSpans(CLIPBOARD_HEADER, deps = {}) {
-  const { html } = mergeDeps(deps)
+  const { html } = mergeDeps(deps);
   // @ts-ignore: Will be populated
   CLIPBOARD_HEADER.option_spans = {};
   addSingleConfigSpan(CLIPBOARD_HEADER, "format");
@@ -131,7 +140,7 @@ function addOptionSpans(CLIPBOARD_HEADER, deps = {}) {
  * @return {undefined} span function does not return a value.
  */
 export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
-  const { html } = mergeDeps(deps)
+  const { html } = mergeDeps(deps);
   // Return if the CLIPBOARD HEADER has been assigned already
   if (CONTAINER.CLIPBOARD_HEADER !== undefined) return;
   /** @type {import("./typedef.js").ClipboardHeader} */
@@ -140,11 +149,11 @@ export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
   ></div>`;
   addClipboardHeaderStyle(CLIPBOARD_HEADER);
   // Add the various spans for the UI
-  addOptionSpans(CLIPBOARD_HEADER)
+  addOptionSpans(CLIPBOARD_HEADER);
   // Add the objects collecting ui and config options values
   addImageOptionsObj(CLIPBOARD_HEADER, "ui");
   addImageOptionsObj(CLIPBOARD_HEADER, "config");
-  CONTAINER.insertAdjacentElement('afterbegin', CLIPBOARD_HEADER);
+  CONTAINER.insertAdjacentElement("afterbegin", CLIPBOARD_HEADER);
   CONTAINER.CLIPBOARD_HEADER = CLIPBOARD_HEADER;
   return;
 }
@@ -340,27 +349,26 @@ function initializeConfigValueSpan(span, key, deps = {}) {
 }
 
 /**
- * 
+ *
  * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER
  * @param {string} type
  * @param {import("./typedef.js").Container} type
  */
 function addImageOptionsObj(CLIPBOARD_HEADER, type) {
-  /** @type {import('./typedef.js').toImageOptions} */
   // @ts-ignore: We populate the keys below
-  const out = {}
-  const header_key = type === "ui" ? "ui_values" : "config_values"
-  const value_key = type === "ui" ? "ui_span" : "config_span"
+  const out = {};
+  const header_key = type === "ui" ? "ui_values" : "config_values";
+  const value_key = type === "ui" ? "ui_span" : "config_span";
   for (const key of toImageOptionKeys) {
-    const span = CLIPBOARD_HEADER.option_spans[key][value_key]
+    const span = CLIPBOARD_HEADER.option_spans[key][value_key];
     Object.defineProperty(out, key, {
       get: () => span.value,
-      set: (val) => span.value = val,
+      set: (val) => (span.value = val),
       enumerable: true,
-    })
+    });
   }
   // @ts-ignore: We did put the keys above
-  CLIPBOARD_HEADER[header_key] = out
+  CLIPBOARD_HEADER[header_key] = out;
 }
 
 // // span code updates the image options in the PLOT config with the provided ones
@@ -442,7 +450,7 @@ function addImageOptionsObj(CLIPBOARD_HEADER, type) {
  * Function to send the provided blob to the clipboard using the Clipboard API.
  *
  * @param {Blob} blob - the blob to be copied to the clipboard
- * @return {void} 
+ * @return {void}
  */
 function sendToClipboard(blob) {
   if (!navigator.clipboard) {
@@ -467,56 +475,39 @@ function sendToClipboard(blob) {
     );
 }
 
+/**
+ * Function to copy the image from the parent container to the clipboard.
+ * @param {import('./typedef.js').Container} CONTAINER
+ */
+export function copyImageToClipboard(CONTAINER) {
+  // We extract the image options from the provided parameters (if they exist)
+  const { Plotly, PLOT, CLIPBOARD_HEADER } = CONTAINER
+  const config = CLIPBOARD_HEADER.ui_values;
+  Plotly.toImage(PLOT, config).then(function (dataUrl) {
+    fetch(dataUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        // const paste_receiver = document.querySelector(
+        //   "paste-receiver.plutoplotly"
+        // );
+        // if (paste_receiver) {
+        //   paste_receiver.attachImage(dataUrl, CONTAINER);
+        // }
+        sendToClipboard(blob);
+      });
+  });
+}
 
-// /**
-//  * Function to copy the image from the parent container to the clipboard.
-//  * @span {import('./typedef.js').Container}
-//  */
-// export function copyImageToClipboard() {
-//   // We extract the image options from the provided parameters (if they exist)
-//   const { Plotly, PLOT } = span
-//   const config = {};
-//   for (const [key, container] of Object.entries(option_spans)) {
-//     let val =
-//       container.config_value ??
-//       (span.isPoppedOut() ? container.ui_value : undefined);
-//     // If we have undefined we don't create the key. We also ignore format because the clipboard only supports png.
-//     if (val === undefined || key === "format") {
-//       continue;
-//     }
-//     config[key] = val;
-//   }
-//   Plotly.toImage(PLOT, config).then(function (dataUrl) {
-//     fetch(dataUrl)
-//       .then((res) => res.blob())
-//       .then((blob) => {
-//         const paste_receiver = document.querySelector(
-//           "paste-receiver.plutoplotly"
-//         );
-//         if (paste_receiver) {
-//           paste_receiver.attachImage(dataUrl, CONTAINER);
-//         }
-//         sendToClipboard(blob);
-//       });
-//   });
-// }
-
-// function saveImageToFile() {
-//   const config = {};
-//   for (const [key, container] of Object.entries(option_spans)) {
-//     let val =
-//       container.config_value ??
-//       (CONTAINER.isPoppedOut() ? container.ui_value : undefined);
-//     // If we have undefined we don't create the key.
-//     if (val === undefined) {
-//       continue;
-//     }
-//     config[key] = val;
-//   }
-//   Plotly.downloadImage(PLOT, config);
-// }
-
-
+/**
+ * Function to save the image from the provided container to the disk.
+ * @param {import('./typedef.js').Container} CONTAINER
+ */
+function saveImageToFile(CONTAINER) {
+  // We extract the image options from the provided parameters (if they exist)
+  const { Plotly, PLOT, CLIPBOARD_HEADER } = CONTAINER
+  const config = CLIPBOARD_HEADER.ui_values;
+  Plotly.downloadImage(PLOT, config);
+}
 
 /**
  * Function to pop out the container from the current position to a fixed one.
@@ -525,10 +516,11 @@ function sendToClipboard(blob) {
  */
 export function popContainer(CONTAINER) {
   // We save the container position before popping it out (which adds border)
-  const position = CONTAINER.position = CONTAINER.position ?? CONTAINER.getBoundingClientRect();
+  const position = (CONTAINER.position =
+    CONTAINER.position ?? CONTAINER.getBoundingClientRect());
   CONTAINER.classList.toggle("popped-out", true);
   // We update the left/bottom position to make it fixed in the same position it had before popping
-  updateContainerPosition(CONTAINER, position)
+  updateContainerPosition(CONTAINER, position);
 }
 
 /**
@@ -683,3 +675,40 @@ function DualClick(single_func, dbl_func) {
 //     },
 //   ]
 // );
+
+function modifyModebarButtons(CONTAINER) {
+  const { plot_obj, js_deps, togglePopout, Plotly } = CONTAINER;
+  const { lodash } = js_deps;
+  plot_obj.config = plot_obj.config ?? {};
+  // We remove the default download image button
+  plot_obj.config.modeBarButtonsToRemove = lodash.union(
+    plot_obj.config?.modeBarButtonsToRemove,
+    ["toImage"]
+  );
+  // We add the custom button to the modebar
+  plot_obj.config.modeBarButtonsToAdd = lodash.union(
+    plot_obj.config.modeBarButtonsToAdd,
+    [
+      {
+        name: "Copy PNG to Clipboard",
+        icon: {
+          height: 520,
+          width: 520,
+          path: "M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z",
+        },
+        direction: "up",
+        click: DualClick(() => copyImageToClipboard(CONTAINER), () => {
+          togglePopout();
+        }),
+      },
+      {
+        name: "Download Image",
+        icon: Plotly.Icons.camera,
+        direction: "up",
+        click: DualClick(() => saveImageToFile(CONTAINER), () => {
+          togglePopout(true);
+        }),
+      },
+    ]
+  );
+}

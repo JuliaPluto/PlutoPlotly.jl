@@ -113,8 +113,8 @@
 /**
  * @typedef {Object} ClipboardHeaderProps
  * @property {OptionSpansObject} option_spans
- * @property {toImageOptions} config_values
- * @property {toImageOptions} ui_values
+ * @property {Plotly.ToImgopts} config_values
+ * @property {Plotly.ToImgopts} ui_values
  * @property {Function} updateConfigSync
  */
 
@@ -136,6 +136,7 @@
  * @typedef {Object} ContainerProps
  * @property {PlotObj} plot_obj - The plot data used for calling Plotly.react
  * @property {Function} togglePopout - Toggle the popout status of the container
+ * @property {Function} isPoppedOut - Function to check if the container is popped out or not
  * @property {JSDeps} js_deps - The JS dependency used internally by plutoplotly functions
  * @property {ResizeObserver} resizeObserver - The resizeObserver controlling the resizing of the CONTAINER and PLOT
  * @property {AbortController} controller - The AbortController used to stop all listeners and observers tied to the CONTAINER

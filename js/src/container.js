@@ -71,9 +71,9 @@ export function updatePlotData(CONTAINER, plot_obj) {
   if (!lodash.has(plot_obj, "config.responsive")) {
     lodash.set(plot_obj, "config.responsive", true);
   }
+  CONTAINER.plot_obj = plot_obj
   // Add the clipboard header
   addClipboardFunctionality(CONTAINER);
-  CONTAINER.plot_obj = plot_obj
   Plotly.react(PLOT, plot_obj)
 }
 
