@@ -10,6 +10,25 @@ const valid_download_formats = ["png", "svg", "webp", "jpeg", "full-json"];
 export const toImageOptionKeys = ["format", "width", "height", "scale", "filename"];
 
 /**
+ * Update the provided container to eventually add a clipboard header and modify the plot_obj.
+ *
+ * @param {import("./typedef.js").Container} CONTAINER - The container to which the clipboard header will be added.
+ * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
+ * @return {undefined} span function does not return a value.
+ */
+export function addClipboardFunctionality(CONTAINER, deps = CONTAINER.js_deps) {
+  // Try adding the clipboard header if not present
+  addClipboardHeader(CONTAINER);
+  CONTAINER.togglePopout = function() {
+    if (this.classList.contains('popped-out')) {
+      unpopContainer(this);
+    } else {
+      popContainer(this);
+    }
+  }
+}
+
+/**
  * Function to add a configuration span element.
  *
  * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER - Clipboard Header element
@@ -111,7 +130,7 @@ function addOptionSpans(CLIPBOARD_HEADER, deps = {}) {
  * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
  * @return {undefined} span function does not return a value.
  */
-export function addClipboardHeader(CONTAINER, deps = {}) {
+export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
   const { html } = mergeDeps(deps)
   // Return if the CLIPBOARD HEADER has been assigned already
   if (CONTAINER.CLIPBOARD_HEADER !== undefined) return;
@@ -125,7 +144,7 @@ export function addClipboardHeader(CONTAINER, deps = {}) {
   // Add the objects collecting ui and config options values
   addImageOptionsObj(CLIPBOARD_HEADER, "ui");
   addImageOptionsObj(CLIPBOARD_HEADER, "config");
-  CONTAINER.appendChild(CLIPBOARD_HEADER);
+  CONTAINER.insertAdjacentElement('afterbegin', CLIPBOARD_HEADER);
   CONTAINER.CLIPBOARD_HEADER = CLIPBOARD_HEADER;
   return;
 }
@@ -503,21 +522,21 @@ function sendToClipboard(blob) {
  * Function to pop out the container from the current position to a fixed one.
  *
  * @param {import("./typedef.js").Container} CONTAINER - Main container of the plutoplotly plot
- * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html and lodash
  */
-export function popContainer(CONTAINER, deps = {}) {
-  // We update the container position with the current one, also updating the css variables
-  updateContainerPosition(CONTAINER)
+export function popContainer(CONTAINER) {
+  // We save the container position before popping it out (which adds border)
+  const position = CONTAINER.position = CONTAINER.position ?? CONTAINER.getBoundingClientRect();
   CONTAINER.classList.toggle("popped-out", true);
+  // We update the left/bottom position to make it fixed in the same position it had before popping
+  updateContainerPosition(CONTAINER, position)
 }
 
 /**
  * Function to unpop the container from the fixed position.
  *
  * @param {import("./typedef.js").Container} CONTAINER - Main container of the plutoplotly plot
- * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html and lodash
  */
-export function unpopContainer(CONTAINER, deps = {}) {
+export function unpopContainer(CONTAINER) {
   CONTAINER.classList.toggle("popped-out", false);
 }
 

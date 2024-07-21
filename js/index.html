@@ -14,11 +14,6 @@
         console.log(css)
         const dv = document.getElementById('asd');
         const container = dv.insertAdjacentElement('afterend', makeContainer());
-        window.container = container
-        window.option_spans = container.CLIPBOARD_HEADER.option_spans
-        // container.classList.toggle('popped-out', true)
-        container.CLIPBOARD_HEADER.classList.toggle('hidden')
-        window.width = option_spans['width']
 
         // Do the plot
         // Sample data
@@ -45,6 +40,12 @@
 
         // Render the plot
         updatePlotData(container, plot_obj)
+        window.container = container
+        window.option_spans = container.CLIPBOARD_HEADER.option_spans
+        // container.classList.toggle('popped-out', true)
+        container.CLIPBOARD_HEADER.classList.toggle('hidden')
+        window.width = option_spans['width']
+        // container.togglePopout()
     </script>
 </head>
 

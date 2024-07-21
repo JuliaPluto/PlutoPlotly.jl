@@ -6,20 +6,22 @@ import { mergeDeps } from "./global_deps.js";
  * @param {import("./typedef.js").Container} CONTAINER - The container element to which the style will be added
  * @param {Partial<import("./typedef.js").JSDeps>} [deps] - The object containing the emotion library as property
  */
-export function addContainerStyle(CONTAINER, deps = {}) {
-  const { emotion: {css} } = mergeDeps(deps)
+export function addContainerStyle(CONTAINER, deps = CONTAINER.js_deps) {
+  const {
+    emotion: { css },
+  } = mergeDeps(deps);
   const cl = css`
     &.popped-out {
       overflow: hidden;
       z-index: 1000;
       position: fixed;
-      resize: both;
       background: var(--main-bg-color, var(--bg-color));
       border: 3px solid var(--kbd-border-color, var(--border-color));
       border-radius: 12px;
       border-top-left-radius: 12px;
       border-top-right-radius: 12px;
-      box-sizing: border-box;
+      bottom: var(--element-bottom, 'auto');
+      left: var(--element-left, 'auto');
     }
     // We add defaults color variables for outside Pluto
     @media (prefers-color-scheme: light) {
@@ -47,7 +49,9 @@ export function addContainerStyle(CONTAINER, deps = {}) {
  * @param {Partial<import("./typedef.js").JSDeps>} [deps] - The object containing the emotion library as property
  */
 export function addClipboardHeaderStyle(element, deps = {}) {
-  const { emotion: {css} } = mergeDeps(deps)
+  const {
+    emotion: { css },
+  } = mergeDeps(deps);
   const cl = css`
     & {
       display: none;
@@ -55,7 +59,7 @@ export function addClipboardHeaderStyle(element, deps = {}) {
       background: var(--main-bg-color, var(--bg-color));
       cursor: move;
       padding: 5px;
-      width: 100%;
+      align-items: center;
     }
     .popped-out & {
       border-bottom: 3px solid var(--kbd-border-color, var(--border-color));
@@ -123,6 +127,33 @@ export function addClipboardHeaderStyle(element, deps = {}) {
     &.filesave-extras .clipboard-span.format {
       display: inline-flex;
     }
+
+    & button {
+      background-color: #4caf50; /* Green background */
+      border: none; /* Remove border */
+      color: white; /* White text */
+      padding: 5px 10px; /* Some padding */
+      text-align: center; /* Centered text */
+      text-decoration: none; /* Remove underline */
+      display: inline-block; /* Make the buttons appear side by side */
+      font-size: 13px; /* Increase font size */
+      margin: 4px 2px; /* Some margin */
+      cursor: pointer; /* Pointer/hand icon on hover */
+      border-radius: 12px; /* Rounded corners */
+      transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transition for hover effects */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    & button:hover {
+      background-color: #45a049; /* Darker green on hover */
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2); /* Slightly bigger shadow on hover */
+    }
+
+    & button:active {
+      background-color: #3e8e41; /* Even darker green when clicked */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow back to normal when clicked */
+      transform: translateY(2px); /* Slight move down effect when clicked */
+    }
   `;
   element.classList.add(cl);
 }
@@ -132,7 +163,9 @@ export function addClipboardHeaderStyle(element, deps = {}) {
  * @param {Partial<import("./typedef.js").JSDeps>} [deps] - The object containing the emotion library as property
  */
 export function addFormatConfigStyle(element, deps = {}) {
-  const { emotion: {css} } = mergeDeps(deps)
+  const {
+    emotion: { css },
+  } = mergeDeps(deps);
   const format_config_style = css`
     & > .label {
       flex: 0 0 0;
@@ -188,7 +221,9 @@ export function addFormatConfigStyle(element, deps = {}) {
  * @param {Partial<import("./typedef.js").JSDeps>} [deps] - The object containing the emotion library as property
  */
 export function addPlotPaneStyle(PLOT_PANE, deps = {}) {
-  const { emotion: {css} } = mergeDeps(deps)
+  const {
+    emotion: { css },
+  } = mergeDeps(deps);
   const cl = css`
     & {
       width: 100%;

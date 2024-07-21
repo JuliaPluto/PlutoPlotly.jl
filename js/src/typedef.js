@@ -134,8 +134,9 @@
 
 /**
  * @typedef {Object} ContainerProps
- * @property {PlotObj} plot_data - The plot data used for calling Plotly.react
- * @property {Function} isPoppedOut - Returns true if the container is popped out
+ * @property {PlotObj} plot_obj - The plot data used for calling Plotly.react
+ * @property {Function} togglePopout - Toggle the popout status of the container
+ * @property {JSDeps} js_deps - The JS dependency used internally by plutoplotly functions
  * @property {ResizeObserver} resizeObserver - The resizeObserver controlling the resizing of the CONTAINER and PLOT
  * @property {AbortController} controller - The AbortController used to stop all listeners and observers tied to the CONTAINER
  * @property {Plotly} Plotly - The Plotly library used in this Container
