@@ -124,7 +124,7 @@ export function addClipboardHeaderStyle(element, deps = {}) {
       margin-top: 5px;
       display: none;
     }
-    &.filesave-extras .clipboard-span.filename {
+    .filesave-extras & .clipboard-span.filename {
       display: inline-block;
     }
     & .clipboard-value.filename {
@@ -132,7 +132,7 @@ export function addClipboardHeaderStyle(element, deps = {}) {
       text-align: left;
       min-width: min(60%, min-content);
     }
-    &.filesave-extras .clipboard-span.format {
+    .filesave-extras & .clipboard-span.format {
       display: inline-flex;
     }
 

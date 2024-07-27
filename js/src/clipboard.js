@@ -28,10 +28,10 @@ export function addClipboardFunctionality(CONTAINER) {
   CONTAINER.togglePopout = function (filesave = false) {
     if (CONTAINER.isPoppedOut()) {
       unpopContainer(CONTAINER);
-      CONTAINER.classList.toggle('filesave', false)
+      CONTAINER.classList.toggle('filesave-extras', false)
     } else {
       popContainer(CONTAINER);
-      CONTAINER.classList.toggle('filesave', filesave)
+      CONTAINER.classList.toggle('filesave-extras', filesave)
     }
   };
   // Modify the plot object to include the buttons
