@@ -238,7 +238,7 @@ function updateFunction(key) {
      * @this {HTMLElement & {value: string}}
      */
     return function () {
-      this.setAttribute("selected", this.value);
+      this.querySelector(".format-options")?.setAttribute("selected", this.value);
     };
   } else {
     /**
@@ -273,6 +273,7 @@ function initializeUIValueSpan(span, key, deps = {}) {
       );
       opt.onclick = () => {
         span.value = opt.textContent;
+        span.updateFromValue(span.value);
       };
     }
   }
@@ -312,8 +313,10 @@ function initializeUIValueSpan(span, key, deps = {}) {
       span.blur();
     }
   };
-  span.onblur = function() {
-    this.value = this.textContent;
+  if (key !== "format") {
+    span.onblur = function() {
+      this.value = this.textContent;
+    }
   }
 }
 
