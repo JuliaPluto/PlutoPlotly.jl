@@ -312,6 +312,9 @@ function initializeUIValueSpan(span, key, deps = {}) {
       span.blur();
     }
   };
+  span.onblur = function() {
+    this.value = this.textContent;
+  }
 }
 
 /**
