@@ -10,11 +10,12 @@ export const GlobalDeps = {};
  * @param {import("./typedef.js").JSDeps} params - An object containing emotion, lodash, interact and html dependencies.
  * @return {void}
  */
-export function setGlobalDeps({ emotion, lodash, interact, html }) {
+export function setGlobalDeps({ emotion, lodash, interact, html, floatingUI }) {
   GlobalDeps.emotion = emotion;
   GlobalDeps.lodash = lodash;
   GlobalDeps.interact = interact;
   GlobalDeps.html = html;
+  GlobalDeps.floatingUI = floatingUI;
 }
 
 /**
@@ -27,7 +28,8 @@ export function validGlobalDeps() {
     GlobalDeps.emotion != undefined &&
     GlobalDeps.lodash != undefined &&
     GlobalDeps.interact != undefined &&
-    GlobalDeps.html != undefined
+    GlobalDeps.html != undefined &&
+    GlobalDeps.floatingUI != undefined
   );
 }
 

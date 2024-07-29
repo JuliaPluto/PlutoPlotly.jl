@@ -20,5 +20,6 @@
     "https://esm.sh/@emotion/css@11.11.2": "npm:@emotion/css@11.11.2",
     "https://esm.sh/lodash-es@4.17.21": "npm:lodash-es@4.17.21",
     "https://esm.sh/interactjs@1.10.27": "npm:interactjs@1.10.27",
+    "https://esm.sh/@floating-ui/dom@1.6.8": "npm:@floating-ui/dom@1.6.8"
   }
 }

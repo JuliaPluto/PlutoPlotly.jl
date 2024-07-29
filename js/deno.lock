@@ -9,6 +9,8 @@
       "jsr:@std/jsonc@0.213": "jsr:@std/jsonc@0.213.1",
       "jsr:@std/path@0.213": "jsr:@std/path@0.213.1",
       "npm:@emotion/css@11.11.2": "npm:@emotion/css@11.11.2",
+      "npm:@floating-ui/dom": "npm:@floating-ui/dom@1.6.8",
+      "npm:@floating-ui/dom@1.6.8": "npm:@floating-ui/dom@1.6.8",
       "npm:@interactjs/interactjs@1.10.27": "npm:@interactjs/interactjs@1.10.27_@interactjs+core@1.10.27__@interactjs+utils@1.10.27_@interactjs+utils@1.10.27_@interactjs+modifiers@1.10.27__@interactjs+core@1.10.27___@interactjs+utils@1.10.27__@interactjs+utils@1.10.27",
       "npm:@types/lodash-es": "npm:@types/lodash-es@4.17.12",
       "npm:@types/plotly.js": "npm:@types/plotly.js@2.29.2",
@@ -258,6 +260,23 @@
       },
       "@esbuild/win32-x64@0.20.2": {
         "integrity": "sha512-N49X4lJX27+l9jbLKSqZ6bKNjzQvHaT8IIFUy+YIqmXQdjYCToGWwOItDrfby14c78aDd5NHQl29xingXfCdLQ==",
+        "dependencies": {}
+      },
+      "@floating-ui/core@1.6.5": {
+        "integrity": "sha512-8GrTWmoFhm5BsMZOTHeGD2/0FLKLQQHvO/ZmQga4tKempYRLz8aqJGqXVuQgisnMObq2YZ2SgkwctN1LOOxcqA==",
+        "dependencies": {
+          "@floating-ui/utils": "@floating-ui/utils@0.2.5"
+        }
+      },
+      "@floating-ui/dom@1.6.8": {
+        "integrity": "sha512-kx62rP19VZ767Q653wsP1XZCGIirkE09E0QUGNYTM/ttbbQHqcGPdSfWFxUyyNLc/W6aoJRBajOSXhP6GXjC0Q==",
+        "dependencies": {
+          "@floating-ui/core": "@floating-ui/core@1.6.5",
+          "@floating-ui/utils": "@floating-ui/utils@0.2.5"
+        }
+      },
+      "@floating-ui/utils@0.2.5": {
+        "integrity": "sha512-sTcG+QZ6fdEUObICavU+aB3Mp8HY4n14wYHdxK4fXjPmv3PXZZeY5RaguJmGyeH/CJQhX3fqKUtS4qc1LoHwhQ==",
         "dependencies": {}
       },
       "@interactjs/actions@1.10.27_@interactjs+core@1.10.27__@interactjs+utils@1.10.27_@interactjs+utils@1.10.27": {
@@ -1562,6 +1581,7 @@
   "workspace": {
     "dependencies": [
       "npm:@emotion/css@11.11.2",
+      "npm:@floating-ui/dom@1.6.8",
       "npm:interactjs@1.10.27",
       "npm:lodash-es@4.17.21"
     ]

@@ -8,6 +8,7 @@
  * @property {import('npm:@types/lodash-es')} lodash
  * @property {import('npm:interactjs').default} interact
  * @property {import('https://esm.sh/gh/observablehq/stdlib@v5.8.6/src/html.js').html} html
+ * @property {import('https://esm.sh/@floating-ui/dom@1.6.8')} floatingUI
  */
 
 // Plotly types
