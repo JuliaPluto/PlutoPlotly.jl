@@ -1,7 +1,7 @@
 import { addFormatConfigStyle, addClipboardHeaderStyle } from "./styles.js";
 import { delay, getImageOptions, image_options_defaults } from "./utils.js";
 import { mergeDeps } from "./global_deps.js";
-import { addDragFunctionality } from "./resizer.js";
+import { addDragFunctionality, addResizeFunctionality } from "./resizer.js";
 import { updateContainerPosition } from "./resizer.js";
 
 // Download formats
@@ -27,6 +27,8 @@ export function addClipboardFunctionality(CONTAINER) {
   addClipboardHeader(CONTAINER);
   // Add the drag functionality
   addDragFunctionality(CONTAINER);
+  // Add the resize functionality
+  addResizeFunctionality(CONTAINER);
   // Customize the togglePopout function
   CONTAINER.togglePopout = function (filesave = false) {
     if (CONTAINER.isPoppedOut()) {
