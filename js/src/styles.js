@@ -68,6 +68,7 @@ export function addClipboardHeaderStyle(element, deps = {}) {
       cursor: move;
       padding: 5px;
       align-items: center;
+      user-select: none;
     }
     .popped-out & {
       border-bottom: 3px solid var(--kbd-border-color, var(--border-color));

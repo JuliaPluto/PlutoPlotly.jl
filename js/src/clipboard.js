@@ -1,7 +1,8 @@
 import { addFormatConfigStyle, addClipboardHeaderStyle } from "./styles.js";
 import { delay, getImageOptions, image_options_defaults } from "./utils.js";
 import { mergeDeps } from "./global_deps.js";
-import { updateContainerPosition } from "./container.js";
+import { addDragFunctionality } from "./resizer.js";
+import { updateContainerPosition } from "./resizer.js";
 
 // Download formats
 const valid_download_formats = ["png", "svg", "webp", "jpeg", "full-json"];
@@ -24,6 +25,8 @@ export const toImageOptionKeys = [
 export function addClipboardFunctionality(CONTAINER) {
   // Try adding the clipboard header if not present
   addClipboardHeader(CONTAINER);
+  // Add the drag functionality
+  addDragFunctionality(CONTAINER);
   // Customize the togglePopout function
   CONTAINER.togglePopout = function (filesave = false) {
     if (CONTAINER.isPoppedOut()) {
