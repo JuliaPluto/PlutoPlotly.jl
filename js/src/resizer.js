@@ -1,22 +1,24 @@
 //@ts-check
 
 /**
- * Function to add Drag functionality to the CLIPBOARD_HEADER
+ * Function to add Drag functionality to the to plot container when it's
+ * popped-out, working by dragging from the CLIPBOARD_HEADER.
+ * This will not allow the container to go outside of the window boundaries.
  *
  * @param {import("./typedef.js").Container} CONTAINER - Container element
- * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least interact
  */
-export function addDragFunctionality(CONTAINER, deps = CONTAINER.js_deps) {
-  const { interact, lodash } = deps;
-  const { CLIPBOARD_HEADER, PLOT_PANE } = CONTAINER;
+export function addDragFunctionality(CONTAINER) {
+  const { interact, lodash } = CONTAINER.js_deps;
+  const { CLIPBOARD_HEADER } = CONTAINER;
+  // limits contains the min and max limits for the corresponding css properties
   const limits = { top: { min: 0, max: 0 }, left: { min: 0, max: 0 } };
+  // current and last will hold the current position, modified while dragging, and the last valid position that was enforced
   let current = { top: 0, left: 0, width: 0, height: 0 };
   let last = { top: 0, left: 0, width: 0, height: 0 };
   // @ts-ignore We assume interact is present
   interact(CLIPBOARD_HEADER).draggable({
     listeners: {
       start(event) {
-        console.log(event.type, event.target);
         const { pr, border, header_height } =
           computeContainerPosition(CONTAINER);
         const { top, left, width, height } = pr;
@@ -46,13 +48,19 @@ export function addDragFunctionality(CONTAINER, deps = CONTAINER.js_deps) {
         }
       },
       end(event) {
-        console.log(event.type, event.target);
         CLIPBOARD_HEADER.classList.toggle("dragging", false);
       },
     },
   });
 }
 
+/**
+ * Function to add Resize functionality to the to plot container when it's
+ * popped-out, working by dragging any of the container edges
+ * This will not allow any the container edges to go outside of the window boundaries.
+ *
+ * @param {import("./typedef.js").Container} CONTAINER - Container element
+ */
 export function addResizeFunctionality(CONTAINER) {
   const { interact, lodash } = CONTAINER.js_deps;
   const { ui_values } = CONTAINER.CLIPBOARD_HEADER;
@@ -75,15 +83,15 @@ export function addResizeFunctionality(CONTAINER) {
         current = { top, left, width, height };
         last = { top, left, width, height };
         limits.left.min = border.left + 3;
-        limits.left.max = pr.left + width - limits.width.min
+        limits.left.max = pr.left + width - limits.width.min;
         limits.top.min = border.top + header_height + 3;
-        limits.top.max = pr.top + height - limits.height.min
+        limits.top.max = pr.top + height - limits.height.min;
         limits.width.max = edges.left
           ? pr.right - limits.left.min // We are resizing left
           : edges.right
           ? globalThis.innerWidth - (pr.left + border.right + 3) // We are resizing right
           : width; // This is in case we are not resizing horizontally
-        limits.height.max = edges.top 
+        limits.height.max = edges.top
           ? pr.bottom - limits.top.min
           : edges.bottom
           ? globalThis.innerHeight - (pr.top + border.bottom + 3)
@@ -101,11 +109,20 @@ export function addResizeFunctionality(CONTAINER) {
           current.top += deltaRect.top;
         }
         const new_size = {
-          left: Math.min(Math.max(current.left, limits.left.min), limits.left.max),
+          left: Math.min(
+            Math.max(current.left, limits.left.min),
+            limits.left.max
+          ),
           top: Math.min(Math.max(current.top, limits.top.min), limits.top.max),
-          width: Math.min(Math.max(current.width, limits.width.min), limits.width.max),
-          height: Math.min(Math.max(current.height, limits.height.min), limits.height.max),
-        }
+          width: Math.min(
+            Math.max(current.width, limits.width.min),
+            limits.width.max
+          ),
+          height: Math.min(
+            Math.max(current.height, limits.height.min),
+            limits.height.max
+          ),
+        };
         if (!lodash.isEqual(last, new_size)) {
           last = { ...new_size };
           updateContainerPosition(CONTAINER, last);

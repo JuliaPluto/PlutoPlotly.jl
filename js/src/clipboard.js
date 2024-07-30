@@ -33,10 +33,10 @@ export function addClipboardFunctionality(CONTAINER) {
   CONTAINER.togglePopout = function (filesave = false) {
     if (CONTAINER.isPoppedOut()) {
       unpopContainer(CONTAINER);
-      CONTAINER.classList.toggle('filesave-extras', false)
+      CONTAINER.classList.toggle("filesave-extras", false);
     } else {
       popContainer(CONTAINER);
-      CONTAINER.classList.toggle('filesave-extras', filesave)
+      CONTAINER.classList.toggle("filesave-extras", filesave);
     }
   };
   // Modify the plot object to include the buttons
@@ -59,11 +59,11 @@ function addTooltipListener(span, js_deps) {
       strategy: "fixed",
       placement: "top-start",
       middleware: [offset(6), flip(), shift()],
-    }).then(({x,y}) => {
+    }).then(({ x, y }) => {
       config_span.style.top = y + "px";
       config_span.style.left = x + "px";
-    })
-  }
+    });
+  };
 }
 
 /**
@@ -132,7 +132,7 @@ export function addSingleConfigSpan(CONTAINER, name) {
   const listener = (/** @type {CustomEvent} */ e) => {
     checkConfigSync(container);
   };
-  checkConfigSync(container)
+  checkConfigSync(container);
   // @ts-ignore: addEventListener does not support function with CustomEvent as arguments
   container.addEventListener("clipboard-header-change", listener);
   return;
@@ -188,7 +188,6 @@ export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
   CONTAINER.insertAdjacentElement("afterbegin", CLIPBOARD_HEADER);
   // Insert the listener for the change in width/height
   function size_listener(/** @type {CustomEvent} */ e) {
-    console.log("Inside size_listener", e);
     const { key, type, value } = e.detail;
     if (type !== "ui") return;
     if (!(key === "width" || key === "height")) return;
@@ -196,7 +195,7 @@ export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
     CONTAINER.PLOT_PANE.style.setProperty(varname, value + "px");
   }
   CLIPBOARD_HEADER.addEventListener("clipboard-header-change", size_listener, {
-    signal: CONTAINER.controller.signal
+    signal: CONTAINER.controller.signal,
   });
   return;
 }
@@ -206,7 +205,6 @@ export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
  * @param {import("./typedef.js").ImageOptionSpan} span
  */
 function checkConfigSync(span) {
-  console.log("inside checkConfigSync", span);
   // We use the custom getters we'll set up in the container
   const { ui_value, config_value, config_span, key } = span;
   if (config_value === undefined) {
@@ -269,7 +267,10 @@ function updateFunction(key) {
      * @this {HTMLElement & {value: string}}
      */
     return function () {
-      this.querySelector(".format-options")?.setAttribute("selected", this.value);
+      this.querySelector(".format-options")?.setAttribute(
+        "selected",
+        this.value
+      );
     };
   } else {
     /**
@@ -345,9 +346,9 @@ function initializeUIValueSpan(span, key, deps = {}) {
     }
   };
   if (key !== "format") {
-    span.onblur = function() {
+    span.onblur = function () {
       this.value = this.textContent;
-    }
+    };
   }
 }
 
@@ -531,7 +532,7 @@ function sendToClipboard(blob) {
  */
 export function copyImageToClipboard(CONTAINER) {
   // We extract the image options from the provided parameters (if they exist)
-  const { Plotly, PLOT, CLIPBOARD_HEADER } = CONTAINER
+  const { Plotly, PLOT, CLIPBOARD_HEADER } = CONTAINER;
   const config = CLIPBOARD_HEADER.ui_values;
   Plotly.toImage(PLOT, config).then(function (dataUrl) {
     fetch(dataUrl)
@@ -554,7 +555,7 @@ export function copyImageToClipboard(CONTAINER) {
  */
 function saveImageToFile(CONTAINER) {
   // We extract the image options from the provided parameters (if they exist)
-  const { Plotly, PLOT, CLIPBOARD_HEADER } = CONTAINER
+  const { Plotly, PLOT, CLIPBOARD_HEADER } = CONTAINER;
   const config = CLIPBOARD_HEADER.ui_values;
   // @ts-ignore config would like downloadImageOpts but we just use our own type
   Plotly.downloadImage(PLOT, config);
@@ -747,17 +748,23 @@ function modifyModebarButtons(CONTAINER) {
           path: "M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z",
         },
         direction: "up",
-        click: DualClick(() => copyImageToClipboard(CONTAINER), () => {
-          togglePopout();
-        }),
+        click: DualClick(
+          () => copyImageToClipboard(CONTAINER),
+          () => {
+            togglePopout();
+          }
+        ),
       },
       {
         name: "Download Image",
         icon: Plotly.Icons.camera,
         direction: "up",
-        click: DualClick(() => saveImageToFile(CONTAINER), () => {
-          togglePopout(true);
-        }),
+        click: DualClick(
+          () => saveImageToFile(CONTAINER),
+          () => {
+            togglePopout(true);
+          }
+        ),
       },
     ]
   );
