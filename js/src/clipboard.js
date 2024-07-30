@@ -44,14 +44,37 @@ export function addClipboardFunctionality(CONTAINER) {
 }
 
 /**
+ * Adds a tooltip listener to the provided config span element.
+ *
+ * @param {import("./typedef.js").ImageOptionSpan} span - The config span element to add the tooltip listener to.
+ * @param {import("./typedef.js").JSDeps} js_deps - The dependencies object containing the necessary tools for the tooltip listener.
+ * @return {void} This function does not return a value.
+ */
+function addTooltipListener(span, js_deps) {
+  const { floatingUI } = js_deps;
+  const { computePosition, flip, shift, offset } = floatingUI;
+  const { label, config_span } = span;
+  label.onmouseenter = (e) => {
+    computePosition(label, config_span, {
+      strategy: "fixed",
+      placement: "top-start",
+      middleware: [offset(6), flip(), shift()],
+    }).then(({x,y}) => {
+      config_span.style.top = y + "px";
+      config_span.style.left = x + "px";
+    })
+  }
+}
+
+/**
  * Function to add a configuration span element.
  *
- * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER - Clipboard Header element
+ * @param {import("./typedef.js").Container} CONTAINER - Container element for the plot
  * @param {keyof import("./typedef.js").OptionSpansObject} name - lowercase name of the config span
- * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html and lodash
  */
-export function addSingleConfigSpan(CLIPBOARD_HEADER, name, deps = {}) {
-  const { html, lodash } = mergeDeps(deps);
+export function addSingleConfigSpan(CONTAINER, name) {
+  const { CLIPBOARD_HEADER } = CONTAINER;
+  const { html, lodash } = CONTAINER.js_deps;
   const config_span = html`<span class="config-value"></span>`;
   const label = html`<span class="label"
     >${config_span}${lodash.capitalize(name)}:</span
@@ -103,30 +126,33 @@ export function addSingleConfigSpan(CLIPBOARD_HEADER, name, deps = {}) {
       container.config_value = undefined;
     }
   );
+  // Add the tooltip listener
+  addTooltipListener(container, CONTAINER.js_deps);
   // Add the listener for imageOptions change
   const listener = (/** @type {CustomEvent} */ e) => {
     checkConfigSync(container);
   };
+  checkConfigSync(container)
   // @ts-ignore: addEventListener does not support function with CustomEvent as arguments
   container.addEventListener("clipboard-header-change", listener);
   return;
 }
 
 /**
- * Add config spans to the given CLIPBOARD_HEADER.
+ * Add config spans to the CLIPBOARD_HEADER associated to the given CONTAINER.
  *
- * @param {import("./typedef.js").ClipboardHeader} CLIPBOARD_HEADER - the clipboard header to add config spans to
- * @param {Partial<import("./typedef.js").JSDeps>} [deps] - Global dependencies containing at least html
+ * @param {import("./typedef.js").Container} CONTAINER - the Container containing the clipboard header to add config spans to
  * @return {void}
  */
-function addOptionSpans(CLIPBOARD_HEADER, deps = {}) {
-  const { html } = mergeDeps(deps);
+function addOptionSpans(CONTAINER) {
+  const { CLIPBOARD_HEADER } = CONTAINER;
+  const { html } = CONTAINER.js_deps;
   // @ts-ignore: Will be populated
   CLIPBOARD_HEADER.option_spans = {};
-  addSingleConfigSpan(CLIPBOARD_HEADER, "format");
-  addSingleConfigSpan(CLIPBOARD_HEADER, "width");
-  addSingleConfigSpan(CLIPBOARD_HEADER, "height");
-  addSingleConfigSpan(CLIPBOARD_HEADER, "scale");
+  addSingleConfigSpan(CONTAINER, "format");
+  addSingleConfigSpan(CONTAINER, "width");
+  addSingleConfigSpan(CONTAINER, "height");
+  addSingleConfigSpan(CONTAINER, "scale");
   // Add set/unset
   CLIPBOARD_HEADER.appendChild(
     html`<button class="clipboard-span set">Set</button>`
@@ -134,7 +160,7 @@ function addOptionSpans(CLIPBOARD_HEADER, deps = {}) {
   CLIPBOARD_HEADER.appendChild(
     html`<button class="clipboard-span unset">Unset</button>`
   );
-  addSingleConfigSpan(CLIPBOARD_HEADER, "filename");
+  addSingleConfigSpan(CONTAINER, "filename");
 }
 
 /**
@@ -152,14 +178,14 @@ export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
   const CLIPBOARD_HEADER = html`<div
     class="plutoplotly-clipboard-header hidden"
   ></div>`;
+  CONTAINER.CLIPBOARD_HEADER = CLIPBOARD_HEADER;
   addClipboardHeaderStyle(CLIPBOARD_HEADER);
   // Add the various spans for the UI
-  addOptionSpans(CLIPBOARD_HEADER);
+  addOptionSpans(CONTAINER);
   // Add the objects collecting ui and config options values
   addImageOptionsObj(CLIPBOARD_HEADER, "ui");
   addImageOptionsObj(CLIPBOARD_HEADER, "config");
   CONTAINER.insertAdjacentElement("afterbegin", CLIPBOARD_HEADER);
-  CONTAINER.CLIPBOARD_HEADER = CLIPBOARD_HEADER;
   // Insert the listener for the change in width/height
   function size_listener(/** @type {CustomEvent} */ e) {
     console.log("Inside size_listener", e);
@@ -185,17 +211,17 @@ function checkConfigSync(span) {
   const { ui_value, config_value, config_span, key } = span;
   if (config_value === undefined) {
     span.setAttribute("config", "missing");
-    config_span.setInnerHTML(
+    config_span.setVariableText(
       `The key <b><em>${key}</em></b> is not present in the config.`
     );
   } else if (ui_value == config_value) {
     span.setAttribute("config", "matching");
-    config_span.setInnerHTML(
+    config_span.setVariableText(
       `The key <b><em>${key}</em></b> has the same value in the config and in the header.`
     );
   } else {
     span.setAttribute("config", "different");
-    config_span.setInnerHTML(
+    config_span.setVariableText(
       `The key <b><em>${key}</em></b> has a different value (<em>${config_value}</em>) in the config.`
     );
   }
@@ -351,7 +377,7 @@ function initializeConfigValueSpan(span, key, deps = {}) {
     </p>`
   );
   // We add the function to set the text on the config
-  span.setInnerHTML = (x) => {
+  span.setVariableText = (x) => {
     variableText.innerHTML = x;
   };
   // Here we mostly want to define the setter and getter

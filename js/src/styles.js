@@ -92,20 +92,29 @@ export function addClipboardHeaderStyle(element, deps = {}) {
     & .config-value {
       font-weight: normal;
       color: var(--pluto-output-color, var(--output-color));
-      display: none;
-      position: absolute;
+      display: block;
+      visibility: hidden;
+      position: fixed;
+      z-index: 2000;
       background: var(--main-bg-color, var(--bg-color));
       border: 3px solid var(--kbd-border-color, var(--border-color));
       border-radius: 12px;
-      transform: translate(0px, calc(-100% - 10px));
       padding: 5px;
+      max-width: 250px;
+      transition: visibility 0.25s;
+    }
+    & .config-value p:first-child {
+      margin-block-start: 0;
+    }
+    & .config-value p:last-child {
+      margin-block-end: 0;
     }
     & .label {
       user-select: none;
     }
     & .label:hover span.config-value {
-      display: inline-block;
-      min-width: 150px;
+      visibility: visible;
+      transition: visibility 0s;
     }
     & .clipboard-span[config="matching"] .label {
       color: var(--cm-macro-color, var(--macro-color));

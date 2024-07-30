@@ -75,7 +75,7 @@
 
 /**
  * @typedef {HTMLWithValue & {
- * setInnerHTML: Function,
+ * setVariableText: Function,
  * }} ConfigValueSpan
  */
 
