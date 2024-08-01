@@ -25,14 +25,14 @@ export function addContainerStyle(CONTAINER, deps = CONTAINER.js_deps) {
       box-sizing: content-box;
       max-width: calc(100vw - var(--max-width-offset));
       max-height: calc(100vh - var(--max-height-offset));
-      width: fit-content;
-      height: fit-content;
+      width: var(--element-width, fit-content);
+      height: var(--element-height, fit-content);
     }
     &.popped-out .plot-pane-container {
       overflow: auto;
       box-sizing: border-box;
-      width: fit-content;
-      height: fit-content;
+      width: var(--element-width, fit-content);
+      height: var(--element-height, fit-content);
       max-width: calc(100vw - var(--max-width-offset));
       max-height: calc(100vh - var(--max-height-offset));
     }

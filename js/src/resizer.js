@@ -211,7 +211,20 @@ export function updateContainerPosition(
   // We set the actual width and height
   CONTAINER.style.setProperty("--plot-width", tpr.width + "px");
   CONTAINER.style.setProperty("--plot-height", tpr.height + "px");
-  CONTAINER.style.setProperty("--element-height", tpr.height + header_height + "px");
+
+  if (CONTAINER.classList.contains('dragging')) {
+    // We keep the width/height constant
+    const element_width = cr.width - border.left - border.right
+    const element_height = cr.height - border.top - border.bottom
+    CONTAINER.style.setProperty("--element-width", element_width + "px");
+    CONTAINER.style.setProperty("--element-height", element_height + "px");
+    PLOT_PANE_CONTAINER?.style.setProperty("--element-height", element_height - header_height + "px");
+  } else {
+    // We remove the values so it defaults to fit-content
+    CONTAINER.style.setProperty("--element-width", "");
+    CONTAINER.style.setProperty("--element-height", "");
+    PLOT_PANE_CONTAINER?.style.setProperty("--element-height", '');
+  }
 
   // Update the span
   const { ui_values } = CONTAINER.CLIPBOARD_HEADER;
