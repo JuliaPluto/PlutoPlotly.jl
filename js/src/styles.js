@@ -76,6 +76,7 @@ export function addClipboardHeaderStyle(element, deps = {}) {
       padding: 5px;
       align-items: center;
       user-select: none;
+      color: var(--pluto-output-color, var(--output-color));
     }
     .popped-out & {
       border-bottom: 3px solid var(--kbd-border-color, var(--border-color));
@@ -96,9 +97,23 @@ export function addClipboardHeaderStyle(element, deps = {}) {
       padding-left: 2px;
       cursor: text;
     }
+    & .help {
+      display: inline-block;
+      position: absolute;
+      right: 0px;
+      padding-right: 3px;
+      --icon-size: 22px;
+      width: var(--icon-size);
+      height: var(--icon-size);
+      background: var(--main-bg-color, var(--bg-color));
+      z-index: 500;
+    }
+    & .help svg {
+      color: var(--pluto-output-color, var(--output-color));
+      fill: var(--pluto-output-color, var(--output-color));
+    }
     & .config-value {
       font-weight: normal;
-      color: var(--pluto-output-color, var(--output-color));
       display: block;
       visibility: hidden;
       position: fixed;
@@ -137,12 +152,19 @@ export function addClipboardHeaderStyle(element, deps = {}) {
     & .clipboard-span.filename {
       flex: 0 0 100%;
       text-align: center;
-      border-top: 3px solid var(--kbd-border-color, var(--border-color));
-      margin-top: 5px;
       display: none;
+    }
+    .filesave-extras &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-bottom: 3px solid var(--cm-border-color, var(--border-color));
+      margin-top: 2px;
     }
     .filesave-extras & .clipboard-span.filename {
       display: inline-block;
+      margin-top: 10px;
     }
     & .clipboard-value.filename {
       margin-left: 3px;
