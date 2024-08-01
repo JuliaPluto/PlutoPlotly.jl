@@ -97,7 +97,7 @@ function addPlotPane(CONTAINER, deps = CONTAINER.js_deps) {
   );
   const PLOT_PANE = (CONTAINER.PLOT_PANE = html`<div
     class="plutoplotly plot-pane"
-  ></div>`);
+  ><img class='clipboard-receiver'/></div>`);
   addPlotPaneStyle(PLOT_PANE, deps);
   PLOT_PANE_CONTAINER.appendChild(PLOT_PANE);
 }

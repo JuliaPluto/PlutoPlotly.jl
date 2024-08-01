@@ -7,7 +7,7 @@
     <script type="module">
         const asd = await import('./src/prehooks.js');
         const deps = await import('./src/url_deps.js');
-        const { makeContainer, setGlobalDeps, GlobalDeps, updatePlotData } = asd
+        const { makeContainer, setGlobalDeps, GlobalDeps, updatePlotData, computeContainerPosition } = asd
         setGlobalDeps(deps)
         console.log(asd)
         const { emotion: { css } } = GlobalDeps
@@ -40,6 +40,7 @@
 
         // Render the plot
         updatePlotData(container, plot_obj)
+        window.computeContainerPosition = computeContainerPosition
         window.container = container
         window.option_spans = container.CLIPBOARD_HEADER.option_spans
         // container.classList.toggle('popped-out', true)

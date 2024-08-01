@@ -19,20 +19,24 @@ export function addDragFunctionality(CONTAINER) {
   interact(CLIPBOARD_HEADER).draggable({
     listeners: {
       start(event) {
-        const { pr, border, header_height } =
+        const { cr, pr, border, header_height } =
           computeContainerPosition(CONTAINER);
         const { top, left, width, height } = pr;
         // The minus 3 is for allowing some distance to the edge
         limits.left = {
           min: border.left + 3,
-          max: globalThis.innerWidth - (width + border.right + 3),
+          max: globalThis.innerWidth - (cr.width - border.left + 3),
         };
         limits.top = {
           min: border.top + header_height + 3,
-          max: globalThis.innerHeight - (height + border.bottom + 3),
+          // We use the cr.height - header_height because this is constrainted to the window, while the pr.height (PLOT_PANE) can be bigger and represents the height of the plot itself
+          max:
+            globalThis.innerHeight -
+            (cr.height - border.top - header_height + 3), // top/bottom borders are already included in cr.height
         };
         current = { top, left, width, height };
         last = { top, left, width, height };
+        console.log("dragstart: ", { pr, border, header_height, limits, last });
         CLIPBOARD_HEADER.classList.toggle("dragging", true);
       },
       move(event) {
@@ -77,7 +81,7 @@ export function addResizeFunctionality(CONTAINER) {
     listeners: {
       start(event) {
         const { edges } = event;
-        const { pr, border, header_height } =
+        const { cr, pr, border, header_height } =
           computeContainerPosition(CONTAINER);
         const { top, left, width, height } = pr;
         current = { top, left, width, height };
@@ -85,7 +89,9 @@ export function addResizeFunctionality(CONTAINER) {
         limits.left.min = border.left + 3;
         limits.left.max = pr.left + width - limits.width.min;
         limits.top.min = border.top + header_height + 3;
-        limits.top.max = pr.top + height - limits.height.min;
+        // This will limit `top` to the value which will make the container bottom border touch the bottom of the window (minus the margin)
+        limits.top.max =
+          pr.top + (cr.height - header_height) - limits.height.min;
         limits.width.max = edges.left
           ? pr.right - limits.left.min // We are resizing left
           : edges.right
@@ -123,11 +129,10 @@ export function addResizeFunctionality(CONTAINER) {
             limits.height.max
           ),
         };
+
         if (!lodash.isEqual(last, new_size)) {
           last = { ...new_size };
           updateContainerPosition(CONTAINER, last);
-          ui_values.width = last.width;
-          ui_values.height = last.height;
         }
       },
       end(event) {
@@ -143,10 +148,9 @@ export function addResizeFunctionality(CONTAINER) {
  * @param {import("./typedef.js").Container} CONTAINER - The container element.
  * @returns {{cr: DOMRect, pr: DOMRect, border: {top: number, right: number, bottom: number, left: number}, header_height: number}}
  */
-function computeContainerPosition(CONTAINER) {
+export function computeContainerPosition(CONTAINER) {
   const cr = CONTAINER.getBoundingClientRect();
   const pr = CONTAINER.PLOT_PANE.getBoundingClientRect();
-  const header_height = cr.height - pr.height;
 
   const computedStyle = getComputedStyle(CONTAINER);
   const border = {
@@ -155,6 +159,8 @@ function computeContainerPosition(CONTAINER) {
     bottom: parseFloat(computedStyle.getPropertyValue("border-bottom-width")),
     left: parseFloat(computedStyle.getPropertyValue("border-left-width")),
   };
+  // This does not count the container top border, so it is really just the height of the clipboard_header
+  const header_height = pr.top - cr.top - border.top;
 
   return { cr, pr, border, header_height };
 }
@@ -181,26 +187,53 @@ export function updateContainerPosition(
 
   const top_offset = tpr.top - pr.top;
   const left_offset = tpr.left - pr.left;
-  const top = cr.top + top_offset;
-  const left = cr.left + left_offset;
+  const top = Math.max(cr.top + top_offset, 3);
+  const left = Math.max(cr.left + left_offset, 3);
+
+  // console.log({border, header_height, tpr, pr, cr})
+
+  // These are the height and width offsets for the container in pixels. We add both borders as we have box-sizing: content-box, which does not include borders in the width
+  const height_offset =
+    tpr.top - header_height + border.bottom + 3;
+  const width_offset = tpr.left + border.right + 3;
 
   CONTAINER.style.setProperty("--element-top", top + "px");
   CONTAINER.style.setProperty("--element-left", left + "px");
-  // The 3 belows are to
-  CONTAINER.style.setProperty(
-    "--max-width-offset",
-    tpr.left + border.right + 3 + "px"
-  );
-  CONTAINER.style.setProperty(
-    "--max-height-offset",
-    tpr.top - header_height + border.bottom + 3 + "px"
-  );
+  // The 3 belows are to have some margin between the border and the window edge
+  CONTAINER.style.setProperty("--max-width-offset", width_offset + "px");
+  CONTAINER.style.setProperty("--max-height-offset", height_offset + "px");
+
+  const fixed_size = CONTAINER.classList.contains("fixed-size");
+  // // We fix the width/height of the container if we are in fixed-size
+  // CONTAINER.style.setProperty(
+  //   "--element-width",
+  //   fixed_size
+  //     ? Math.min(tpr.width, globalThis.innerWidth - width_offset) + "px"
+  //     : ""
+  // );
+  // CONTAINER.style.setProperty(
+  //   "--element-height",
+  //   fixed_size
+  //     ? Math.min(
+  //         tpr.height + header_height - border.top,
+  //         globalThis.innerHeight - height_offset
+  //       ) + "px"
+  //     : ""
+  // );
+
   // @ts-ignore we are sure the container is not null
   PLOT_PANE_CONTAINER.style.setProperty(
     "--max-height-offset",
-    tpr.top + border.bottom + 3 + "px"
+    height_offset + header_height + "px" // We add the header height becuase that is the height difference between container and PLOT_PANE_CONTAINER
   );
 
-  PLOT_PANE.style.setProperty("--plot-width", tpr.width + "px");
-  PLOT_PANE.style.setProperty("--plot-height", tpr.height + "px");
+  // We set the actual width and height
+  CONTAINER.style.setProperty("--plot-width", tpr.width + "px");
+  CONTAINER.style.setProperty("--plot-height", tpr.height + "px");
+  CONTAINER.style.setProperty("--element-height", tpr.height + header_height + "px");
+
+  // Update the span
+  const { ui_values } = CONTAINER.CLIPBOARD_HEADER;
+  ui_values.width = tpr.width;
+  ui_values.height = tpr.height;
 }

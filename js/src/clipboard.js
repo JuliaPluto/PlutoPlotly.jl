@@ -2,7 +2,7 @@ import { addFormatConfigStyle, addClipboardHeaderStyle } from "./styles.js";
 import { delay, getImageOptions, image_options_defaults } from "./utils.js";
 import { mergeDeps } from "./global_deps.js";
 import { addDragFunctionality, addResizeFunctionality } from "./resizer.js";
-import { updateContainerPosition } from "./resizer.js";
+import { computeContainerPosition, updateContainerPosition } from "./resizer.js";
 
 // Download formats
 const valid_download_formats = ["png", "svg", "webp", "jpeg", "full-json"];
@@ -23,6 +23,8 @@ export const toImageOptionKeys = [
  * @return {undefined} span function does not return a value.
  */
 export function addClipboardFunctionality(CONTAINER) {
+  // Return if the CLIPBOARD HEADER has been assigned already
+  if (CONTAINER.CLIPBOARD_HEADER !== undefined) return;
   // Try adding the clipboard header if not present
   addClipboardHeader(CONTAINER);
   // Add the drag functionality
@@ -41,6 +43,23 @@ export function addClipboardFunctionality(CONTAINER) {
   };
   // Modify the plot object to include the buttons
   modifyModebarButtons(CONTAINER);
+  // Add the listener for clipboard image
+  addClipboardEventListener(CONTAINER)
+}
+
+/**
+ * Adds a clipboard event listener to the provided container.
+ *
+ * @param {import("./typedef.js").Container} CONTAINER - The container element to add the listener to.
+ * @return {void} This function does not return anything.
+ */
+function addClipboardEventListener(CONTAINER) {
+  function listener(/** @type {CustomEvent} */ e) {
+    const img = CONTAINER.querySelector("img.clipboard-receiver");
+    // @ts-ignore img will be there and src is a property of it
+    img.src = e.detail.imgsrc
+  }
+  CONTAINER.addEventListener("copy-to-clipboard", listener)
 }
 
 /**
@@ -171,9 +190,7 @@ function addOptionSpans(CONTAINER) {
  * @return {undefined} span function does not return a value.
  */
 export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
-  const { html } = mergeDeps(deps);
-  // Return if the CLIPBOARD HEADER has been assigned already
-  if (CONTAINER.CLIPBOARD_HEADER !== undefined) return;
+  const { html, lodash } = mergeDeps(deps);
   /** @type {import("./typedef.js").ClipboardHeader} */
   const CLIPBOARD_HEADER = html`<div
     class="plutoplotly-clipboard-header hidden"
@@ -189,10 +206,20 @@ export function addClipboardHeader(CONTAINER, deps = CONTAINER.js_deps) {
   // Insert the listener for the change in width/height
   function size_listener(/** @type {CustomEvent} */ e) {
     const { key, type, value } = e.detail;
+    console.log('resize-event')
     if (type !== "ui") return;
     if (!(key === "width" || key === "height")) return;
-    const varname = `--plot-${key}`;
-    CONTAINER.PLOT_PANE.style.setProperty(varname, value + "px");
+    const { pr } = computeContainerPosition(CONTAINER);
+    const new_target = { 
+      width: pr.width,
+      height: pr.height,
+      top: pr.top,
+      left: pr.left
+    }
+    // Modify the actual key
+    new_target[key] = value
+    if (lodash.isEqual(pr, new_target)) return
+    updateContainerPosition(CONTAINER, new_target);
   }
   CLIPBOARD_HEADER.addEventListener("clipboard-header-change", size_listener, {
     signal: CONTAINER.controller.signal,
@@ -533,17 +560,24 @@ function sendToClipboard(blob) {
 export function copyImageToClipboard(CONTAINER) {
   // We extract the image options from the provided parameters (if they exist)
   const { Plotly, PLOT, CLIPBOARD_HEADER } = CONTAINER;
-  const config = CLIPBOARD_HEADER.ui_values;
+  const { ui_values, config_values } = CLIPBOARD_HEADER;
+  const config = {
+    width: config_values.width ?? ui_values.width,
+    height: config_values.height ?? ui_values.height,
+    format: config_values.format ?? ui_values.format,
+    scale: config_values.scale ?? ui_values.scale,
+  };
+  // @ts-ignore config would like toImageOpts but we are ok with this
   Plotly.toImage(PLOT, config).then(function (dataUrl) {
     fetch(dataUrl)
       .then((res) => res.blob())
       .then((blob) => {
-        // const paste_receiver = document.querySelector(
-        //   "paste-receiver.plutoplotly"
-        // );
-        // if (paste_receiver) {
-        //   paste_receiver.attachImage(dataUrl, CONTAINER);
-        // }
+        PLOT.dispatchEvent(
+          new CustomEvent("copy-to-clipboard", {
+            bubbles: true,
+            detail: { imgsrc: dataUrl },
+          })
+        );
         sendToClipboard(blob);
       });
   });
@@ -583,93 +617,6 @@ export function unpopContainer(CONTAINER) {
   CONTAINER.classList.toggle("popped-out", false);
 }
 
-// let container_rect = { width: 0, height: 0, top: 0, left: 0 };
-// function unpop_container(cl) {
-//   CONTAINER.classList.toggle("popped-out", false);
-//   CONTAINER.classList.toggle(cl, false);
-//   // We fix the height back to the value it had before popout, also setting the flag to signal that upon first resize we remove the fixed inline-style
-//   CONTAINER.style.height = container_rect.height + "px";
-//   remove_container_size = true;
-//   // We set the other fixed inline-styles to null
-//   CONTAINER.style.width = "";
-//   CONTAINER.style.top = "";
-//   CONTAINER.style.left = "";
-//   // We also remove the CLIPBOARD_HEADER
-//   CLIPBOARD_HEADER.style.width = "";
-//   CLIPBOARD_HEADER.style.left = "";
-//   // Finally we remove the hidden class to the header
-//   CLIPBOARD_HEADER.classList.toggle("hidden", true);
-//   return;
-// }
-// function popout_container(opts) {
-//   const cl = opts?.cl;
-//   const target_container_size = opts?.target_container_size ?? {};
-//   const target_plot_size = opts?.target_plot_size ?? {};
-//   if (CONTAINER.isPoppedOut()) {
-//     return unpop_container(cl);
-//   }
-//   CONTAINER.classList.toggle(cl, cl === undefined ? false : true);
-//   // We extract the current size of the container, save them and fix them
-//   const { width, height, top, left } = CONTAINER.getBoundingClientRect();
-//   container_rect = { width, height, top, left };
-//   // We save the current plot size before we pop as it will fill the screen
-//   const current_plot_size = {
-//     width: PLOT._fullLayout.width,
-//     height: PLOT._fullLayout.height,
-//   };
-//   // We have to save the pad data before popping so we can resize precisely
-//   const pad = {};
-//   pad.unpopped = getSizeData().container_pad;
-//   CONTAINER.classList.toggle("popped-out", true);
-//   pad.popped = getSizeData().container_pad;
-//   // We do top and left based on the current rect
-//   for (const key of ["top", "left"]) {
-//     const start_val = target_container_size[key] ?? container_rect[key];
-//     let offset = 0;
-//     for (const kind of ["padding", "border"]) {
-//       offset += pad.popped[kind][key] - pad.unpopped[kind][key];
-//     }
-//     CONTAINER.style[key] = start_val - offset + "px";
-//     if (key === "left") {
-//       CLIPBOARD_HEADER.style[key] = CONTAINER.style[key];
-//     }
-//   }
-//   // We compute the width and height depending on eventual config data
-//   const csz = computeContainerSize({
-//     width:
-//       target_plot_size.width ??
-//       option_spans.width.config_value ??
-//       current_plot_size.width,
-//     height:
-//       target_plot_size.height ??
-//       option_spans.height.config_value ??
-//       current_plot_size.height,
-//   });
-//   for (const key of ["width", "height"]) {
-//     const val = target_container_size[key] ?? csz[key];
-//     CONTAINER.style[key] = val + "px";
-//     if (key === "width") {
-//       CLIPBOARD_HEADER.style[key] = CONTAINER.style[key];
-//     }
-//   }
-//   CLIPBOARD_HEADER.classList.toggle("hidden", false);
-//   const controller = new AbortController();
-
-//   document.addEventListener(
-//     "mousedown",
-//     (e) => {
-//       if (e.target.closest(".plutoplotly-container") !== CONTAINER) {
-//         unpop_container();
-//         controller.abort();
-//         return;
-//       }
-//     },
-//     { signal: controller.signal }
-//   );
-// }
-
-// CONTAINER.popOut = popout_container;
-
 /**
  * Creates a function that will execute single_func if clicked once, and dbl_func if clicked twice within a short timeframe.
  *
@@ -694,38 +641,6 @@ function DualClick(single_func, dbl_func) {
     }
   };
 }
-
-// // We remove the default download image button
-// plot_obj.config.modeBarButtonsToRemove = _.union(
-//   plot_obj.config.modeBarButtonsToRemove,
-//   ["toImage"]
-// );
-// // We add the custom button to the modebar
-// plot_obj.config.modeBarButtonsToAdd = _.union(
-//   plot_obj.config.modeBarButtonsToAdd,
-//   [
-//     {
-//       name: "Copy PNG to Clipboard",
-//       icon: {
-//         height: 520,
-//         width: 520,
-//         path: "M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z",
-//       },
-//       direction: "up",
-//       click: DualClick(copyImageToClipboard, () => {
-//         popout_container();
-//       }),
-//     },
-//     {
-//       name: "Download Image",
-//       icon: Plotly.Icons.camera,
-//       direction: "up",
-//       click: DualClick(saveImageToFile, () => {
-//         popout_container({ cl: "filesave" });
-//       }),
-//     },
-//   ]
-// );
 
 function modifyModebarButtons(CONTAINER) {
   const { plot_obj, js_deps, togglePopout, Plotly } = CONTAINER;

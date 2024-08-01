@@ -25,6 +25,8 @@ export function addContainerStyle(CONTAINER, deps = CONTAINER.js_deps) {
       box-sizing: content-box;
       max-width: calc(100vw - var(--max-width-offset));
       max-height: calc(100vh - var(--max-height-offset));
+      width: var(--plot-width, 'auto');
+      height: var(--element-height, 'auto');
     }
     &.popped-out .plot-pane-container {
       overflow: auto;
@@ -254,6 +256,17 @@ export function addPlotPaneStyle(PLOT_PANE, deps = {}) {
     .popped-out & {
       width: var(--plot-width);
       height: var(--plot-height);
+    }
+    .show-pasted & img.clipboard-receiver {
+      display: block
+    }
+    .show-pasted & .plutoplotly-plot {
+      display: none;
+    }
+    & img.clipboard-receiver {
+      display: none;
+      width: 100%;
+      height: 100%;
     }
     & .js-plotly-plot .plotly div {
       margin: 0 auto; // This centers the plot
