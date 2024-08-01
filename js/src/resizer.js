@@ -37,7 +37,7 @@ export function addDragFunctionality(CONTAINER) {
         current = { top, left, width, height };
         last = { top, left, width, height };
         console.log("dragstart: ", { pr, border, header_height, limits, last });
-        CLIPBOARD_HEADER.classList.toggle("dragging", true);
+        CONTAINER.classList.toggle("dragging", true);
       },
       move(event) {
         const left = (current.left += event.dx);
@@ -52,7 +52,7 @@ export function addDragFunctionality(CONTAINER) {
         }
       },
       end(event) {
-        CLIPBOARD_HEADER.classList.toggle("dragging", false);
+        CONTAINER.classList.toggle("dragging", false);
       },
     },
   });
@@ -203,26 +203,7 @@ export function updateContainerPosition(
   CONTAINER.style.setProperty("--max-width-offset", width_offset + "px");
   CONTAINER.style.setProperty("--max-height-offset", height_offset + "px");
 
-  const fixed_size = CONTAINER.classList.contains("fixed-size");
-  // // We fix the width/height of the container if we are in fixed-size
-  // CONTAINER.style.setProperty(
-  //   "--element-width",
-  //   fixed_size
-  //     ? Math.min(tpr.width, globalThis.innerWidth - width_offset) + "px"
-  //     : ""
-  // );
-  // CONTAINER.style.setProperty(
-  //   "--element-height",
-  //   fixed_size
-  //     ? Math.min(
-  //         tpr.height + header_height - border.top,
-  //         globalThis.innerHeight - height_offset
-  //       ) + "px"
-  //     : ""
-  // );
-
-  // @ts-ignore we are sure the container is not null
-  PLOT_PANE_CONTAINER.style.setProperty(
+  PLOT_PANE_CONTAINER?.style.setProperty(
     "--max-height-offset",
     height_offset + header_height + "px" // We add the header height becuase that is the height difference between container and PLOT_PANE_CONTAINER
   );

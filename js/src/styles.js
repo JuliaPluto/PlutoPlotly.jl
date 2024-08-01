@@ -25,11 +25,14 @@ export function addContainerStyle(CONTAINER, deps = CONTAINER.js_deps) {
       box-sizing: content-box;
       max-width: calc(100vw - var(--max-width-offset));
       max-height: calc(100vh - var(--max-height-offset));
-      width: var(--plot-width, 'auto');
-      height: var(--element-height, 'auto');
+      width: fit-content;
+      height: fit-content;
     }
     &.popped-out .plot-pane-container {
       overflow: auto;
+      box-sizing: border-box;
+      width: fit-content;
+      height: fit-content;
       max-width: calc(100vw - var(--max-width-offset));
       max-height: calc(100vh - var(--max-height-offset));
     }
@@ -114,7 +117,7 @@ export function addClipboardHeaderStyle(element, deps = {}) {
     & .label {
       user-select: none;
     }
-    & .label:hover span.config-value {
+    .plutoplotly-container:not(.dragging) & .label:hover span.config-value {
       visibility: visible;
       transition: visibility 0s;
     }
@@ -252,6 +255,7 @@ export function addPlotPaneStyle(PLOT_PANE, deps = {}) {
       min-width: 0;
       margin: 0;
       padding: 0;
+      box-sizing: content;
     }
     .popped-out & {
       width: var(--plot-width);
