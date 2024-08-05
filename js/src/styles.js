@@ -18,8 +18,6 @@ export function addContainerStyle(CONTAINER, deps = CONTAINER.js_deps) {
       background: var(--main-bg-color, var(--bg-color));
       border: 3px solid var(--kbd-border-color, var(--border-color));
       border-radius: 12px;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
       top: var(--element-top, 'auto');
       left: var(--element-left, 'auto');
       box-sizing: content-box;
@@ -97,6 +95,9 @@ export function addClipboardHeaderStyle(element, deps = {}) {
       padding-left: 2px;
       cursor: text;
     }
+    & .help .tooltip {
+      min-width: 400px;
+    }
     & .help {
       display: inline-block;
       position: absolute;
@@ -111,8 +112,14 @@ export function addClipboardHeaderStyle(element, deps = {}) {
     & .help svg {
       color: var(--pluto-output-color, var(--output-color));
       fill: var(--pluto-output-color, var(--output-color));
+      width: var(--icon-size);
+      height: var(--icon-size);
     }
-    & .config-value {
+    & .help svg.plotly-icon {
+      --icon-size: 15px;
+      display: inline-block;
+    }
+    & .tooltip {
       font-weight: normal;
       display: block;
       visibility: hidden;
@@ -125,16 +132,16 @@ export function addClipboardHeaderStyle(element, deps = {}) {
       max-width: 250px;
       transition: visibility 0.25s;
     }
-    & .config-value p:first-child {
+    & .tooltip p:first-child {
       margin-block-start: 0;
     }
-    & .config-value p:last-child {
+    & .tooltip p:last-child {
       margin-block-end: 0;
     }
     & .label {
       user-select: none;
     }
-    .plutoplotly-container:not(.dragging) & .label:hover span.config-value {
+    .plutoplotly-container:not(.dragging) & .tooltip-target:hover .tooltip {
       visibility: visible;
       transition: visibility 0s;
     }

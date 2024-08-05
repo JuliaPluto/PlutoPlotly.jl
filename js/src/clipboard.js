@@ -16,6 +16,9 @@ export const toImageOptionKeys = [
   "filename",
 ];
 
+// SVG path of the clipboard icon
+const clipboard_path = "M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"
+
 /**
  * Update the provided container to eventually add a clipboard header and modify the plot_obj.
  *
@@ -65,22 +68,22 @@ function addClipboardEventListener(CONTAINER) {
 /**
  * Adds a tooltip listener to the provided config span element.
  *
- * @param {import("./typedef.js").ImageOptionSpan} span - The config span element to add the tooltip listener to.
+ * @param {HTMLElement} target - The HTML element which should trigger the tooltip appearance.
+ * @param {HTMLElement} tooltip - The tooltip element whose position should be updated while hovering over the target.
  * @param {import("./typedef.js").JSDeps} js_deps - The dependencies object containing the necessary tools for the tooltip listener.
  * @return {void} This function does not return a value.
  */
-function addTooltipListener(span, js_deps) {
+function addTooltipListener(target, tooltip, js_deps) {
   const { floatingUI } = js_deps;
   const { computePosition, flip, shift, offset } = floatingUI;
-  const { label, config_span } = span;
-  label.onmouseenter = (e) => {
-    computePosition(label, config_span, {
+  target.onmouseenter = (e) => {
+    computePosition(target, tooltip, {
       strategy: "fixed",
       placement: "top-start",
       middleware: [offset(6), flip(), shift()],
     }).then(({ x, y }) => {
-      config_span.style.top = y + "px";
-      config_span.style.left = x + "px";
+      tooltip.style.top = y + "px";
+      tooltip.style.left = x + "px";
     });
   };
 }
@@ -94,8 +97,8 @@ function addTooltipListener(span, js_deps) {
 export function addSingleConfigSpan(CONTAINER, name) {
   const { CLIPBOARD_HEADER } = CONTAINER;
   const { html, lodash } = CONTAINER.js_deps;
-  const config_span = html`<span class="config-value"></span>`;
-  const label = html`<span class="label"
+  const config_span = html`<span class="tooltip"></span>`;
+  const label = html`<span class="label tooltip-target"
     >${config_span}${lodash.capitalize(name)}:</span
   >`;
   const ui_span = html`<span class="clipboard-value ${name}"></span>`;
@@ -146,7 +149,7 @@ export function addSingleConfigSpan(CONTAINER, name) {
     }
   );
   // Add the tooltip listener
-  addTooltipListener(container, CONTAINER.js_deps);
+  addTooltipListener(label, config_span, CONTAINER.js_deps);
   // Add the listener for imageOptions change
   const listener = (/** @type {CustomEvent} */ e) => {
     checkConfigSync(container);
@@ -186,11 +189,22 @@ function addOptionSpans(CONTAINER) {
 function addHelpIcon(CONTAINER) {
   const { html } = CONTAINER.js_deps;
   const { CLIPBOARD_HEADER } = CONTAINER;
-  CLIPBOARD_HEADER.appendChild(
-    html`<div class='help'>
-<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path d="M160 164s1.44-33 33.54-59.46C212.6 88.83 235.49 84.28 256 84c18.73-.23 35.47 2.94 45.48 7.82C318.59 100.2 352 120.6 352 164c0 45.67-29.18 66.37-62.35 89.18S248 298.36 248 324" fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="40"/><circle cx="248" cy="399.99" r="32"/></svg>
-</div>`
-  )
+  const tooltip = html`<div class="tooltip">
+  <p>This floating container can be used to modify the plot appearance before copying to the clipboard or downloading the image corresponding to the plot within this container.</p>
+
+  <p>
+  <svg viewBox="0 0 520 520" class='plotly-icon'>
+  <path d='${clipboard_path}'></path>
+  </svg>
+  This is the icon to copy the plot to the clipboard (as a png).
+  </p>
+  </div>`
+  const help = html`<div class='help tooltip-target'>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path d="M160 164s1.44-33 33.54-59.46C212.6 88.83 235.49 84.28 256 84c18.73-.23 35.47 2.94 45.48 7.82C318.59 100.2 352 120.6 352 164c0 45.67-29.18 66.37-62.35 89.18S248 298.36 248 324" fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="40"/><circle cx="248" cy="399.99" r="32"/></svg>
+  </div>`
+  help.appendChild(tooltip)
+  addTooltipListener(help, tooltip, CONTAINER.js_deps)
+  CLIPBOARD_HEADER.appendChild(help)
 }
 
 /**
@@ -653,6 +667,7 @@ function DualClick(single_func, dbl_func) {
   };
 }
 
+
 function modifyModebarButtons(CONTAINER) {
   const { plot_obj, js_deps, togglePopout, Plotly } = CONTAINER;
   const { lodash } = js_deps;
@@ -671,7 +686,7 @@ function modifyModebarButtons(CONTAINER) {
         icon: {
           height: 520,
           width: 520,
-          path: "M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z",
+          path: clipboard_path,
         },
         direction: "up",
         click: DualClick(
