@@ -12,6 +12,7 @@ using LaTeXStrings
 using Markdown
 using Downloads: download
 using Artifacts
+using ScopedValues
 # This is similar to `@reexport` but does not exports undefined names and can
 # also avoid exporting the module name
 function re_export(m::Module; skip_modname = false)
