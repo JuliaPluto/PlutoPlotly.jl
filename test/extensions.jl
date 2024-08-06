@@ -3,9 +3,8 @@ using Test
 
 ## PlotlyKaleido Extension ##
 using PlotlyKaleido
-if Sys.iswindows()
-    # We skip extensions in windows as PlotlyKaleido fails
-else
+if Sys.islinux()
+    # We only test this in linux as the library fail in CI on Mac OS and Windows
     PlotlyKaleido.start()
 
     mktempdir() do dir
