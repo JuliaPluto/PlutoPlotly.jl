@@ -3,8 +3,8 @@ using Test
 
 ## PlotlyKaleido Extension ##
 using PlotlyKaleido
-if Sys.iswindows()
-    # We skip extensions in windows as PlotlyKaleido fails
+if Sys.isapple()
+    # We skip extensions in Mac OS as PlotlyKaleido fails
 else
     PlotlyKaleido.start()
 
