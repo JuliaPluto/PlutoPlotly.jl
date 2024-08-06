@@ -1,7 +1,8 @@
 using Test
 using PlutoPlotly
-using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32, ARTIFACT_VERSION
+using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32, ARTIFACT_VERSION, PLOTLY_VERSION
 using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler, templates
+using ScopedValues
 
 @test SKIP_FLOAT32[] == false
 @test skip_float32() do
@@ -40,3 +41,6 @@ end
 @test get_plotly_version() === ARTIFACT_VERSION
 @test change_plotly_version("2.30") === VersionNumber("2.30.0")
 @test get_plotly_version() === VersionNumber("2.30.0")
+@test VersionNumber("2.33.0") === with(PLOTLY_VERSION => "2.33") do 
+    get_plotly_version()
+end 
