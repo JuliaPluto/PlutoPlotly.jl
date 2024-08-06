@@ -38,5 +38,5 @@ end
 @test plutoplotly_paste_receiver() isa PlutoPlotly.HypertextLiteral.Result
 
 @test get_plotly_version() === ARTIFACT_VERSION
-# @test change_plotly_version("2.30") === VersionNumber("2.30.0")
-# @test get_plotly_version() === VersionNumber("2.30.0")
+@test change_plotly_version("2.30") === VersionNumber("2.30.0")
+@test get_plotly_version() === VersionNumber("2.30.0")

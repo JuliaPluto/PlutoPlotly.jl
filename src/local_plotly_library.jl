@@ -1,6 +1,3 @@
-const DATA_FOLDER = BaseDirs.User.data("plutoplotly/")
-isdir(DATA_FOLDER) || mkpath(DATA_FOLDER)
-
 get_plotly_esm_url(v) = "https://esm.sh/plotly.js-dist-min@$(VersionNumber(v))"
 get_plotly_cdn_url(v) = "https://cdn.plot.ly/plotly-$(VersionNumber(v)).min.js"
 
@@ -23,7 +20,9 @@ end
 get_local_path(v) = if VersionNumber(v) === ARTIFACT_VERSION
     joinpath(artifact"plotly-esm-min", "plotly-esm-min.mjs")
 else
-    joinpath(DATA_FOLDER, "$(get_local_name(v)).mjs")
+    # We use the UUID explicitly to make this work with PlutoDevMacros even without rootmodule
+    scratchspace = get_scratch!(Base.UUID("8e989ff0-3d88-8e9f-f020-2b208a939ff0"), "plotly-library-esm")
+    joinpath(scratchspace, "$(get_local_name(v)).mjs")
 end
 get_local_name(v) = "plotly-esm-min-$(VersionNumber(v))"
 

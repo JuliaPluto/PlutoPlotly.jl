@@ -5,7 +5,7 @@ using PlotlyBase
 using HypertextLiteral
 using AbstractPlutoDingetjes
 using Dates
-using BaseDirs
+using Scratch
 using TOML
 using Colors
 using LaTeXStrings
