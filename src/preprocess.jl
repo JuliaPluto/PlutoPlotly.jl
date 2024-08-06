@@ -1,9 +1,6 @@
-const SKIP_FLOAT32 = Ref(false)
+const SKIP_FLOAT32 = ScopedValue(false)
 skip_float32(f) = let
-    SKIP_FLOAT32[] = true
-    out = f()
-    SKIP_FLOAT32[] = false
-    out
+    with(f, SKIP_FLOAT32 => true)
 end
 
 #=
