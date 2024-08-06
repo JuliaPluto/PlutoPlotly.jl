@@ -7,6 +7,3 @@ Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
-
-[compat]
-Kaleido_jll = "0.1"

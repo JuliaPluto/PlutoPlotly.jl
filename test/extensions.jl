@@ -3,9 +3,9 @@ using Test
 
 ## PlotlyKaleido Extension ##
 using PlotlyKaleido
-if Sys.isapple()
-    # We skip extensions in Mac OS as PlotlyKaleido fails
-else
+# if Sys.isapple()
+#     # We skip extensions in Mac OS as PlotlyKaleido fails
+# else
     PlotlyKaleido.start()
 
     mktempdir() do dir
@@ -15,7 +15,7 @@ else
             @test isfile("test_savefig.png")
         end
     end
-end
+# end
 
 ## Unitful Extension ##
 using PlutoPlotly: _preprocess
