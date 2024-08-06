@@ -1,4 +1,4 @@
-function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = PLOTLY_VERSION[])
+function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = get_plotly_version())
 @htl """
 	<script id=$(script_id)>
 		// We start by putting all the variable interpolation here at the beginning

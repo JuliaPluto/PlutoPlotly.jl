@@ -1,5 +1,6 @@
 const ARTIFACT_VERSION = VersionNumber(read(joinpath(artifact"plotly-esm-min", "VERSION"), String))
-const PLOTLY_VERSION = Ref(ARTIFACT_VERSION)
+const DEFAULT_PLOTLY_VERSION = Ref(ARTIFACT_VERSION)
+const PLOTLY_VERSION = ScopedValue{Union{Nothing, String, VersionNumber}}(nothing)
 const DEFAULT_TEMPLATE = Ref(PlotlyBase.templates[PlotlyBase.templates.default])
 const JS = HypertextLiteral.JavaScript
 
@@ -57,10 +58,13 @@ end
 function change_plotly_version(v)
 	ver = VersionNumber(v)
 	maybe_add_plotly_local(ver)
-	PLOTLY_VERSION[] = ver
+	DEFAULT_PLOTLY_VERSION[] = ver
 end
 
-get_plotly_version() = PLOTLY_VERSION[]
+function get_plotly_version() 
+    v = @something PLOTLY_VERSION[] DEFAULT_PLOTLY_VERSION[]
+    return VersionNumber(v)
+end
 
 ## Prepend Cell Selector ##
 """
