@@ -1,7 +1,8 @@
 using Test
 using PlutoPlotly
-using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32, ARTIFACT_VERSION
+using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32, ARTIFACT_VERSION, PLOTLY_VERSION
 using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler, templates
+using ScopedValues
 
 @test SKIP_FLOAT32[] == false
 @test skip_float32() do
@@ -10,8 +11,12 @@ end == true
 @test SKIP_FLOAT32[] == false
 
 @test force_pluto_mathjax_local() === false
-force_pluto_mathjax_local(true)
-@test force_pluto_mathjax_local() === true
+try
+    force_pluto_mathjax_local(true)
+    @test force_pluto_mathjax_local() === true
+finally
+    force_pluto_mathjax_local(false)
+end
 
 @test ColorScheme([Colors.RGB(0.0, 0.0, 0.0), Colors.RGB(1.0, 1.0, 1.0)],
 "custom", "twotone, black and white") |> _preprocess == [(0.0, "rgb(0,0,0)"), (1.0, "rgb(255,255,255)")]
@@ -24,10 +29,13 @@ force_pluto_mathjax_local(true)
 
 # Check that plotly is the default
 @test default_plotly_template() == templates[templates.default]
-@test default_plotly_template(:none) == Template()
-@test default_plotly_template("seaborn") == templates[:seaborn]
-@test_logs (:info, "The default plotly template is seaborn") default_plotly_template(;find_matching = true)
-
+try
+    @test default_plotly_template(:none) == Template()
+    @test default_plotly_template("seaborn") == templates[:seaborn]
+    @test_logs (:info, "The default plotly template is seaborn") default_plotly_template(;find_matching = true)
+finally
+    default_plotly_template(templates[templates.default]) 
+end
 let p = plot(rand(4))
     @test get_image_options(p) == Dict{Symbol,Any}()
     change_image_options!(p; height = 400)
@@ -38,5 +46,13 @@ end
 @test plutoplotly_paste_receiver() isa PlutoPlotly.HypertextLiteral.Result
 
 @test get_plotly_version() === ARTIFACT_VERSION
-@test change_plotly_version("2.30") === VersionNumber("2.30.0")
-@test get_plotly_version() === VersionNumber("2.30.0")
+try
+    @test change_plotly_version("2.30") === VersionNumber("2.30.0")
+    @test get_plotly_version() === VersionNumber("2.30.0")
+    @test VersionNumber("2.33.0") === with(PLOTLY_VERSION => "2.33") do 
+        get_plotly_version()
+    end 
+finally
+# We put back the default version to be the ARTIFACT one. This is to avoid errors while repeating multiple times tests locally
+    change_plotly_version(ARTIFACT_VERSION)
+end

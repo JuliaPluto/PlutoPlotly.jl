@@ -1,11 +1,7 @@
-const SKIP_FLOAT32 = Ref(false)
-skip_float32(f) =
-    let
-        SKIP_FLOAT32[] = true
-        out = f()
-        SKIP_FLOAT32[] = false
-        out
-    end
+const SKIP_FLOAT32 = ScopedValue(false)
+skip_float32(f) = let
+    with(f, SKIP_FLOAT32 => true)
+end
 
 #=
 This function is basically `_json_lower` from PlotlyBase, but we do it directly
