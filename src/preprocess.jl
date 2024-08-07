@@ -8,7 +8,6 @@ struct AttrName{S}
     name::Symbol
     AttrName(s::Symbol) = new{s}(s)
 end
-AttrName(s) = AttrName(Symbol(s))
 # This is used to handle args... which in case only one element is passed is not iterable
 Base.iterate(n::AttrName, state = 1) = state > 1 ? nothing : (n, state + 1)
 
@@ -38,7 +37,7 @@ call will have this form:
 
 This again is to allow dispatch to work on the path so that one can customize behavior of _process_with_names with great control.
 At the moment this is only used for modifying the behavior when `title` is
-passed as a String, changing it to the more recent plotly synthax (see
+passed as a String, changing it to the more recent plotly syntax (see
 https://github.com/JuliaPluto/PlutoPlotly.jl/issues/51)
 
 The various `@nospecialize` below are to avoid exploding compilation given our exponential number of dispatch options, so we only specialize where we need.
@@ -108,7 +107,7 @@ _process_with_names(t::PlotlyBase.Template, fl::Val, @nospecialize(args::Vararg{
 )
 
 # Config
-function _process_with_names(pc::PlotlyBase.PlotConfig, fl::Val, @nospecialize(args::Vararg{Symbol}))
+function _process_with_names(pc::PlotlyBase.PlotConfig, fl::Val, @nospecialize(args::Vararg{AttrName}))
     out = Dict{Symbol,Any}()
     for fn in fieldnames(PlotlyBase.PlotConfig)
         field = getfield(pc, fn)
