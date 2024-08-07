@@ -27,11 +27,11 @@ if Sys.islinux()
 end
 
 ## Unitful Extension ##
-using PlutoPlotly: _preprocess
+using PlutoPlotly: _process_with_names
 using Unitful: °, ustrip
 
 uv_r = range(0°, 100°; step = 1°)
-@test _preprocess(uv_r) == collect(0:100)
+@test _process_with_names(uv_r) == collect(0:100)
 uv_a = rand(3,5) .* °
 uv_a_strip = ustrip.(uv_a)
-@test _preprocess(uv_a) == _preprocess(uv_a_strip)
+@test _process_with_names(uv_a) == _process_with_names(uv_a_strip)
