@@ -28,6 +28,7 @@ end
 @test _preprocess(Cycler((1,2))) == [1,2]
 @test _process_with_names(1) === 1.0f0 # By default process converts to Float32
 @test _preprocess(L"3+2") === raw"$3+2$"
+@test all(x -> _preprocess(x) === x, [nothing, missing])
 
 # Check that plotly is the default
 @test default_plotly_template() == templates[templates.default]
