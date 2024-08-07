@@ -65,7 +65,7 @@ _preprocess(A::AbstractArray{<:Union{Number,AbstractVector{<:Number}},N}, @nospe
 
 _preprocess(d::Dict, @nospecialize(args::Vararg{AttrName})) =
     Dict{Any,Any}(k => _preprocess(v, AttrName(k), maybewrap(args)...) for (k, v) in pairs(d))
-
+# We have a separate one because it seems to reduce allocations
 _preprocess(a::PlotlyBase.HasFields, @nospecialize(args::AttrName)) =
     Dict{Any,Any}(k => _preprocess(v, AttrName(k), maybewrap(args)...) for (k, v) in pairs(a.fields))
 
