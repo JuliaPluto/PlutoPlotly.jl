@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "dom",
+      "deno.ns"
+    ],
+    "checkJs": true
+  },
+  "tasks": {
+    "bundle": "deno run --allow-read --allow-write --allow-env --allow-net --allow-run bundle.js"
+  },
+  "imports": {
+    /* We create an import map for the URL as the bundling with the url directly
+    breaks @emotion/css as it does not recognize it inside a browser.
+    Strangely enough, when using the package from npm instead of esm.sh
+    directly it bundles fine. The direct inclusion from esm.sh from the
+    browser also works fine so it seems to be just a bundling problem probably
+    tied to how deno-esbuild-loader works? */
+    "https://esm.sh/@emotion/css@11.11.2": "npm:@emotion/css@11.11.2",
+    "https://esm.sh/lodash-es@4.17.21": "npm:lodash-es@4.17.21",
+    "https://esm.sh/interactjs@1.10.27": "npm:interactjs@1.10.27",
+    "https://esm.sh/@floating-ui/dom@1.6.8": "npm:@floating-ui/dom@1.6.8"
+  }
+}
