@@ -11,7 +11,7 @@ function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = get_plotly_v
 		}
 
 		// Publish the plot object to JS
-		let plot_obj = _.update($(maybe_publish_to_js(_preprocess(pp))), "layout", removeTypedArray)
+		let plot_obj = _.update($(maybe_publish_to_js(_process_with_names(pp))), "layout", removeTypedArray)
 		// Get the plotly listeners
 		const plotly_listeners = $(pp.plotly_listeners)
 		// Get the JS listeners

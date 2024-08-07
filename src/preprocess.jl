@@ -1,30 +1,58 @@
-const SKIP_FLOAT32 = ScopedValue(false)
-skip_float32(f) = let
-    with(f, SKIP_FLOAT32 => true)
-end
+const FORCE_FLOAT32 = ScopedValue(true)
 
-#=
-This function is basically `_json_lower` from PlotlyBase, but we do it directly
-on the PlutoPlot to avoid the modifying the behavior of `_json_lower` for `Plot`
-objects (which is required to modify how matrices are passed to `publish_to_js`)
-=#
+# Get a val to specify whether 
+floatval() = Val{FORCE_FLOAT32[]}()
 
+# Helper struct just to have the name as symbol parameter for dispatch
 struct AttrName{S}
     name::Symbol
     AttrName(s::Symbol) = new{s}(s)
 end
 AttrName(s) = AttrName(Symbol(s))
-maybewrap(@nospecialize(n::AttrName)) = (n,)
-maybewrap(@nospecialize(x)) = x
+# This is used to handle args... which in case only one element is passed is not iterable
+Base.iterate(n::AttrName, state = 1) = state > 1 ? nothing : (n, state + 1)
 
-# Main _preprocess for the PlutoPlot object
-function _preprocess(pp::PlutoPlot)
+#=
+This function is basically `_json_lower` from PlotlyBase, but we do it directly
+on the PlutoPlot to avoid the modifying the behavior of `_json_lower` for `Plot`
+objects (which is required to modify how matrices are passed to `publish_to_js`).
+
+We now have a complex dispatch to be able to do custom processing for specific
+attributes.
+
+The standard signature for a _process_with_names method is:
+    _process_with_names(x, fl::Val, @nospecialize(args::Vararg{AttrName}))
+
+where 
+- the first argument should be the actual input to process and should be
+typed accordingly for dispatch.
+- The second argument is either `Val{true}` or `Val{false}` and represents the
+flag to force number to be converted in Float32. # We added this to
+significantly improve performance as the runtime check for converting or not was
+creating type instability.
+- All the remaining arguments are of type `AttrName` and represent the path of
+attributes names leading to this specific input. For example, if we are
+processing the input that is inside the xaxis_range in the layout, the function
+call will have this form:
+    _process_with_names(x, fl, AttrName(:xaxis), AttrName(:range), AttrName(:layout))
+
+This again is to allow dispatch to work on the path so that one can customize behavior of _process_with_names with great control.
+At the moment this is only used for modifying the behavior when `title` is
+passed as a String, changing it to the more recent plotly synthax (see
+https://github.com/JuliaPluto/PlutoPlotly.jl/issues/51)
+
+The various `@nospecialize` below are to avoid exploding compilation given our exponential number of dispatch options, so we only specialize where we need.
+=#
+
+# Main _process_with_names for the PlutoPlot object
+function _process_with_names(pp::PlutoPlot)
     p = pp.Plot
+    fl = floatval()
     out = Dict(
-        :data => _preprocess(p.data, AttrName(:data)),
-        :layout => _preprocess(p.layout, AttrName(:layout)),
-        :frames => _preprocess(p.frames, AttrName(:frames)),
-        :config => _preprocess(p.config, AttrName(:config))
+        :data => _process_with_names(p.data, fl, AttrName(:data)),
+        :layout => _process_with_names(p.layout, fl, AttrName(:layout)),
+        :frames => _process_with_names(p.frames, fl, AttrName(:frames)),
+        :config => _process_with_names(p.config, fl, AttrName(:config))
     )
 
     templates = PlotlyBase.templates
@@ -37,73 +65,89 @@ function _preprocess(pp::PlutoPlot)
     else
         layout_template
     end
-    out[:layout][:template] = _preprocess(template, AttrName(:template), AttrName(:layout))
+    out[:layout][:template] = _process_with_names(template, fl, AttrName(:template), AttrName(:layout))
     out
 end
 
-# Defaults to JSON.lower for generic non-overloaded types
-_preprocess(x, @nospecialize(args::Vararg{AttrName})) = PlotlyBase.JSON.lower(x) # Default
-_preprocess(x::TimeType, @nospecialize(args::Vararg{AttrName})) = sprint(print, x) # For handling datetimes
+# Generic fallbacks
+_process_with_names(x, ::Val, @nospecialize(args::Vararg{AttrName})) = _preprocess(x)
+_process_with_names(x) = _process_with_names(x, floatval())
 
-_preprocess(s::AbstractString, @nospecialize(args::Vararg{AttrName})) =
-    String(s)
-_preprocess(s::AbstractString, ::AttrName{:title}, @nospecialize(args::Vararg{AttrName})) =
-    Dict(:text => String(s))
+# Handle strings
+_process_with_names(s::AbstractString, ::Val, @nospecialize(args::Vararg{AttrName})) =
+    _preprocess(s)
+_process_with_names(s::AbstractString, ::Val, ::AttrName{:title}, @nospecialize(args::Vararg{AttrName})) =
+    Dict(:text => _preprocess(s))
 
-
-_preprocess(x::Real, @nospecialize(args::Vararg{AttrName})) = SKIP_FLOAT32[] ? x : Float32(x)
-
-_preprocess(x::Union{Bool,Nothing,Missing}, @nospecialize(args::Vararg{AttrName})) = x
-_preprocess(x::Symbol, @nospecialize(args::Vararg{AttrName})) = string(x)
-_preprocess(x::Union{Tuple,AbstractArray}, @nospecialize(args::Vararg{AttrName})) = [_preprocess(el, args...) for el in x]
-_preprocess(A::AbstractArray{<:Union{Number,AbstractVector{<:Number}},N}, @nospecialize(args::Vararg{AttrName})) where {N} =
+# Handle Reals
+_process_with_names(x::Real, ::Val{false}, @nospecialize(args::Vararg{AttrName})) = x
+_process_with_names(x::Real, ::Val{true}, @nospecialize(args::Vararg{AttrName})) = x isa Bool ? x : Float32(x)
+# Tuple, Arrays
+_process_with_names(x::Union{Tuple,AbstractArray}, fl::Val, @nospecialize(args::Vararg{AttrName})) = [_process_with_names(el, fl, args...) for el in x]
+# Multidimensional array of numbers must be nested 1D arrays
+_process_with_names(A::AbstractArray{<:Union{Number,AbstractVector{<:Number}},N}, fl::Val, @nospecialize(args::Vararg{AttrName})) where {N} =
     if N == 1
-        [_preprocess(el, args...) for el in A]
+        [_process_with_names(el, fl, args...) for el in A]
     else
-        [_preprocess(collect(s, args...)) for s ∈ eachslice(A; dims=ndims(A))]
+        [_process_with_names(collect(s), fl, args...) for s ∈ eachslice(A; dims=ndims(A))]
     end
 
-_preprocess(d::Dict, @nospecialize(args::Vararg{AttrName})) =
-    Dict{Any,Any}(k => _preprocess(v, AttrName(k), maybewrap(args)...) for (k, v) in pairs(d))
+# Dict ans HasFields
+_process_with_names(d::Dict, fl::Val, @nospecialize(args::Vararg{AttrName})) =
+    Dict{Any,Any}(k => _process_with_names(v, fl, args...) for (k, v) in pairs(d))
+_process_with_names(d::Dict{Symbol}, fl::Val, @nospecialize(args::Vararg{AttrName})) =
+    Dict{Symbol,Any}(k => _process_with_names(v, fl, AttrName(k), args...) for (k, v) in pairs(d))
 # We have a separate one because it seems to reduce allocations
-_preprocess(a::PlotlyBase.HasFields, @nospecialize(args::AttrName)) =
-    Dict{Any,Any}(k => _preprocess(v, AttrName(k), maybewrap(args)...) for (k, v) in pairs(a.fields))
+_process_with_names(a::PlotlyBase.HasFields, fl::Val, @nospecialize(args::AttrName)) =
+    _process_with_names(a.fields, fl, args...)
 
-_preprocess(c::PlotlyBase.Cycler, @nospecialize(args::Vararg{AttrName})) = c.vals
-
-function _preprocess(c::PlotlyBase.ColorScheme, @nospecialize(args::Vararg{AttrName}))::Vector{Tuple{Float64,String}}
-    N = length(c.colors)
-    map(ic -> ((ic[1] - 1) / (N - 1), _preprocess(ic[2], args...)), enumerate(c.colors))
-end
-
-_preprocess(t::PlotlyBase.Template, @nospecialize(args::Vararg{AttrName})) = Dict(
-    :data => _preprocess(t.data, AttrName(:data), args...),
-    :layout => _preprocess(t.layout, AttrName(:layout), args...)
+# Templates
+_process_with_names(t::PlotlyBase.Template, fl::Val, @nospecialize(args::Vararg{AttrName})) = Dict(
+    :data => _process_with_names(t.data, fl, AttrName(:data), args...),
+    :layout => _process_with_names(t.layout, fl, AttrName(:layout), args...)
 )
 
-function _preprocess(pc::PlotlyBase.PlotConfig, @nospecialize(args::Vararg{Symbol}))
+# Config
+function _process_with_names(pc::PlotlyBase.PlotConfig, fl::Val, @nospecialize(args::Vararg{Symbol}))
     out = Dict{Symbol,Any}()
     for fn in fieldnames(PlotlyBase.PlotConfig)
         field = getfield(pc, fn)
         if !isnothing(field)
-            out[fn] = _preprocess(field, AttrName(fn), args...)
+            out[fn] = _process_with_names(field, fl, AttrName(fn), args...)
         end
     end
     out
 end
 
+## The functions below are the internal processing only taking the value, so not depending on names path or float32 flag
+# Defaults to JSON.lower for generic non-overloaded types
+_preprocess(x) = PlotlyBase.JSON.lower(x) # Default
+_preprocess(x::TimeType) = sprint(print, x) # For handling datetimes
+
+_preprocess(s::Union{AbstractString, Symbol}) = String(s)
+
+_preprocess(x::Union{Nothing,Missing}) = x
+_preprocess(x::Symbol) = string(x)
+
+_preprocess(c::PlotlyBase.Cycler) = c.vals
+
+function _preprocess(c::PlotlyBase.ColorScheme)::Vector{Tuple{Float64,String}}
+    N = length(c.colors)
+    map(ic -> ((ic[1] - 1) / (N - 1), _preprocess(ic[2])), enumerate(c.colors))
+end
+
 # Files that will be later moved to an extension. At the moment it's pointless because PlotlyBase uses those internally anyway.
-_preprocess(s::LaTeXString, @nospecialize(args::Vararg{AttrName})) = s.s
+_preprocess(s::LaTeXString) = s.s
 
 # Colors, they can be put inside an extension
-_preprocess(c::Color, @nospecialize(args::Vararg{AttrName})) = @views begin
+_preprocess(c::Color) = @views begin
     s = hex(c, :rrggbb)
     r = parse(Int, s[1:2]; base=16)
     g = parse(Int, s[3:4]; base=16)
     b = parse(Int, s[5:6]; base=16)
     return "rgb($r,$g,$b)"
 end
-_preprocess(c::TransparentColor, @nospecialize(args::Vararg{AttrName})) = @views begin
+_preprocess(c::TransparentColor) = @views begin
     s = hex(c, :rrggbbaa)
     r = parse(Int, s[1:2]; base=16)
     g = parse(Int, s[3:4]; base=16)

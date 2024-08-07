@@ -16,9 +16,11 @@ macro bind(def, element)
     end
 end
 
+# ╔═╡ db523d3c-df04-4722-937b-33ccf374800f
+using PlutoDevMacros
+
 # ╔═╡ 72c073fd-5f1b-4af0-901b-aaa901f0f273
 begin
-	using PlutoDevMacros
 	using PlutoUI
 	using PlutoExtras
 	using Dates
@@ -846,6 +848,7 @@ version = "17.4.0+2"
 
 # ╔═╡ Cell order:
 # ╠═7bd46437-8af0-4a15-87e9-1508869e1600
+# ╠═db523d3c-df04-4722-937b-33ccf374800f
 # ╠═72c073fd-5f1b-4af0-901b-aaa901f0f273
 # ╠═70dc8fa0-cc32-4ebe-af0d-62b5bb3a82ed
 # ╟─acba5003-a456-4c1a-a53f-71a3bec30251

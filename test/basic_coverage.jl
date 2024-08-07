@@ -1,14 +1,16 @@
 using Test
 using PlutoPlotly
-using PlutoPlotly: _preprocess, SKIP_FLOAT32, skip_float32, ARTIFACT_VERSION, PLOTLY_VERSION
+using PlutoPlotly: _preprocess, FORCE_FLOAT32, ARTIFACT_VERSION, PLOTLY_VERSION, _process_with_names
 using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler, templates
 using ScopedValues
 
-@test SKIP_FLOAT32[] == false
-@test skip_float32() do
-    SKIP_FLOAT32[]
-end == true
-@test SKIP_FLOAT32[] == false
+p = plot(rand(Int, 4));
+_p = p |> _process_with_names
+@test first(_p[:data])[:y] isa Vector{Float32}
+with(FORCE_FLOAT32 => false) do 
+    _p = p |> _process_with_names
+    @test first(_p[:data])[:y] isa Vector{Int}
+end
 
 @test force_pluto_mathjax_local() === false
 try
@@ -19,12 +21,12 @@ finally
 end
 
 @test ColorScheme([Colors.RGB(0.0, 0.0, 0.0), Colors.RGB(1.0, 1.0, 1.0)],
-"custom", "twotone, black and white") |> _preprocess == [(0.0, "rgb(0,0,0)"), (1.0, "rgb(255,255,255)")]
+"custom", "twotone, black and white") |> _process_with_names == [(0.0, "rgb(0,0,0)"), (1.0, "rgb(255,255,255)")]
 @test _preprocess(SubString("asda",1:3)) === "asd"
 @test _preprocess(:lol) === "lol"
-@test _preprocess(true) === true
+@test _process_with_names(true) === true
 @test _preprocess(Cycler((1,2))) == [1,2]
-@test _preprocess(1) === 1.0f0
+@test _process_with_names(1) === 1.0f0 # By default process converts to Float32
 @test _preprocess(L"3+2") === raw"$3+2$"
 
 # Check that plotly is the default
