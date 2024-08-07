@@ -13,6 +13,7 @@ using Markdown
 using Downloads: download
 using Artifacts
 using ScopedValues
+using PrecompileTools
 # This is similar to `@reexport` but does not exports undefined names and can
 # also avoid exporting the module name
 function re_export(m::Module; skip_modname = false)
@@ -49,10 +50,21 @@ include("show.jl")
 # Forward methods of PlotlyBase to support PlutoPlot objects
 include("plotlybase_forward.jl")
 
-function __init__()
+# function __init__()
 	# if !is_inside_pluto()
 	# 	@warn "You loaded this package outside of Pluto, this is not the intended behavior and you should use either PlotlyBase or PlotlyJS directly.\nNOTE: If you receive this warning during pre-compilation or sysimage creation, you can ignore this warning."
 	# end
+# end
+
+@compile_workload begin
+    data = [
+        scatter(;y = rand(10)),
+        scattergeo(;lat = rand(10), lon = rand(10)),
+        surface(;z = rand(10,10))
+    ]
+    layout = Layout(;title = "lol")
+    p = plot(data, layout)
+    _show(p)
 end
 
 end
