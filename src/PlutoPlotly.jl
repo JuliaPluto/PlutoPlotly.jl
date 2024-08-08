@@ -66,7 +66,7 @@ include("plotlybase_forward.jl")
     layout = Layout(;title = "lol")
     p = plot(data, layout)
     _show(p)
-    plot(rand(10,4))
+    plot(rand(10,4)) |> _show
 end
 
 end
