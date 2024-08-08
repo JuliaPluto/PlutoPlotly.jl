@@ -60,11 +60,13 @@ include("plotlybase_forward.jl")
     data = [
         scatter(;y = rand(10)),
         scattergeo(;lat = rand(10), lon = rand(10)),
+        heatmap(;z = rand(10,10)),
         surface(;z = rand(10,10))
     ]
     layout = Layout(;title = "lol")
     p = plot(data, layout)
     _show(p)
+    plot(rand(10,4))
 end
 
 end
