@@ -9,6 +9,8 @@
     @test length(css) === 10
     @test all(c -> c.alpha == 0.5, css.colors)
 
+    @test_throws "must be a valid key" sample_colorscheme(:parula)
+
     # discrete_colorscale
     dcs = discrete_colorscale(cs, 10)
     @test length(dcs) === 10 * 2
