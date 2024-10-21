@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Simple HTML Document</title>
+    <script type="module">
+        const tst = await import('./src/url_deps.js')
+        window.tst = tst
+        console.log(tst)
+    </script>
+</head>
+<body>
+    <h1>Hello, World!</h1>
+    <p>This is a simple HTML document.</p>
+    <div id="asd" style="margin-top: 400px;">ASD</div>
+</body>
+</html>
