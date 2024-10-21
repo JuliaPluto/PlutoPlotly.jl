@@ -94,6 +94,8 @@ _process_with_names(A::AbstractArray{<:Union{Number,AbstractVector{<:Number}},N}
 # Dict ans HasFields
 function _process_with_names(d::Dict, fl::Val, @nospecialize(args::Vararg{AttrName}))
     Dict{Any,Any}(k => if k isa Symbol
+        # We have this branch as we might have plotly properties here and we assume
+        # they are if the dict key is a symbol.
         _process_with_names(v, fl, AttrName(k), args...)
     else
         _process_with_names(v, fl, args...)
