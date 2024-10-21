@@ -8,6 +8,7 @@ using Dates
 using Scratch
 using TOML
 using Colors
+using ColorSchemes
 using LaTeXStrings
 using Markdown
 using Downloads: download
@@ -34,6 +35,8 @@ get_image_options, change_image_options!, plutoplotly_paste_receiver
 export plot, push_script!, prepend_cell_selector
 export make_subplots
 export enable_plutoplotly_offline
+# From utilities.jl
+export sample_colorscheme, discrete_colorscale
 
 
 include("local_plotly_library.jl")
@@ -49,6 +52,7 @@ include("js_helpers.jl")
 include("show.jl")
 # Forward methods of PlotlyBase to support PlutoPlot objects
 include("plotlybase_forward.jl")
+include("utilities.jl")
 
 # function __init__()
 	# if !is_inside_pluto()
