@@ -9,7 +9,7 @@ struct AttrName{S}
     AttrName(s::Symbol) = new{s}(s)
 end
 # This is used to handle args... which in case only one element is passed is not iterable
-Base.iterate(n::AttrName, state = 1) = state > 1 ? nothing : (n, state + 1)
+Base.iterate(n::AttrName, state=1) = state > 1 ? nothing : (n, state + 1)
 
 #=
 This function is basically `_json_lower` from PlotlyBase, but we do it directly
@@ -92,10 +92,9 @@ _process_with_names(A::AbstractArray{<:Union{Number,AbstractVector{<:Number}},N}
     end
 
 # Dict ans HasFields
-_process_with_names(d::Dict, fl::Val, @nospecialize(args::Vararg{AttrName})) =
-    Dict{Any,Any}(k => _process_with_names(v, fl, args...) for (k, v) in pairs(d))
-_process_with_names(d::Dict{Symbol}, fl::Val, @nospecialize(args::Vararg{AttrName})) =
+function _process_with_names(d::Dict{Symbol}, fl::Val, @nospecialize(args::Vararg{AttrName}))
     Dict{Symbol,Any}(k => _process_with_names(v, fl, AttrName(k), args...) for (k, v) in pairs(d))
+end
 # We have a separate one because it seems to reduce allocations
 _process_with_names(a::PlotlyBase.HasFields, fl::Val, @nospecialize(args::AttrName)) =
     _process_with_names(a.fields, fl, args...)
