@@ -92,6 +92,13 @@ _process_with_names(A::AbstractArray{<:Union{Number,AbstractVector{<:Number}},N}
     end
 
 # Dict ans HasFields
+function _process_with_names(d::Dict, fl::Val, @nospecialize(args::Vararg{AttrName}))
+    Dict{Any,Any}(k => if k isa Symbol
+        _process_with_names(v, fl, AttrName(k), args...)
+    else
+        _process_with_names(v, fl, args...)
+    end for (k, v) in pairs(d))
+end
 function _process_with_names(d::Dict{Symbol}, fl::Val, @nospecialize(args::Vararg{AttrName}))
     Dict{Symbol,Any}(k => _process_with_names(v, fl, AttrName(k), args...) for (k, v) in pairs(d))
 end
@@ -122,7 +129,7 @@ end
 _preprocess(x) = PlotlyBase.JSON.lower(x) # Default
 _preprocess(x::TimeType) = sprint(print, x) # For handling datetimes
 
-_preprocess(s::Union{AbstractString, Symbol}) = String(s)
+_preprocess(s::Union{AbstractString,Symbol}) = String(s)
 
 _preprocess(x::Union{Nothing,Missing}) = x
 _preprocess(x::Symbol) = string(x)
