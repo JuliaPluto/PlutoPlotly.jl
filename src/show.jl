@@ -1,6 +1,9 @@
 function _show(pp::PlutoPlot; script_id = "pluto-plotly-div", ver = get_plotly_version())
 @htl """
 	<script id=$(script_id)>
+        // We add lodash as an import (currently this makes PlutoPlotly not work offline, to be fixed in a next release)
+        const _ = await import('https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/+esm')
+
 		// We start by putting all the variable interpolation here at the beginning
 		// We have to convert all typedarrays in the layout to normal arrays. See Issue #25
 		// We use lodash for this for compactness
