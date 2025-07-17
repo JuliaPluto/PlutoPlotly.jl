@@ -1,5 +1,5 @@
 @testitem "Preprocess" begin
-    using PlutoPlotly: _process_with_names, AttrName
+    using PlutoPlotly: _process_with_names, AttrName, _preprocess, AttrName
     l = Layout(;
         title_text = "asd",
         title_x = 0.5
@@ -23,4 +23,8 @@
     )
     d = _process_with_names(l)
     @test d[:sliders][1][:steps][1] isa Dict{Symbol}
+
+    # Misc coverage
+    @test !(_preprocess(1im) isa Complex)
+    @test length((AttrName(:x)...,)) == 1
 end
