@@ -105,7 +105,7 @@ function _process_with_names(d::Dict{Symbol}, fl::Val, @nospecialize(args::Varar
     Dict{Symbol,Any}(k => _process_with_names(v, fl, AttrName(k), args...) for (k, v) in pairs(d))
 end
 # We have a separate one because it seems to reduce allocations
-_process_with_names(a::PlotlyBase.HasFields, fl::Val, @nospecialize(args::AttrName)) =
+_process_with_names(a::PlotlyBase.HasFields, fl::Val, @nospecialize(args::Vararg{AttrName})) =
     _process_with_names(a.fields, fl, args...)
 
 # Templates
