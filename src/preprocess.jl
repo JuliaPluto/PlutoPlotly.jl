@@ -129,6 +129,7 @@ end
 ## The functions below are the internal processing only taking the value, so not depending on names path or float32 flag
 # Defaults to JSON.lower for generic non-overloaded types
 _preprocess(x) = PlotlyBase.JSON.lower(x) # Default
+_preprocess(::Complex) = error("Complex numbers are not supported by Plotly.js")
 _preprocess(x::TimeType) = sprint(print, x) # For handling datetimes
 
 _preprocess(s::Union{AbstractString,Symbol}) = String(s)
