@@ -59,3 +59,28 @@ finally
 # We put back the default version to be the ARTIFACT one. This is to avoid errors while repeating multiple times tests locally
     change_plotly_version(ARTIFACT_VERSION)
 end
+
+@testset "Pluto 1.0 publish_to_js compatibility" begin
+    had_plutorunner = isdefined(Main, :PlutoRunner)
+    try
+        if !had_plutorunner
+            @eval Main module PlutoRunner end
+        end
+        published = PlutoPlotly.maybe_publish_to_js(Dict("x" => 1))
+        called = Ref(false)
+        io = IOContext(
+            IOBuffer(),
+            :is_pluto => true,
+            :pluto_published_to_js => (io, x) -> begin
+                called[] = (x == Dict("x" => 1))
+                write(io, "ok")
+            end,
+        )
+        show(io, MIME"text/javascript"(), published)
+        @test called[]
+    finally
+        if !had_plutorunner && isdefined(Main, :PlutoRunner)
+            Base.delete_binding(Main, :PlutoRunner)
+        end
+    end
+end
