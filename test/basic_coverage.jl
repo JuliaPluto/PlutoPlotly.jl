@@ -2,6 +2,7 @@ using Test
 using PlutoPlotly
 using PlutoPlotly: _preprocess, FORCE_FLOAT32, ARTIFACT_VERSION, PLOTLY_VERSION, _process_with_names
 using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler, templates
+using AbstractPlutoDingetjes
 using ScopedValues
 
 p = plot(rand(Int, 4));
@@ -66,7 +67,9 @@ end
         if !had_plutorunner
             @eval Main module PlutoRunner end
         end
+        reference_published = AbstractPlutoDingetjes.Display.published_to_js(Dict("x" => 1))
         published = PlutoPlotly.maybe_publish_to_js(Dict("x" => 1))
+        @test typeof(published) === typeof(reference_published)
         called = Ref(false)
         io = IOContext(
             IOBuffer(),
