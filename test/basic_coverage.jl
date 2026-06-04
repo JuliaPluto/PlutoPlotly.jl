@@ -2,7 +2,7 @@ using Test
 using PlutoPlotly
 using PlutoPlotly: _preprocess, FORCE_FLOAT32, ARTIFACT_VERSION, PLOTLY_VERSION, _process_with_names
 using PlutoPlotly.PlotlyBase: ColorScheme, Colors, Cycler, templates
-using AbstractPlutoDingetjes
+using PlutoPlotly.AbstractPlutoDingetjes
 using ScopedValues
 
 p = plot(rand(Int, 4));
