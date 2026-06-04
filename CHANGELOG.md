@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.6.6] - 2026-06-04
+### Fixed
+- Internal refactor to use the official AbstractPlutoDingetjes API for `published_to_js` instead of relying on internals which are now deprected since Pluto v1.0, enabling support for Pluto v1.0
+
+### Changed
+- Dropped support for 1.9, with 1.10 being the earliest supported julia version
+- Added compat to HypertextLiteral 1
+
 ## [0.6.5] - 2025-10-06
 ### Changed
 This release simply bumped the Colors compat to include 0.13.
