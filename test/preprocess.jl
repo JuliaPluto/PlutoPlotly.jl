@@ -25,6 +25,6 @@
     @test d[:sliders][1][:steps][1] isa Dict{Symbol}
 
     # Misc coverage
-    @test !(_preprocess(1im) isa Complex)
+    @test_throws ErrorException _preprocess(1im)
     @test length((AttrName(:x)...,)) == 1
 end
