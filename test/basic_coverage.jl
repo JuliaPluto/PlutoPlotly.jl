@@ -83,7 +83,7 @@ end
         @test called[]
     finally
         if !had_plutorunner && isdefined(Main, :PlutoRunner)
-            Main.PlutoRunner = nothing
+            Base.delete_binding(Main, :PlutoRunner)
         end
     end
 end
