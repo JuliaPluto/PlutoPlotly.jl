@@ -1,4 +1,11 @@
-const resizer_script = htl_js("""
+// Injected as part of the plot <script> (see src/show.jl); runs in the shared
+// scope of the concatenated script. Expects to already be in scope:
+//   Julia preamble: Plotly, CONTAINER, PLOT, firstRun, original_width,
+//                   original_height, remove_container_size
+//   clipboard.js  : CLIPBOARD_HEADER, config_spans
+// Exposes for clipboard.js: getSizeData, computeContainerSize, computePlotSize,
+// and the resizeObserver.
+
 function getOffsetData(el) {
   let cs = window.getComputedStyle(el, null);
   const odata = {
@@ -56,14 +63,12 @@ function computeContainerSize({ width, height }, sizeData = getSizeData()) {
 // This function will change the container size so that the resulting plot will be matching the provided specs
 function changeContainerSize({ width, height }, sizeData = getSizeData()) {
   if (!CONTAINER.isPoppedOut()) {
-    console.log("Tried to change container size when not popped, ignoring");
     return;
   }
 
   const csz = computeContainerSize({ width, height }, sizeData);
 
   if (csz.noChange) {
-    console.log("Size is the same as current, ignoring");
     return
   }
   // We are now going to set he width and height of the container
@@ -126,8 +131,8 @@ const resizeObserver = new ResizeObserver((entries) => {
   CLIPBOARD_HEADER.style.left = container_rect.left + "px";
   config_spans.height.ui_value = plot_size.height;
   config_spans.width.ui_value = plot_size.width;
-  /* 
-		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking. 
+  /*
+		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking.
 		See https://github.com/plotly/plotly.js/issues/6156 for details
 		*/
   let config = {
@@ -147,4 +152,3 @@ const resizeObserver = new ResizeObserver((entries) => {
 });
 
 resizeObserver.observe(CONTAINER);
-""")

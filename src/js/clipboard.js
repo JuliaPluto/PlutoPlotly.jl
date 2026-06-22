@@ -1,12 +1,17 @@
-const clipboard_script = htl_js("""
+// Injected as part of the plot <script> (see src/show.jl); runs in the shared
+// scope of the concatenated script. Expects to already be in scope:
+//   Julia preamble: plot_obj, Plotly, CONTAINER, PLOT, firstRun,
+//                   original_width, original_height, remove_container_size
+//   Pluto runtime : html
+//   lodash-es     : _
+//   resizer.js    : getSizeData, computeContainerSize
+// Exposes for resizer.js: CLIPBOARD_HEADER, config_spans, and the
+// CONTAINER.isPoppedOut()/popOut() helpers.
+
 // We create a Promise version of setTimeout
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-// We import interact for dragging/resizing
-const { default: interact } = await import('https://esm.sh/interactjs@1.10.19')
-
 
 function getImageOptions() {
   const o = plot_obj.config.toImageButtonOptions ?? {};
@@ -64,13 +69,13 @@ function checkConfigSync(container) {
   const { ui_value, config_value, config_span, key } = container;
   if (config_value === undefined) {
     setClass("missing-config");
-    config_span.innerHTML = `The key <b><em>\${key}</em></b> is not present in the config.`;
+    config_span.innerHTML = `The key <b><em>${key}</em></b> is not present in the config.`;
   } else if (ui_value == config_value) {
     setClass("matching-config");
-    config_span.innerHTML = `The key <b><em>\${key}</em></b> has the same value in the config and in the header.`;
+    config_span.innerHTML = `The key <b><em>${key}</em></b> has the same value in the config and in the header.`;
   } else {
     setClass("different-config");
-    config_span.innerHTML = `The key <b><em>\${key}</em></b> has a different value (<em>\${config_value}</em>) in the config.`;
+    config_span.innerHTML = `The key <b><em>${key}</em></b> has a different value (<em>${config_value}</em>) in the config.`;
   }
   // Add info about setting and unsetting
   config_span.insertAdjacentHTML(
@@ -100,7 +105,7 @@ function initializeUIValueSpan(span, key, value) {
     const opts_div = span.appendChild(html`<div class="format-options"></div>`);
     for (const fmt of valid_formats) {
       const opt = opts_div.appendChild(
-        html`<span class="format-option \${fmt}">\${fmt}</span>`
+        html`<span class="format-option ${fmt}">${fmt}</span>`
       );
       opt.onclick = (e) => {
         span.value = opt.textContent;
@@ -161,7 +166,7 @@ function initializeConfigValueSpan(span, key) {
 
 const config_spans = {};
 for (const [key, value] of Object.entries(getImageOptions())) {
-  const container = CLIPBOARD_HEADER.querySelector(`.clipboard-span.\${key}`);
+  const container = CLIPBOARD_HEADER.querySelector(`.clipboard-span.${key}`);
   const label = container.querySelector(".label");
   // We give the label a function that on single click will set the current value and with double click will unset it
   label.onclick = DualClick(
@@ -169,7 +174,6 @@ for (const [key, value] of Object.entries(getImageOptions())) {
       container.config_value = container.ui_value;
     },
     (e) => {
-      console.log("e", e);
       e.preventDefault();
       container.config_value = undefined;
     }
@@ -241,7 +245,6 @@ CONTAINER.isPoppedOut = () => {
 
 CLIPBOARD_HEADER.onmousedown = function (event) {
   if (event.target.matches("span.clipboard-value")) {
-    console.log("We don't move!");
     return;
   }
   const start = {
@@ -284,7 +287,6 @@ CLIPBOARD_HEADER.onmousedown = function (event) {
   );
 
   function cleanUp() {
-    console.log("cleaning up the plot move listener");
     controller.abort();
     CLIPBOARD_HEADER.onmouseup = null;
   }
@@ -306,29 +308,30 @@ function sendToClipboard(blob) {
         [blob.type]: blob,
       }),
     ])
-    .then(
-      function () {
-        console.log("Async: Copying to clipboard was successful!");
-      },
-      function (err) {
-        console.error("Async: Could not copy text: ", err);
-      }
-    );
+    .catch(function (err) {
+      console.error("Async: Could not copy image to clipboard: ", err);
+    });
 }
 
-function copyImageToClipboard() {
-  // We extract the image options from the provided parameters (if they exist)
+// Collect the export options from the header/config spans. When popped out we
+// fall back to the UI value, otherwise only explicitly-set config values count.
+function buildExportConfig({ skipFormat = false } = {}) {
   const config = {};
   for (const [key, container] of Object.entries(config_spans)) {
-    let val =
+    const val =
       container.config_value ??
       (CONTAINER.isPoppedOut() ? container.ui_value : undefined);
-    // If we have undefined we don't create the key. We also ignore format because the clipboard only supports png.
-    if (val === undefined || key === "format") {
+    if (val === undefined || (skipFormat && key === "format")) {
       continue;
     }
     config[key] = val;
   }
+  return config;
+}
+
+function copyImageToClipboard() {
+  // The clipboard only supports png, so we ignore the format option.
+  const config = buildExportConfig({ skipFormat: true });
   Plotly.toImage(PLOT, config).then(function (dataUrl) {
     fetch(dataUrl)
       .then((res) => res.blob())
@@ -343,18 +346,7 @@ function copyImageToClipboard() {
 }
 
 function saveImageToFile() {
-  const config = {};
-  for (const [key, container] of Object.entries(config_spans)) {
-    let val =
-      container.config_value ??
-      (CONTAINER.isPoppedOut() ? container.ui_value : undefined);
-    // If we have undefined we don't create the key.
-    if (val === undefined) {
-      continue;
-    }
-    config[key] = val;
-  }
-  Plotly.downloadImage(PLOT, config);
+  Plotly.downloadImage(PLOT, buildExportConfig());
 }
 
 let container_rect = { width: 0, height: 0, top: 0, left: 0 };
@@ -493,4 +485,3 @@ plot_obj.config.modeBarButtonsToAdd = _.union(
     },
   ]
 );
-""")
