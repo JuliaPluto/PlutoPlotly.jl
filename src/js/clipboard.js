@@ -1,3 +1,13 @@
+// Injected as part of the plot <script> (see src/show.jl); runs in the shared
+// scope of the concatenated script. Expects to already be in scope:
+//   Julia preamble: plot_obj, Plotly, CONTAINER, PLOT, firstRun,
+//                   original_width, original_height, remove_container_size
+//   Pluto runtime : html
+//   lodash-es     : _
+//   resizer.js    : getSizeData, computeContainerSize
+// Exposes for resizer.js: CLIPBOARD_HEADER, config_spans, and the
+// CONTAINER.isPoppedOut()/popOut() helpers.
+
 // We create a Promise version of setTimeout
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

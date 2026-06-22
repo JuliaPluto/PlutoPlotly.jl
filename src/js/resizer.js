@@ -1,3 +1,11 @@
+// Injected as part of the plot <script> (see src/show.jl); runs in the shared
+// scope of the concatenated script. Expects to already be in scope:
+//   Julia preamble: Plotly, CONTAINER, PLOT, firstRun, original_width,
+//                   original_height, remove_container_size
+//   clipboard.js  : CLIPBOARD_HEADER, config_spans
+// Exposes for clipboard.js: getSizeData, computeContainerSize, computePlotSize,
+// and the resizeObserver.
+
 function getOffsetData(el) {
   let cs = window.getComputedStyle(el, null);
   const odata = {
