@@ -3,10 +3,6 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// We import interact for dragging/resizing
-const { default: interact } = await import('https://esm.sh/interactjs@1.10.19')
-
-
 function getImageOptions() {
   const o = plot_obj.config.toImageButtonOptions ?? {};
   return {
@@ -168,7 +164,6 @@ for (const [key, value] of Object.entries(getImageOptions())) {
       container.config_value = container.ui_value;
     },
     (e) => {
-      console.log("e", e);
       e.preventDefault();
       container.config_value = undefined;
     }
@@ -240,7 +235,6 @@ CONTAINER.isPoppedOut = () => {
 
 CLIPBOARD_HEADER.onmousedown = function (event) {
   if (event.target.matches("span.clipboard-value")) {
-    console.log("We don't move!");
     return;
   }
   const start = {
@@ -283,7 +277,6 @@ CLIPBOARD_HEADER.onmousedown = function (event) {
   );
 
   function cleanUp() {
-    console.log("cleaning up the plot move listener");
     controller.abort();
     CLIPBOARD_HEADER.onmouseup = null;
   }
@@ -305,14 +298,9 @@ function sendToClipboard(blob) {
         [blob.type]: blob,
       }),
     ])
-    .then(
-      function () {
-        console.log("Async: Copying to clipboard was successful!");
-      },
-      function (err) {
-        console.error("Async: Could not copy text: ", err);
-      }
-    );
+    .catch(function (err) {
+      console.error("Async: Could not copy image to clipboard: ", err);
+    });
 }
 
 function copyImageToClipboard() {

@@ -55,14 +55,12 @@ function computeContainerSize({ width, height }, sizeData = getSizeData()) {
 // This function will change the container size so that the resulting plot will be matching the provided specs
 function changeContainerSize({ width, height }, sizeData = getSizeData()) {
   if (!CONTAINER.isPoppedOut()) {
-    console.log("Tried to change container size when not popped, ignoring");
     return;
   }
 
   const csz = computeContainerSize({ width, height }, sizeData);
 
   if (csz.noChange) {
-    console.log("Size is the same as current, ignoring");
     return
   }
   // We are now going to set he width and height of the container
