@@ -1,7 +1,7 @@
 name = "PlutoPlotly"
 uuid = "8e989ff0-3d88-8e9f-f020-2b208a939ff0"
 authors = ["Alberto Mengali <disberd@gmail.com>"]
-version = "0.6.5"
+version = "0.6.6"
 
 [deps]
 AbstractPlutoDingetjes = "6e696c72-6542-2067-7265-42206c756150"
@@ -37,7 +37,7 @@ ColorSchemes = "3.26.0"
 Colors = "0.12, 0.13"
 Dates = "1.9"
 Downloads = "1.6"
-HypertextLiteral = "0.9.4"
+HypertextLiteral = "0.9.4, 1"
 InteractiveUtils = "1.9"
 LaTeXStrings = "1"
 Markdown = "1.9"
@@ -50,4 +50,4 @@ ScopedValues = "1.2.1"
 Scratch = "1"
 TOML = "1"
 Unitful = "1"
-julia = "1.9"
+julia = "1.10"

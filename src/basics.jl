@@ -30,11 +30,7 @@ htl_js(x) = HypertextLiteral.JavaScript(x)
 htl_js(x::HypertextLiteral.JavaScript) = x
 
 maybe_publish_to_js(x) = if is_inside_pluto()
-	if isdefined(Main.PlutoRunner, :core_published_to_js)
-		Main.PlutoRunner.PublishedToJavascript(x)
-	else
-		Main.PlutoRunner.publish_to_js(x)
-	end
+	AbstractPlutoDingetjes.Display.published_to_js(x)
 else
 	x
 end
