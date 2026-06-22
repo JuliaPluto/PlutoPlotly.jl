@@ -1,4 +1,6 @@
 const _container_css = read(joinpath(@__DIR__, "js", "container.css"), String)
+const clipboard_script = htl_js(read(joinpath(@__DIR__, "js", "clipboard.js"), String))
+const resizer_script = htl_js(read(joinpath(@__DIR__, "js", "resizer.js"), String))
 
 const _default_script_contents = htl_js.([
 	"""

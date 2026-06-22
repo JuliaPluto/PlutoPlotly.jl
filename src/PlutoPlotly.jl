@@ -42,8 +42,6 @@ export sample_colorscheme, discrete_colorscale
 include("local_plotly_library.jl")
 
 include("basics.jl")
-include("script_contents/clipboard.jl")
-include("script_contents/resizer.jl")
 include("main_struct.jl")
 include("paste_receiver.jl")
 include("mathjax.jl")

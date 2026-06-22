@@ -303,19 +303,25 @@ function sendToClipboard(blob) {
     });
 }
 
-function copyImageToClipboard() {
-  // We extract the image options from the provided parameters (if they exist)
+// Collect the export options from the header/config spans. When popped out we
+// fall back to the UI value, otherwise only explicitly-set config values count.
+function buildExportConfig({ skipFormat = false } = {}) {
   const config = {};
   for (const [key, container] of Object.entries(config_spans)) {
-    let val =
+    const val =
       container.config_value ??
       (CONTAINER.isPoppedOut() ? container.ui_value : undefined);
-    // If we have undefined we don't create the key. We also ignore format because the clipboard only supports png.
-    if (val === undefined || key === "format") {
+    if (val === undefined || (skipFormat && key === "format")) {
       continue;
     }
     config[key] = val;
   }
+  return config;
+}
+
+function copyImageToClipboard() {
+  // The clipboard only supports png, so we ignore the format option.
+  const config = buildExportConfig({ skipFormat: true });
   Plotly.toImage(PLOT, config).then(function (dataUrl) {
     fetch(dataUrl)
       .then((res) => res.blob())
@@ -330,18 +336,7 @@ function copyImageToClipboard() {
 }
 
 function saveImageToFile() {
-  const config = {};
-  for (const [key, container] of Object.entries(config_spans)) {
-    let val =
-      container.config_value ??
-      (CONTAINER.isPoppedOut() ? container.ui_value : undefined);
-    // If we have undefined we don't create the key.
-    if (val === undefined) {
-      continue;
-    }
-    config[key] = val;
-  }
-  Plotly.downloadImage(PLOT, config);
+  Plotly.downloadImage(PLOT, buildExportConfig());
 }
 
 let container_rect = { width: 0, height: 0, top: 0, left: 0 };
