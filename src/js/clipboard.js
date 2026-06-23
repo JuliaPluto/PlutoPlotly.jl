@@ -1,12 +1,15 @@
-// Injected as part of the plot <script> (see src/show.jl); runs in the shared
-// scope of the concatenated script. Expects to already be in scope:
-//   Julia preamble: plot_obj, Plotly, CONTAINER, PLOT, firstRun,
-//                   original_width, original_height, remove_container_size
-//   Pluto runtime : html
-//   lodash-es     : _
-//   resizer.js    : getSizeData, computeContainerSize
-// Exposes for resizer.js: CLIPBOARD_HEADER, config_spans, and the
-// CONTAINER.isPoppedOut()/popOut() helpers.
+// Clipboard / export-header behaviour for the plot. Wrapped in one function so
+// it pollutes nothing in the shared script scope; all per-plot state lives on
+// the passed-in CONTAINER. Reads `html` (html.js) and getSizeData /
+// computeContainerSize (resizer.js); exposes CONTAINER.CLIPBOARD_HEADER,
+// CONTAINER.config_spans and CONTAINER.popOut for resizer.js.
+function addClipboardFunctionality(CONTAINER, firstRun) {
+  const { Plotly, PLOT } = CONTAINER;
+
+// Minimal vanilla replacement for lodash _.union (unique, order-preserving)
+function union(a, b) {
+  return [...new Set([...(a ?? []), ...b])];
+}
 
 // We create a Promise version of setTimeout
 function delay(ms) {
@@ -14,11 +17,11 @@ function delay(ms) {
 }
 
 function getImageOptions() {
-  const o = plot_obj.config.toImageButtonOptions ?? {};
+  const o = CONTAINER.plot_obj.config.toImageButtonOptions ?? {};
   return {
     format: o.format ?? "png",
-    width: o.width ?? original_width,
-    height: o.height ?? original_height,
+    width: o.width ?? CONTAINER.original_width,
+    height: o.height ?? CONTAINER.original_height,
     scale: o.scale ?? 1,
     filename: o.filename ?? "newplot",
   };
@@ -53,6 +56,7 @@ const CLIPBOARD_HEADER =
       ></span>
     </div>`
   );
+CONTAINER.CLIPBOARD_HEADER = CLIPBOARD_HEADER;
 
 function checkConfigSync(container) {
   const valid_classes = [
@@ -150,14 +154,14 @@ function initializeConfigValueSpan(span, key) {
   const container = span.closest(".clipboard-span");
   Object.defineProperty(span, "value", {
     get: () => {
-      return plot_obj.config.toImageButtonOptions[key];
+      return CONTAINER.plot_obj.config.toImageButtonOptions[key];
     },
     set: (val) => {
       // if undefined is passed, we remove the entry from the options
       if (val === undefined) {
-        delete plot_obj.config.toImageButtonOptions[key];
+        delete CONTAINER.plot_obj.config.toImageButtonOptions[key];
       } else {
-        plot_obj.config.toImageButtonOptions[key] = val;
+        CONTAINER.plot_obj.config.toImageButtonOptions[key] = val;
       }
       checkConfigSync(container);
     },
@@ -191,8 +195,8 @@ for (const [key, value] of Object.entries(getImageOptions())) {
   container.key = key;
   config_spans[key] = container;
   if (firstRun) {
-    plot_obj.config.toImageButtonOptions =
-      plot_obj.config.toImageButtonOptions ?? {};
+    CONTAINER.plot_obj.config.toImageButtonOptions =
+      CONTAINER.plot_obj.config.toImageButtonOptions ?? {};
     // We do the initialization of the value span
     initializeUIValueSpan(ui_value_span, key, value);
     // Then we initialize the config value
@@ -214,6 +218,7 @@ for (const [key, value] of Object.entries(getImageOptions())) {
     });
   }
 }
+CONTAINER.config_spans = config_spans;
 
 // These objects will contain the default value
 
@@ -237,11 +242,6 @@ if (firstRun) {
   };
   unset_button.onclick = unsetImageOptions;
 }
-
-// We add a function to check if the clipboard is popped out
-CONTAINER.isPoppedOut = () => {
-  return CONTAINER.classList.contains("popped-out");
-};
 
 CLIPBOARD_HEADER.onmousedown = function (event) {
   if (event.target.matches("span.clipboard-value")) {
@@ -355,7 +355,7 @@ function unpop_container(cl) {
   CONTAINER.classList.toggle(cl, false);
   // We fix the height back to the value it had before popout, also setting the flag to signal that upon first resize we remove the fixed inline-style
   CONTAINER.style.height = container_rect.height + "px";
-  remove_container_size = true;
+  CONTAINER.remove_container_size = true;
   // We set the other fixed inline-styles to null
   CONTAINER.style.width = "";
   CONTAINER.style.top = "";
@@ -385,9 +385,9 @@ function popout_container(opts) {
   };
   // We have to save the pad data before popping so we can resize precisely
   const pad = {};
-  pad.unpopped = getSizeData().container_pad;
+  pad.unpopped = getSizeData(CONTAINER).container_pad;
   CONTAINER.classList.toggle("popped-out", true);
-  pad.popped = getSizeData().container_pad;
+  pad.popped = getSizeData(CONTAINER).container_pad;
   // We do top and left based on the current rect
   for (const key of ["top", "left"]) {
     const start_val = target_container_size[key] ?? container_rect[key];
@@ -401,7 +401,7 @@ function popout_container(opts) {
     }
   }
   // We compute the width and height depending on eventual config data
-  const csz = computeContainerSize({
+  const csz = computeContainerSize(CONTAINER, {
     width:
       target_plot_size.width ??
       config_spans.width.config_value ??
@@ -455,13 +455,13 @@ function DualClick(single_func, dbl_func) {
 }
 
 // We remove the default download image button
-plot_obj.config.modeBarButtonsToRemove = _.union(
-  plot_obj.config.modeBarButtonsToRemove,
+CONTAINER.plot_obj.config.modeBarButtonsToRemove = union(
+  CONTAINER.plot_obj.config.modeBarButtonsToRemove,
   ["toImage"]
 );
 // We add the custom button to the modebar
-plot_obj.config.modeBarButtonsToAdd = _.union(
-  plot_obj.config.modeBarButtonsToAdd,
+CONTAINER.plot_obj.config.modeBarButtonsToAdd = union(
+  CONTAINER.plot_obj.config.modeBarButtonsToAdd,
   [
     {
       name: "Copy PNG to Clipboard",
@@ -485,3 +485,4 @@ plot_obj.config.modeBarButtonsToAdd = _.union(
     },
   ]
 );
+}

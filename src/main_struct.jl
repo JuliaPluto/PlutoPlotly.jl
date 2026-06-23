@@ -1,75 +1,23 @@
 const _container_css = read(joinpath(@__DIR__, "js", "container.css"), String)
+const html_script = htl_js(read(joinpath(@__DIR__, "js", "html.js"), String))
+const container_script = htl_js(read(joinpath(@__DIR__, "js", "container.js"), String))
 const clipboard_script = htl_js(read(joinpath(@__DIR__, "js", "clipboard.js"), String))
 const resizer_script = htl_js(read(joinpath(@__DIR__, "js", "resizer.js"), String))
+const pluto_adapter_script = htl_js(read(joinpath(@__DIR__, "js", "pluto_adapter.js"), String))
 
 const _default_script_contents = htl_js.([
-	"""
-	// Flag to check if this cell was  manually ran or reactively ran
-	const firstRun = this ? false : true
-	const CONTAINER = this ?? html`<div class='plutoplotly-container'>`
-	const PLOT = CONTAINER.querySelector('.js-plotly-plot') ?? CONTAINER.appendChild(html`<div>`)
-	const parent = CONTAINER.parentElement
-	// We use a controller to remove event listeners upon invalidation
-	const controller = new AbortController()
-	// We have to add this to keep supporting @bind with the old API using PLOT
-	PLOT.addEventListener('input', (e) => {
-		CONTAINER.value = PLOT.value
-		if (e.bubbles) {
-			return
-		}
-		CONTAINER.dispatchEvent(new CustomEvent('input'))
-	}, { signal: controller.signal })
-	""",
-	JS("""
-		// This creates the style subdiv on first run
-		firstRun && CONTAINER.appendChild(html`
-		<style>
-	""" * _container_css * """
-	</style>
-	`)
-	"""),
-	"""
-	let original_height = plot_obj.layout.height
-	let original_width = plot_obj.layout.width
-	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
-	// We define a variable to check whether we still have to remove the fixed height
-	let remove_container_size = firstRun
-	let container_height = original_height ?? PLOT.container_height ?? 400
-	CONTAINER.style.height = container_height + 'px'
-	""",
+	# Provide our own `html` DOM helper, shadowing Pluto's injected one (see html.js)
+	html_script,
+	# Pluto-agnostic core: makeContainer/updatePlotData (container.js),
+	# addClipboardFunctionality (clipboard.js), addResizeFunctionality (resizer.js).
+	container_script,
 	clipboard_script,
 	resizer_script,
-	"""
-
-	Plotly.react(PLOT, plot_obj).then(() => {
-		// Assign the Plotly event listeners
-		for (const [key, listener_vec] of Object.entries(plotly_listeners)) {
-			for (const listener of listener_vec) {
-				PLOT.on(key, listener)
-			}
-		}
-		// Assign the JS event listeners
-		for (const [key, listener_vec] of Object.entries(js_listeners)) {
-			for (const listener of listener_vec) {
-				PLOT.addEventListener(key, listener, {
-					signal: controller.signal
-				})
-			}
-		}
-	}
-	)
-	""",
-	"""
-
-	invalidation.then(() => {
-		// Remove all plotly listeners
-		PLOT.removeAllListeners()
-		// Remove all JS listeners
-		controller.abort()
-		// Remove the resizeObserver
-		resizeObserver.disconnect()
-	})
-	""",
+	# The container stylesheet, bound to `css` for the adapter's makeContainer call.
+	JS("const css = `" * _container_css * "`"),
+	# The only Pluto-aware piece: wires `this`/`invalidation`/published data into
+	# the core (see pluto_adapter.js). A vscode_adapter.js would replace just this.
+	pluto_adapter_script,
 ])
 
 """

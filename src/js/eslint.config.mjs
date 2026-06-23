@@ -1,33 +1,37 @@
 // Self-contained ESLint flat config (no npm deps) for the plot-injection scripts.
 //
-// clipboard.js and resizer.js are read by Julia and concatenated into a single
-// <script> that the package injects into the page (see src/show.jl and
-// src/main_struct.jl). They therefore share one lexical scope and rely on names
-// defined by the Julia preamble, the Pluto runtime, lodash-es, and each other.
-// Declaring those names here keeps `no-undef` useful instead of a wall of false
-// positives. This list doubles as the contract a future non-Pluto (e.g. VSCode)
-// host would have to provide.
+// The core files (html.js, container.js, clipboard.js, resizer.js) plus the
+// active adapter (pluto_adapter.js) are read by Julia and concatenated into a
+// single <script> that the package injects into the page (see src/show.jl and
+// src/main_struct.jl). They share one lexical scope: per-plot state lives on the
+// CONTAINER element, and the files call each other's top-level functions. The
+// names below are the cross-file + host contract — declaring them keeps
+// `no-undef` useful and doubles as the contract a future non-Pluto (e.g. VSCode)
+// adapter would have to provide in place of pluto_adapter.js.
 
 const injectedGlobals = {
-  // Julia preamble (src/show.jl + the script blocks in src/main_struct.jl)
+  // Published data + library (Julia preamble in src/show.jl)
   plot_obj: "readonly",
   Plotly: "readonly",
-  CONTAINER: "readonly",
-  PLOT: "readonly",
-  firstRun: "readonly",
-  original_width: "readonly",
-  original_height: "readonly",
-  remove_container_size: "writable", // reassigned by resizer.js / unpop
-  // Pluto runtime
+  plotly_listeners: "readonly",
+  js_listeners: "readonly",
+  // Container stylesheet, bound in src/main_struct.jl
+  css: "readonly",
+  // Provided by html.js (or the host); consumed by the other core files
   html: "readonly",
-  // lodash-es, imported in src/show.jl
-  _: "readonly",
-  // cross-file (clipboard.js <-> resizer.js)
-  CLIPBOARD_HEADER: "readonly",
-  config_spans: "readonly",
+  // Pluto runtime — only pluto_adapter.js touches `invalidation`
+  invalidation: "readonly",
+  // Core cross-file functions (defined in one core file, called from another)
+  makeContainer: "readonly",
+  updatePlotData: "readonly",
+  addClipboardFunctionality: "readonly",
+  addResizeFunctionality: "readonly",
+  getOffsetData: "readonly",
   getSizeData: "readonly",
   computeContainerSize: "readonly",
   computePlotSize: "readonly",
+  changeContainerSize: "readonly",
+  updateFromHeader: "readonly",
 };
 
 const browserGlobals = {
