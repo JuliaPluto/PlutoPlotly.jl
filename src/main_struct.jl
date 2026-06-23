@@ -1,16 +1,19 @@
 const _container_css = read(joinpath(@__DIR__, "js", "container.css"), String)
 const html_script = htl_js(read(joinpath(@__DIR__, "js", "html.js"), String))
+const container_script = htl_js(read(joinpath(@__DIR__, "js", "container.js"), String))
 const clipboard_script = htl_js(read(joinpath(@__DIR__, "js", "clipboard.js"), String))
 const resizer_script = htl_js(read(joinpath(@__DIR__, "js", "resizer.js"), String))
 
 const _default_script_contents = htl_js.([
 	# Provide our own `html` DOM helper, shadowing Pluto's injected one (see html.js)
 	html_script,
+	# makeContainer(): Pluto-agnostic container/PLOT construction (see container.js)
+	container_script,
 	"""
 	// Flag to check if this cell was  manually ran or reactively ran
 	const firstRun = this ? false : true
-	const CONTAINER = this ?? html`<div class='plutoplotly-container'>`
-	const PLOT = CONTAINER.querySelector('.js-plotly-plot') ?? CONTAINER.appendChild(html`<div>`)
+	const CONTAINER = this ?? makeContainer(Plotly, html)
+	const PLOT = CONTAINER.PLOT
 	const parent = CONTAINER.parentElement
 	// We use a controller to remove event listeners upon invalidation
 	const controller = new AbortController()
