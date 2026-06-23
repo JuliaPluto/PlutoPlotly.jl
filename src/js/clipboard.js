@@ -1,7 +1,7 @@
 // Injected as part of the plot <script> (see src/show.jl); runs in the shared
 // scope of the concatenated script. Expects to already be in scope:
-//   Julia preamble: plot_obj, Plotly, CONTAINER, PLOT, firstRun,
-//                   original_width, original_height, remove_container_size
+//   Julia preamble: Plotly, CONTAINER, PLOT, firstRun
+//   on CONTAINER  : plot_obj, original_width, original_height, remove_container_size
 //   Pluto runtime : html
 //   resizer.js    : getSizeData, computeContainerSize
 // Exposes for resizer.js: CLIPBOARD_HEADER, config_spans, and the
@@ -18,11 +18,11 @@ function delay(ms) {
 }
 
 function getImageOptions() {
-  const o = plot_obj.config.toImageButtonOptions ?? {};
+  const o = CONTAINER.plot_obj.config.toImageButtonOptions ?? {};
   return {
     format: o.format ?? "png",
-    width: o.width ?? original_width,
-    height: o.height ?? original_height,
+    width: o.width ?? CONTAINER.original_width,
+    height: o.height ?? CONTAINER.original_height,
     scale: o.scale ?? 1,
     filename: o.filename ?? "newplot",
   };
@@ -154,14 +154,14 @@ function initializeConfigValueSpan(span, key) {
   const container = span.closest(".clipboard-span");
   Object.defineProperty(span, "value", {
     get: () => {
-      return plot_obj.config.toImageButtonOptions[key];
+      return CONTAINER.plot_obj.config.toImageButtonOptions[key];
     },
     set: (val) => {
       // if undefined is passed, we remove the entry from the options
       if (val === undefined) {
-        delete plot_obj.config.toImageButtonOptions[key];
+        delete CONTAINER.plot_obj.config.toImageButtonOptions[key];
       } else {
-        plot_obj.config.toImageButtonOptions[key] = val;
+        CONTAINER.plot_obj.config.toImageButtonOptions[key] = val;
       }
       checkConfigSync(container);
     },
@@ -195,8 +195,8 @@ for (const [key, value] of Object.entries(getImageOptions())) {
   container.key = key;
   config_spans[key] = container;
   if (firstRun) {
-    plot_obj.config.toImageButtonOptions =
-      plot_obj.config.toImageButtonOptions ?? {};
+    CONTAINER.plot_obj.config.toImageButtonOptions =
+      CONTAINER.plot_obj.config.toImageButtonOptions ?? {};
     // We do the initialization of the value span
     initializeUIValueSpan(ui_value_span, key, value);
     // Then we initialize the config value
@@ -359,7 +359,7 @@ function unpop_container(cl) {
   CONTAINER.classList.toggle(cl, false);
   // We fix the height back to the value it had before popout, also setting the flag to signal that upon first resize we remove the fixed inline-style
   CONTAINER.style.height = container_rect.height + "px";
-  remove_container_size = true;
+  CONTAINER.remove_container_size = true;
   // We set the other fixed inline-styles to null
   CONTAINER.style.width = "";
   CONTAINER.style.top = "";
@@ -459,13 +459,13 @@ function DualClick(single_func, dbl_func) {
 }
 
 // We remove the default download image button
-plot_obj.config.modeBarButtonsToRemove = union(
-  plot_obj.config.modeBarButtonsToRemove,
+CONTAINER.plot_obj.config.modeBarButtonsToRemove = union(
+  CONTAINER.plot_obj.config.modeBarButtonsToRemove,
   ["toImage"]
 );
 // We add the custom button to the modebar
-plot_obj.config.modeBarButtonsToAdd = union(
-  plot_obj.config.modeBarButtonsToAdd,
+CONTAINER.plot_obj.config.modeBarButtonsToAdd = union(
+  CONTAINER.plot_obj.config.modeBarButtonsToAdd,
   [
     {
       name: "Copy PNG to Clipboard",

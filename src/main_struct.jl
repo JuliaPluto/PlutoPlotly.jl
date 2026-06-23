@@ -35,12 +35,15 @@ const _default_script_contents = htl_js.([
 	`)
 	"""),
 	"""
-	let original_height = plot_obj.layout.height
-	let original_width = plot_obj.layout.width
+	// Stash the per-plot data on CONTAINER so clipboard.js/resizer.js read it
+	// from there instead of from shared script-scope globals.
+	CONTAINER.plot_obj = plot_obj
+	CONTAINER.original_height = plot_obj.layout.height
+	CONTAINER.original_width = plot_obj.layout.width
 	// For the height we have to also put a fixed value in case the plot is put on a non-fixed-size container (like the default wrapper)
 	// We define a variable to check whether we still have to remove the fixed height
-	let remove_container_size = firstRun
-	let container_height = original_height ?? PLOT.container_height ?? 400
+	CONTAINER.remove_container_size = firstRun
+	let container_height = CONTAINER.original_height ?? PLOT.container_height ?? 400
 	CONTAINER.style.height = container_height + 'px'
 	""",
 	clipboard_script,

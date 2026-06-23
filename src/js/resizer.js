@@ -1,7 +1,7 @@
 // Injected as part of the plot <script> (see src/show.jl); runs in the shared
 // scope of the concatenated script. Expects to already be in scope:
-//   Julia preamble: Plotly, CONTAINER, PLOT, firstRun, original_width,
-//                   original_height, remove_container_size
+//   Julia preamble: Plotly, CONTAINER, PLOT, firstRun
+//   on CONTAINER  : original_width, original_height, remove_container_size
 //   clipboard.js  : CLIPBOARD_HEADER, config_spans
 // Exposes for clipboard.js: getSizeData, computeContainerSize, computePlotSize,
 // and the resizeObserver.
@@ -137,16 +137,16 @@ const resizeObserver = new ResizeObserver((entries) => {
 		*/
   let config = {
     // If this is popped out, we ignore the original width/height
-    width: (CONTAINER.isPoppedOut() ? undefined : original_width) ?? plot_size.width,
-    height: (CONTAINER.isPoppedOut() ? undefined : original_height) ?? plot_size.height,
+    width: (CONTAINER.isPoppedOut() ? undefined : CONTAINER.original_width) ?? plot_size.width,
+    height: (CONTAINER.isPoppedOut() ? undefined : CONTAINER.original_height) ?? plot_size.height,
     plutoresize: true,
   };
   Plotly.relayout(PLOT, config).then(() => {
-    if (remove_container_size && !CONTAINER.isPoppedOut()) {
+    if (CONTAINER.remove_container_size && !CONTAINER.isPoppedOut()) {
       // This is needed to avoid the first resize upon plot creation to already be without a fixed height
       CONTAINER.style.height = "";
       CONTAINER.style.width = "";
-      remove_container_size = false;
+      CONTAINER.remove_container_size = false;
     }
   });
 });
