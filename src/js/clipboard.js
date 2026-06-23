@@ -3,10 +3,14 @@
 //   Julia preamble: plot_obj, Plotly, CONTAINER, PLOT, firstRun,
 //                   original_width, original_height, remove_container_size
 //   Pluto runtime : html
-//   lodash-es     : _
 //   resizer.js    : getSizeData, computeContainerSize
 // Exposes for resizer.js: CLIPBOARD_HEADER, config_spans, and the
 // CONTAINER.isPoppedOut()/popOut() helpers.
+
+// Minimal vanilla replacement for lodash _.union (unique, order-preserving)
+function union(a, b) {
+  return [...new Set([...(a ?? []), ...b])];
+}
 
 // We create a Promise version of setTimeout
 function delay(ms) {
@@ -455,12 +459,12 @@ function DualClick(single_func, dbl_func) {
 }
 
 // We remove the default download image button
-plot_obj.config.modeBarButtonsToRemove = _.union(
+plot_obj.config.modeBarButtonsToRemove = union(
   plot_obj.config.modeBarButtonsToRemove,
   ["toImage"]
 );
 // We add the custom button to the modebar
-plot_obj.config.modeBarButtonsToAdd = _.union(
+plot_obj.config.modeBarButtonsToAdd = union(
   plot_obj.config.modeBarButtonsToAdd,
   [
     {
