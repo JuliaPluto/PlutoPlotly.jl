@@ -1,12 +1,12 @@
-// Injected as part of the plot <script> (see src/show.jl); runs in the shared
-// scope of the concatenated script. Expects to already be in scope:
-//   Julia preamble: Plotly, CONTAINER, PLOT, firstRun
-//   on CONTAINER  : original_width, original_height, remove_container_size
-//   clipboard.js  : CLIPBOARD_HEADER, config_spans
-// Exposes for clipboard.js: getSizeData, computeContainerSize, computePlotSize,
-// and the resizeObserver.
+// Resize behaviour for the plot. The size helpers are pure-ish functions that
+// take the CONTAINER explicitly; the stateful part (header onblur wiring + the
+// ResizeObserver) is wrapped in addResizeFunctionality so nothing leaks into the
+// shared script scope. Reads CONTAINER.CLIPBOARD_HEADER / CONTAINER.config_spans
+// (set by clipboard.js); exposes getSizeData / computeContainerSize /
+// computePlotSize for clipboard.js.
 
-function getOffsetData(el) {
+function getOffsetData(CONTAINER, el) {
+  const PLOT = CONTAINER.PLOT;
   let cs = window.getComputedStyle(el, null);
   const odata = {
     padding: {
@@ -35,23 +35,19 @@ function getOffsetData(el) {
   }
   return odata;
 }
-function getSizeData() {
+function getSizeData(CONTAINER) {
+  const PLOT = CONTAINER.PLOT;
   const data = {
-    plot_pad: getOffsetData(PLOT),
+    plot_pad: getOffsetData(CONTAINER, PLOT),
     plot_rect: PLOT.getBoundingClientRect(),
-    container_pad: getOffsetData(CONTAINER),
+    container_pad: getOffsetData(CONTAINER, CONTAINER),
     container_rect: CONTAINER.getBoundingClientRect(),
   };
   return data;
 }
-function computeContainerSize({ width, height }, sizeData = getSizeData()) {
-  const computed_size = computePlotSize(sizeData);
+function computeContainerSize(CONTAINER, { width, height }, sizeData = getSizeData(CONTAINER)) {
+  const computed_size = computePlotSize(CONTAINER, sizeData);
   const offsets = computed_size.offsets;
-
-  const plot_data = {
-    width: width ?? computed_size.width,
-    height: height ?? computed_size.height,
-  };
 
   return {
     width: (width ?? computed_size.width) + offsets.width,
@@ -61,12 +57,12 @@ function computeContainerSize({ width, height }, sizeData = getSizeData()) {
 }
 
 // This function will change the container size so that the resulting plot will be matching the provided specs
-function changeContainerSize({ width, height }, sizeData = getSizeData()) {
+function changeContainerSize(CONTAINER, { width, height }, sizeData = getSizeData(CONTAINER)) {
   if (!CONTAINER.isPoppedOut()) {
     return;
   }
 
-  const csz = computeContainerSize({ width, height }, sizeData);
+  const csz = computeContainerSize(CONTAINER, { width, height }, sizeData);
 
   if (csz.noChange) {
     return
@@ -77,24 +73,15 @@ function changeContainerSize({ width, height }, sizeData = getSizeData()) {
   }
 }
 // We now create the function that will update the plot based on the values specified
-function updateFromHeader() {
+function updateFromHeader(CONTAINER) {
   const header_data = {
-    height: config_spans.height.ui_value,
-    width: config_spans.width.ui_value,
+    height: CONTAINER.config_spans.height.ui_value,
+    width: CONTAINER.config_spans.width.ui_value,
   };
-  changeContainerSize(header_data);
-}
-// We assign this function to the onblur event of width and height
-if (firstRun) {
-  for (const container of Object.values(config_spans)) {
-    container.ui_span.onblur = (e) => {
-      container.ui_value = container.ui_span.textContent;
-      updateFromHeader();
-    };
-  }
+  changeContainerSize(CONTAINER, header_data);
 }
 // This function computes the plot size to use for relayout as a function of the container size
-function computePlotSize(data = getSizeData()) {
+function computePlotSize(CONTAINER, data = getSizeData(CONTAINER)) {
   // Remove Padding
   const { container_pad, plot_pad, container_rect } = data;
   const offsets = {
@@ -119,36 +106,51 @@ function computePlotSize(data = getSizeData()) {
   return sz;
 }
 
-// Create the resizeObserver to make the plot even more responsive! :magic:
-const resizeObserver = new ResizeObserver((entries) => {
-  const sizeData = getSizeData();
-  const {container_rect, container_pad} = sizeData;
-  let plot_size = computePlotSize(sizeData);
-  // We save the height in the PLOT object
-  PLOT.container_height = container_rect.height;
-  // We deal with some stuff if the container is poppped
-  CLIPBOARD_HEADER.style.width = container_rect.width + "px";
-  CLIPBOARD_HEADER.style.left = container_rect.left + "px";
-  config_spans.height.ui_value = plot_size.height;
-  config_spans.width.ui_value = plot_size.width;
-  /*
+// Wire the header onblur handlers (first run only) and create the ResizeObserver
+// that keeps the plot responsive. The observer is stashed on CONTAINER so the
+// host adapter can disconnect it on invalidation.
+function addResizeFunctionality(CONTAINER, firstRun) {
+  const { Plotly, PLOT } = CONTAINER;
+  // We assign updateFromHeader to the onblur event of width and height
+  if (firstRun) {
+    for (const container of Object.values(CONTAINER.config_spans)) {
+      container.ui_span.onblur = (e) => {
+        container.ui_value = container.ui_span.textContent;
+        updateFromHeader(CONTAINER);
+      };
+    }
+  }
+  // Create the resizeObserver to make the plot even more responsive! :magic:
+  const resizeObserver = (CONTAINER.resizeObserver = new ResizeObserver((entries) => {
+    const sizeData = getSizeData(CONTAINER);
+    const { container_rect } = sizeData;
+    let plot_size = computePlotSize(CONTAINER, sizeData);
+    // We save the height in the PLOT object
+    PLOT.container_height = container_rect.height;
+    // We deal with some stuff if the container is poppped
+    CONTAINER.CLIPBOARD_HEADER.style.width = container_rect.width + "px";
+    CONTAINER.CLIPBOARD_HEADER.style.left = container_rect.left + "px";
+    CONTAINER.config_spans.height.ui_value = plot_size.height;
+    CONTAINER.config_spans.width.ui_value = plot_size.width;
+    /*
 		The addition of the invalid argument `plutoresize` seems to fix the problem with calling `relayout` simply with `{autosize: true}` as update breaking mouse relayout events tracking.
 		See https://github.com/plotly/plotly.js/issues/6156 for details
 		*/
-  let config = {
-    // If this is popped out, we ignore the original width/height
-    width: (CONTAINER.isPoppedOut() ? undefined : CONTAINER.original_width) ?? plot_size.width,
-    height: (CONTAINER.isPoppedOut() ? undefined : CONTAINER.original_height) ?? plot_size.height,
-    plutoresize: true,
-  };
-  Plotly.relayout(PLOT, config).then(() => {
-    if (CONTAINER.remove_container_size && !CONTAINER.isPoppedOut()) {
-      // This is needed to avoid the first resize upon plot creation to already be without a fixed height
-      CONTAINER.style.height = "";
-      CONTAINER.style.width = "";
-      CONTAINER.remove_container_size = false;
-    }
-  });
-});
+    let config = {
+      // If this is popped out, we ignore the original width/height
+      width: (CONTAINER.isPoppedOut() ? undefined : CONTAINER.original_width) ?? plot_size.width,
+      height: (CONTAINER.isPoppedOut() ? undefined : CONTAINER.original_height) ?? plot_size.height,
+      plutoresize: true,
+    };
+    Plotly.relayout(PLOT, config).then(() => {
+      if (CONTAINER.remove_container_size && !CONTAINER.isPoppedOut()) {
+        // This is needed to avoid the first resize upon plot creation to already be without a fixed height
+        CONTAINER.style.height = "";
+        CONTAINER.style.width = "";
+        CONTAINER.remove_container_size = false;
+      }
+    });
+  }));
 
-resizeObserver.observe(CONTAINER);
+  resizeObserver.observe(CONTAINER);
+}

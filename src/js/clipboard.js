@@ -1,11 +1,10 @@
-// Injected as part of the plot <script> (see src/show.jl); runs in the shared
-// scope of the concatenated script. Expects to already be in scope:
-//   Julia preamble: Plotly, CONTAINER, PLOT, firstRun
-//   on CONTAINER  : plot_obj, original_width, original_height, remove_container_size
-//   Pluto runtime : html
-//   resizer.js    : getSizeData, computeContainerSize
-// Exposes for resizer.js: CLIPBOARD_HEADER, config_spans, and the
-// CONTAINER.isPoppedOut()/popOut() helpers.
+// Clipboard / export-header behaviour for the plot. Wrapped in one function so
+// it pollutes nothing in the shared script scope; all per-plot state lives on
+// the passed-in CONTAINER. Reads `html` (html.js) and getSizeData /
+// computeContainerSize (resizer.js); exposes CONTAINER.CLIPBOARD_HEADER,
+// CONTAINER.config_spans and CONTAINER.popOut for resizer.js.
+function addClipboardFunctionality(CONTAINER, firstRun) {
+  const { Plotly, PLOT } = CONTAINER;
 
 // Minimal vanilla replacement for lodash _.union (unique, order-preserving)
 function union(a, b) {
@@ -57,6 +56,7 @@ const CLIPBOARD_HEADER =
       ></span>
     </div>`
   );
+CONTAINER.CLIPBOARD_HEADER = CLIPBOARD_HEADER;
 
 function checkConfigSync(container) {
   const valid_classes = [
@@ -218,6 +218,7 @@ for (const [key, value] of Object.entries(getImageOptions())) {
     });
   }
 }
+CONTAINER.config_spans = config_spans;
 
 // These objects will contain the default value
 
@@ -241,11 +242,6 @@ if (firstRun) {
   };
   unset_button.onclick = unsetImageOptions;
 }
-
-// We add a function to check if the clipboard is popped out
-CONTAINER.isPoppedOut = () => {
-  return CONTAINER.classList.contains("popped-out");
-};
 
 CLIPBOARD_HEADER.onmousedown = function (event) {
   if (event.target.matches("span.clipboard-value")) {
@@ -389,9 +385,9 @@ function popout_container(opts) {
   };
   // We have to save the pad data before popping so we can resize precisely
   const pad = {};
-  pad.unpopped = getSizeData().container_pad;
+  pad.unpopped = getSizeData(CONTAINER).container_pad;
   CONTAINER.classList.toggle("popped-out", true);
-  pad.popped = getSizeData().container_pad;
+  pad.popped = getSizeData(CONTAINER).container_pad;
   // We do top and left based on the current rect
   for (const key of ["top", "left"]) {
     const start_val = target_container_size[key] ?? container_rect[key];
@@ -405,7 +401,7 @@ function popout_container(opts) {
     }
   }
   // We compute the width and height depending on eventual config data
-  const csz = computeContainerSize({
+  const csz = computeContainerSize(CONTAINER, {
     width:
       target_plot_size.width ??
       config_spans.width.config_value ??
@@ -489,3 +485,4 @@ CONTAINER.plot_obj.config.modeBarButtonsToAdd = union(
     },
   ]
 );
+}
