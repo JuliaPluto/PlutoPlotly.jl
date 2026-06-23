@@ -12,7 +12,9 @@ const CONTAINER = this ?? makeContainer(Plotly, html, css);
 // user listener code referencing bare `PLOT` keeps working.
 const PLOT = CONTAINER.PLOT;
 
-updatePlotData(
+// Capture THIS run's teardown handles; CONTAINER is reused across re-runs, so
+// cleaning up these locals (not CONTAINER.*) avoids clobbering the next run.
+const { controller, resizeObserver } = updatePlotData(
   CONTAINER,
   plot_obj,
   { plotlyListeners: plotly_listeners, jsListeners: js_listeners },
@@ -22,8 +24,8 @@ updatePlotData(
 invalidation.then(() => {
   // Remove all plotly listeners
   PLOT.removeAllListeners();
-  // Remove all JS listeners
-  CONTAINER.controller.abort();
-  // Remove the resizeObserver
-  CONTAINER.resizeObserver.disconnect();
+  // Remove the @bind forwarder + all JS listeners added this run
+  controller.abort();
+  // Remove this run's resizeObserver
+  resizeObserver.disconnect();
 });

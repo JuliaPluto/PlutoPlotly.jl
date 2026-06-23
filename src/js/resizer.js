@@ -107,8 +107,9 @@ function computePlotSize(CONTAINER, data = getSizeData(CONTAINER)) {
 }
 
 // Wire the header onblur handlers (first run only) and create the ResizeObserver
-// that keeps the plot responsive. The observer is stashed on CONTAINER so the
-// host adapter can disconnect it on invalidation.
+// that keeps the plot responsive. Returns the observer so the host adapter can
+// disconnect this run's observer on invalidation (it must not be stashed on the
+// reused CONTAINER, or a later run would clobber the reference).
 function addResizeFunctionality(CONTAINER, firstRun) {
   const { Plotly, PLOT } = CONTAINER;
   // We assign updateFromHeader to the onblur event of width and height
@@ -121,7 +122,7 @@ function addResizeFunctionality(CONTAINER, firstRun) {
     }
   }
   // Create the resizeObserver to make the plot even more responsive! :magic:
-  const resizeObserver = (CONTAINER.resizeObserver = new ResizeObserver((entries) => {
+  const resizeObserver = new ResizeObserver(() => {
     const sizeData = getSizeData(CONTAINER);
     const { container_rect } = sizeData;
     let plot_size = computePlotSize(CONTAINER, sizeData);
@@ -150,7 +151,8 @@ function addResizeFunctionality(CONTAINER, firstRun) {
         CONTAINER.remove_container_size = false;
       }
     });
-  }));
+  });
 
   resizeObserver.observe(CONTAINER);
+  return resizeObserver;
 }

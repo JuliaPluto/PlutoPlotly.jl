@@ -12,28 +12,17 @@ function makeContainer(Plotly, html, css) {
   // Inject the stylesheet once.
   CONTAINER.appendChild(html`<style>${css}</style>`);
   // Child div that holds the actual Plotly plot.
-  const PLOT = (CONTAINER.PLOT = CONTAINER.appendChild(html`<div></div>`));
-  // Controller used to remove event listeners on invalidation.
-  CONTAINER.controller = new AbortController();
-  // Keep supporting @bind with the old API using PLOT.
-  PLOT.addEventListener(
-    "input",
-    (e) => {
-      CONTAINER.value = PLOT.value;
-      if (e.bubbles) {
-        return;
-      }
-      CONTAINER.dispatchEvent(new CustomEvent("input"));
-    },
-    { signal: CONTAINER.controller.signal }
-  );
+  CONTAINER.PLOT = CONTAINER.appendChild(html`<div></div>`);
   CONTAINER.isPoppedOut = () => CONTAINER.classList.contains("popped-out");
   return CONTAINER;
 }
 
 // Stash the per-plot data on CONTAINER, wire clipboard + resize behaviour, then
-// render and attach the user listeners. Runs on every (re-)render.
-function updatePlotData(CONTAINER, plot_obj, listeners = {}, firstRun = true) {
+// render and attach the user listeners. Runs on every (re-)render. Returns the
+// per-run { controller, resizeObserver } so the host can tear down exactly the
+// resources this run created on invalidation (the CONTAINER itself is reused
+// across reactive re-runs, so these must NOT be stashed on it).
+function updatePlotData(CONTAINER, plot_obj, listeners, firstRun) {
   const { Plotly, PLOT } = CONTAINER;
   CONTAINER.plot_obj = plot_obj;
   CONTAINER.original_height = plot_obj.layout?.height;
@@ -44,9 +33,25 @@ function updatePlotData(CONTAINER, plot_obj, listeners = {}, firstRun = true) {
   const container_height =
     CONTAINER.original_height ?? PLOT.container_height ?? 400;
   CONTAINER.style.height = container_height + "px";
+  // Per-run controller: removes the @bind forwarder + all JS listeners when this
+  // run is invalidated. Recreated every run because the previous run's controller
+  // is aborted on its invalidation.
+  const controller = new AbortController();
+  // Keep supporting @bind with the old API using PLOT.
+  PLOT.addEventListener(
+    "input",
+    (e) => {
+      CONTAINER.value = PLOT.value;
+      if (e.bubbles) {
+        return;
+      }
+      CONTAINER.dispatchEvent(new CustomEvent("input"));
+    },
+    { signal: controller.signal }
+  );
   addClipboardFunctionality(CONTAINER, firstRun);
-  addResizeFunctionality(CONTAINER, firstRun);
-  return Plotly.react(PLOT, plot_obj).then(() => {
+  const resizeObserver = addResizeFunctionality(CONTAINER, firstRun);
+  Plotly.react(PLOT, plot_obj).then(() => {
     const { plotlyListeners = {}, jsListeners = {} } = listeners;
     for (const [key, listener_vec] of Object.entries(plotlyListeners)) {
       for (const listener of listener_vec) {
@@ -55,10 +60,9 @@ function updatePlotData(CONTAINER, plot_obj, listeners = {}, firstRun = true) {
     }
     for (const [key, listener_vec] of Object.entries(jsListeners)) {
       for (const listener of listener_vec) {
-        PLOT.addEventListener(key, listener, {
-          signal: CONTAINER.controller.signal,
-        });
+        PLOT.addEventListener(key, listener, { signal: controller.signal });
       }
     }
   });
+  return { controller, resizeObserver };
 }
